@@ -1,5 +1,6 @@
 <?php
 require_once '../assets/bd/bd.php';
+require_once 'header.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombre = $_POST['nombre'];
@@ -59,3 +60,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 </body>
 </html>
+<?php require_once 'footer.php'; ?>

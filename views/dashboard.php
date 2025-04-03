@@ -1,3 +1,4 @@
+<?php require_once 'header.php'; ?>
 <?php
 session_start();
 
@@ -21,3 +22,4 @@ if (!isset($_SESSION['usuario_id'])) {
     <a href="index.php?controller=login&action=logout">Cerrar sesión</a>
 </body>
 </html>
+<?php require_once 'footer.php'; ?>

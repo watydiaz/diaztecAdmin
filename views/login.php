@@ -1,3 +1,4 @@
+<?php require_once 'header.php'; ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -21,3 +22,4 @@
     </form>
 </body>
 </html>
+<?php require_once 'footer.php'; ?>
