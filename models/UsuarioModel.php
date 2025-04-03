@@ -16,4 +16,5 @@ class UsuarioModel {
         return $result->fetch_assoc();
     }
 }
+
 ?>
