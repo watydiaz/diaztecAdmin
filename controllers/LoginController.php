@@ -1,0 +1,43 @@
+<?php
+// Controlador para gestionar el inicio de sesión
+class LoginController {
+    private $usuarioModel;
+
+    public function __construct($usuarioModel) {
+        $this->usuarioModel = $usuarioModel;
+    }
+
+    // Método para mostrar la vista de login
+    public function mostrarLogin() {
+        include 'views/login.php';
+    }
+
+    // Método para manejar el inicio de sesión
+    public function iniciarSesion($email, $password) {
+        // Obtener el usuario por email
+        $usuario = $this->usuarioModel->obtenerUsuarioPorEmail($email);
+
+        if ($usuario && $this->usuarioModel->verificarPassword($password, $usuario['password'])) {
+            // Iniciar sesión y guardar datos del usuario
+            session_start();
+            $_SESSION['usuario_id'] = $usuario['id'];
+            $_SESSION['rol_id'] = $usuario['rol_id'];
+
+            // Redirigir al dashboard
+            header('Location: index.php?action=dashboard');
+            exit();
+        } else {
+            // Mostrar error en caso de credenciales incorrectas
+            $error = 'Credenciales incorrectas';
+            include 'views/login.php';
+        }
+    }
+
+    // Método para cerrar sesión
+    public function cerrarSesion() {
+        session_start();
+        session_destroy();
+        header('Location: index.php?action=login');
+        exit();
+    }
+}

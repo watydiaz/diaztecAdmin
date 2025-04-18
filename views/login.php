@@ -1,25 +1,28 @@
-<?php require_once 'header.php'; ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Iniciar Sesión</title>
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-    <h1>Iniciar Sesión</h1>
-    <?php if (isset($_GET['error']) && $_GET['error'] == 1): ?>
-        <p style="color: red;">Correo o contraseña incorrectos.</p>
-    <?php endif; ?>
-    <form action="index.php?controller=login&action=login" method="POST">
-        <label for="email">Correo electrónico:</label>
-        <input type="email" name="email" id="email" required>
-        <br>
-        <label for="password">Contraseña:</label>
-        <input type="password" name="password" id="password" required>
-        <br>
-        <button type="submit">Iniciar Sesión</button>
-    </form>
+    <div class="login-container">
+        <h1>Iniciar Sesión</h1>
+        <?php if (isset($error)): ?>
+            <p class="error"> <?php echo $error; ?> </p>
+        <?php endif; ?>
+        <form action="index.php?action=login" method="POST">
+            <div class="form-group">
+                <label for="email">Correo Electrónico:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Contraseña:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Ingresar</button>
+        </form>
+    </div>
 </body>
 </html>
-<?php require_once 'footer.php'; ?>

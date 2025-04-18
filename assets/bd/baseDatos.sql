@@ -175,4 +175,35 @@ SELECT * FROM remisiones;
 SELECT * FROM remision_detalle;
 SELECT * FROM pagos;
 
+-- Consulta cruzada para obtener información detallada de las órdenes de reparación
+SELECT 
+    o.id AS orden_id,
+    c.nombre AS cliente_nombre,
+    c.telefono AS cliente_telefono,
+    c.email AS cliente_email,
+    u.nombre AS tecnico_nombre,
+    o.marca,
+    o.modelo,
+    o.imei_serial,
+    o.falla_reportada,
+    o.diagnostico,
+    o.estado,
+    o.prioridad,
+    r.tipo AS remision_tipo,
+    rd.descripcion AS remision_detalle,
+    rd.cantidad,
+    rd.precio_unitario,
+    rd.total AS remision_total,
+    p.monto AS pago_monto,
+    p.metodo_pago,
+    p.fecha AS pago_fecha
+FROM 
+    ordenes_reparacion o
+LEFT JOIN clientes c ON o.cliente_id = c.id
+LEFT JOIN usuarios u ON o.usuario_tecnico_id = u.id
+LEFT JOIN remisiones r ON o.id = r.orden_id
+LEFT JOIN remision_detalle rd ON r.id = rd.remision_id
+LEFT JOIN pagos p ON r.id = p.remision_id
+ORDER BY o.id;
+
 
