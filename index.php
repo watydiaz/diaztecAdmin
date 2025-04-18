@@ -13,6 +13,8 @@ require_once 'controllers/RolController.php';
 require_once 'models/RolModel.php';
 require_once 'controllers/ClienteController.php';
 require_once 'models/ClienteModel.php';
+require_once 'controllers/OrdenController.php';
+require_once 'models/OrdenModel.php';
 
 // Conexión a la base de datos
 $mysqli = new mysqli('localhost', 'root', '', 'reparaciones_taller');
@@ -31,6 +33,10 @@ $rolController = new RolController($rolModel);
 // Instanciar el modelo y controlador de clientes
 $clienteModel = new ClienteModel($mysqli);
 $clienteController = new ClienteController($clienteModel);
+
+// Instanciar el modelo y controlador de órdenes
+$ordenModel = new OrdenModel($mysqli);
+$ordenController = new OrdenController($mysqli);
 
 // Agregar enlace a la vista de órdenes
 if (isset($_GET['view']) && $_GET['view'] === 'ordenes') {
@@ -152,6 +158,42 @@ switch ($action) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $clienteController->actualizarClienteDesdeModal();
         }
+        break;
+
+    case 'listarOrdenes':
+        $ordenes = $ordenController->listarOrdenes();
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'ordenes' => $ordenes]);
+        exit();
+
+    case 'agregarOrden':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = [
+                'cliente_id' => $_POST['cliente_id'],
+                'usuario_tecnico_id' => $_POST['usuario_tecnico_id'],
+                'marca' => $_POST['marca'],
+                'modelo' => $_POST['modelo'],
+                'imei_serial' => $_POST['imei_serial'],
+                'falla_reportada' => $_POST['falla_reportada'],
+                'diagnostico' => $_POST['diagnostico'],
+                'estado' => $_POST['estado'],
+                'prioridad' => $_POST['prioridad'],
+                'contraseña_equipo' => $_POST['contraseña_equipo'],
+                'imagen_url' => $_POST['imagen_url'],
+                'fecha_ingreso' => $_POST['fecha_ingreso'],
+                'fecha_entrega_estimada' => $_POST['fecha_entrega_estimada']
+            ];
+
+            $resultado = $ordenController->agregarOrden($data);
+
+            header('Content-Type: application/json');
+            echo json_encode(['success' => $resultado]);
+            exit();
+        }
+        break;
+
+    case 'obtenerTecnicos':
+        $ordenController->obtenerTecnicos();
         break;
 
     default:

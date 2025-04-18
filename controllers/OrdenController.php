@@ -4,8 +4,8 @@ require_once 'models/OrdenModel.php';
 class OrdenController {
     private $model;
 
-    public function __construct() {
-        $this->model = new OrdenModel();
+    public function __construct($db) {
+        $this->model = new OrdenModel($db);
     }
 
     public function listarOrdenes() {
@@ -28,5 +28,12 @@ class OrdenController {
         $fecha_entrega_estimada = $data['fecha_entrega_estimada'];
 
         return $this->model->agregarOrden($cliente_id, $usuario_tecnico_id, $marca, $modelo, $imei_serial, $falla_reportada, $diagnostico, $estado, $prioridad, $contraseña_equipo, $imagen_url, $fecha_ingreso, $fecha_entrega_estimada);
+    }
+
+    public function obtenerTecnicos() {
+        $tecnicos = $this->model->obtenerTecnicos();
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'tecnicos' => $tecnicos]);
+        exit();
     }
 }
