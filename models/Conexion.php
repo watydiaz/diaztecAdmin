@@ -15,7 +15,7 @@ class Conexion {
             if (self::$conexion->connect_error) {
                 die('Error de conexión a la base de datos: ' . self::$conexion->connect_error);
             } else {
-                echo '<p style="color: green;">Conexión a la base de datos exitosa</p>';
+                // Eliminado el mensaje de conexión exitosa para evitar interferencias con respuestas JSON.
             }
         }
 

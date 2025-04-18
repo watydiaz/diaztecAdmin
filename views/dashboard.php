@@ -14,12 +14,15 @@
         <p>Seleccione una opción del menú para comenzar.</p>
 
         <div class="dashboard-links">
-            <a href="index.php?action=clientes">Gestión de Clientes</a>
-            <a href="index.php?action=ordenes">Gestión de Órdenes</a>
-            <a href="index.php?action=inventario">Gestión de Inventario</a>
-            <a href="index.php?action=usuarios">Gestión de Usuarios</a>
+            <!-- Enlace al módulo de clientes eliminado -->
         </div>
     </div>
+
+    <!-- Contenedor de clientes eliminado -->
+
+    <script>
+        // Código relacionado con el módulo de clientes eliminado
+    </script>
 
     <?php include 'footer.php'; ?>
 </body>
