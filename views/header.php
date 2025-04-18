@@ -37,10 +37,6 @@
     </header>
     <nav>
         <a href="index.php?controller=dashboard&action=home">Inicio</a>
-        <a href="index.php?controller=cliente&action=listar">Clientes</a>
-        <a href="index.php?controller=ticket&action=listar">Lista de Tickets</a>
-        <a href="index.php?controller=ticket&action=crear">Crear Ticket</a>
-        <a href="index.php?controller=usuario&action=crear">Crear Usuario</a>
-        <a href="index.php?controller=login&action=logout">Cerrar Sesión</a>
+
     </nav>
     <main>
