@@ -94,4 +94,13 @@ class ClienteController {
             exit();
         }
     }
+
+    public function buscarClientes() {
+        $query = $_GET['query'] ?? '';
+        $clientes = $this->clienteModel->buscarClientesPorNombreOIdentificacion($query);
+
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'clientes' => $clientes]);
+        exit();
+    }
 }

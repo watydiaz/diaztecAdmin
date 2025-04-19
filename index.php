@@ -181,6 +181,14 @@ switch ($action) {
         }
         break;
 
+    case 'buscarCliente':
+        $clienteController->buscarClientes();
+        break;
+
+    case 'obtenerTecnicos':
+        $loginController->obtenerTecnicos();
+        break;
+
     default:
         // Redirigir al login si la acción no es válida
         header('Location: index.php?action=login');

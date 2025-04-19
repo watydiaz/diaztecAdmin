@@ -42,4 +42,13 @@ class ClienteModel {
         $stmt->bind_param('i', $id);
         return $stmt->execute();
     }
+
+    public function buscarClientesPorNombreOIdentificacion($query) {
+        $query = "%" . $this->conexion->real_escape_string($query) . "%";
+        $sql = "SELECT * FROM clientes WHERE nombre LIKE ? OR identificacion LIKE ?";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bind_param('ss', $query, $query);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
 }

@@ -40,4 +40,13 @@ class LoginController {
         header('Location: index.php?action=login');
         exit();
     }
+
+    // Método para obtener técnicos
+    public function obtenerTecnicos() {
+        $tecnicos = $this->usuarioModel->obtenerTecnicos();
+
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'tecnicos' => $tecnicos]);
+        exit();
+    }
 }

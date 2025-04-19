@@ -37,4 +37,11 @@ class UsuarioModel {
         }
         return $permisos;
     }
+
+    // Método para obtener técnicos
+    public function obtenerTecnicos() {
+        $sql = "SELECT * FROM usuarios WHERE rol = 'tecnico'";
+        $resultado = $this->conexion->query($sql);
+        return $resultado->fetch_all(MYSQLI_ASSOC);
+    }
 }
