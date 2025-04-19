@@ -2,38 +2,39 @@
 require_once 'models/OrdenModel.php';
 
 class OrdenController {
-    private $model;
+    private $ordenModel;
 
-    public function __construct($db) {
-        $this->model = new OrdenModel($db);
+    public function __construct() {
+        $this->ordenModel = new OrdenModel();
     }
 
     public function listarOrdenes() {
-        return $this->model->listarOrdenes();
+        $ordenes = $this->ordenModel->obtenerOrdenes();
+        include 'views/ordenes.php';
     }
 
     public function agregarOrden($data) {
-        $cliente_id = $data['cliente_id'];
-        $usuario_tecnico_id = $data['usuario_tecnico_id'];
-        $marca = $data['marca'];
-        $modelo = $data['modelo'];
-        $imei_serial = $data['imei_serial'];
-        $falla_reportada = $data['falla_reportada'];
-        $diagnostico = $data['diagnostico'];
-        $estado = $data['estado'];
-        $prioridad = $data['prioridad'];
-        $contraseña_equipo = $data['contraseña_equipo'];
-        $imagen_url = $data['imagen_url'];
-        $fecha_ingreso = $data['fecha_ingreso'];
-        $fecha_entrega_estimada = $data['fecha_entrega_estimada'];
-
-        return $this->model->agregarOrden($cliente_id, $usuario_tecnico_id, $marca, $modelo, $imei_serial, $falla_reportada, $diagnostico, $estado, $prioridad, $contraseña_equipo, $imagen_url, $fecha_ingreso, $fecha_entrega_estimada);
+        $this->ordenModel->agregarOrden($data);
+        header('Location: index.php?action=ordenes');
+        exit();
     }
 
-    public function obtenerTecnicos() {
-        $tecnicos = $this->model->obtenerTecnicos();
+    public function obtenerOrden($id) {
+        $orden = $this->ordenModel->obtenerOrdenPorId($id);
         header('Content-Type: application/json');
-        echo json_encode(['success' => true, 'tecnicos' => $tecnicos]);
+        echo json_encode(['success' => true, 'orden' => $orden]);
+        exit();
+    }
+
+    public function actualizarOrden($id, $data) {
+        $this->ordenModel->actualizarOrden($id, $data);
+        header('Location: index.php?action=ordenes');
+        exit();
+    }
+
+    public function eliminarOrden($id) {
+        $this->ordenModel->eliminarOrden($id);
+        header('Location: index.php?action=ordenes');
         exit();
     }
 }

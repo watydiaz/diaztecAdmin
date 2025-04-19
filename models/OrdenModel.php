@@ -1,40 +1,45 @@
 <?php
+require_once 'Conexion.php';
 
 class OrdenModel {
-    private $db;
+    private $conexion;
 
-    public function __construct($db) {
-        $this->db = $db;
+    public function __construct() {
+        $this->conexion = Conexion::getConexion();
     }
 
-    public function listarOrdenes() {
-        $query = "SELECT o.*, c.nombre AS cliente_nombre FROM ordenes_reparacion o JOIN clientes c ON o.cliente_id = c.id";
-        $result = $this->db->query($query);
-
-        $ordenes = [];
-        while ($row = $result->fetch_assoc()) {
-            $ordenes[] = $row;
-        }
-
-        return $ordenes;
+    public function obtenerOrdenes() {
+        $query = "SELECT * FROM ordenes_reparacion";
+        $resultado = $this->conexion->query($query);
+        return $resultado->fetch_all(MYSQLI_ASSOC);
     }
 
-    public function agregarOrden($cliente_id, $usuario_tecnico_id, $marca, $modelo, $imei_serial, $falla_reportada, $diagnostico, $estado, $prioridad, $contraseña_equipo, $imagen_url, $fecha_ingreso, $fecha_entrega_estimada) {
-        $stmt = $this->db->prepare("INSERT INTO ordenes_reparacion (cliente_id, usuario_tecnico_id, marca, modelo, imei_serial, falla_reportada, diagnostico, estado, prioridad, contraseña_equipo, imagen_url, fecha_ingreso, fecha_entrega_estimada) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("iisssssssssss", $cliente_id, $usuario_tecnico_id, $marca, $modelo, $imei_serial, $falla_reportada, $diagnostico, $estado, $prioridad, $contraseña_equipo, $imagen_url, $fecha_ingreso, $fecha_entrega_estimada);
-
+    public function agregarOrden($data) {
+        $query = "INSERT INTO ordenes_reparacion (cliente_id, usuario_tecnico_id, marca, modelo, imei_serial, falla_reportada, diagnostico, estado, prioridad, contraseña_equipo, imagen_url, fecha_ingreso, fecha_entrega_estimada) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $this->conexion->prepare($query);
+        $stmt->bind_param('iisssssssssss', $data['cliente_id'], $data['usuario_tecnico_id'], $data['marca'], $data['modelo'], $data['imei_serial'], $data['falla_reportada'], $data['diagnostico'], $data['estado'], $data['prioridad'], $data['contraseña_equipo'], $data['imagen_url'], $data['fecha_ingreso'], $data['fecha_entrega_estimada']);
         return $stmt->execute();
     }
 
-    public function obtenerTecnicos() {
-        $query = "SELECT id, nombre FROM usuarios WHERE rol = 'tecnico'";
-        $result = $this->db->query($query);
+    public function obtenerOrdenPorId($id) {
+        $query = "SELECT * FROM ordenes_reparacion WHERE id = ?";
+        $stmt = $this->conexion->prepare($query);
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
+    }
 
-        $tecnicos = [];
-        while ($row = $result->fetch_assoc()) {
-            $tecnicos[] = $row;
-        }
+    public function actualizarOrden($id, $data) {
+        $query = "UPDATE ordenes_reparacion SET cliente_id = ?, usuario_tecnico_id = ?, marca = ?, modelo = ?, imei_serial = ?, falla_reportada = ?, diagnostico = ?, estado = ?, prioridad = ?, contraseña_equipo = ?, imagen_url = ?, fecha_ingreso = ?, fecha_entrega_estimada = ? WHERE id = ?";
+        $stmt = $this->conexion->prepare($query);
+        $stmt->bind_param('iisssssssssssi', $data['cliente_id'], $data['usuario_tecnico_id'], $data['marca'], $data['modelo'], $data['imei_serial'], $data['falla_reportada'], $data['diagnostico'], $data['estado'], $data['prioridad'], $data['contraseña_equipo'], $data['imagen_url'], $data['fecha_ingreso'], $data['fecha_entrega_estimada'], $id);
+        return $stmt->execute();
+    }
 
-        return $tecnicos;
+    public function eliminarOrden($id) {
+        $query = "DELETE FROM ordenes_reparacion WHERE id = ?";
+        $stmt = $this->conexion->prepare($query);
+        $stmt->bind_param('i', $id);
+        return $stmt->execute();
     }
 }

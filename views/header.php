@@ -44,6 +44,6 @@
     <nav>
         <a href="index.php?controller=dashboard&action=home">Inicio</a>
         <a href="index.php?action=clientes">Clientes</a>
-        <a href="index.php?view=ordenes">Órdenes de Trabajo</a>
+        <a href="index.php?action=ordenes">Órdenes de Trabajo</a>
     </nav>
     <main>

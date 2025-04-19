@@ -1,6 +1,6 @@
 </main>
     <footer style="background-color: #333; color: white; text-align: center; padding: 10px; margin-top: 20px; position: fixed; bottom: 0; width: 100%;">
-        <p>&copy; <?php echo date('Y'); ?> Sistema de Gestión de Tickets. Todos los derechos reservados.</p>
+        <p>&copy; <?php echo date('Y'); ?> Sistema de Gestión de Tickets. <a href="wwww.diaztecnologia.co">Diaztecnologia</a> Todos los derechos reservados.</p>
     </footer>
 
         <!-- Bootstrap JS -->

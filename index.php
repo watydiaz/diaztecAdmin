@@ -34,15 +34,8 @@ $rolController = new RolController($rolModel);
 $clienteModel = new ClienteModel($mysqli);
 $clienteController = new ClienteController($clienteModel);
 
-// Instanciar el modelo y controlador de órdenes
-$ordenModel = new OrdenModel($mysqli);
-$ordenController = new OrdenController($mysqli);
-
-// Agregar enlace a la vista de órdenes
-if (isset($_GET['view']) && $_GET['view'] === 'ordenes') {
-    include 'views/ordenes.php';
-    exit;
-}
+// Instanciar el controlador de órdenes
+$ordenController = new OrdenController();
 
 // Manejar las acciones según el parámetro "action"
 $action = isset($_GET['action']) ? $_GET['action'] : 'login';
@@ -160,40 +153,32 @@ switch ($action) {
         }
         break;
 
-    case 'listarOrdenes':
-        $ordenes = $ordenController->listarOrdenes();
-        header('Content-Type: application/json');
-        echo json_encode(['success' => true, 'ordenes' => $ordenes]);
-        exit();
+    case 'ordenes':
+        $ordenController->listarOrdenes();
+        break;
 
     case 'agregarOrden':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = [
-                'cliente_id' => $_POST['cliente_id'],
-                'usuario_tecnico_id' => $_POST['usuario_tecnico_id'],
-                'marca' => $_POST['marca'],
-                'modelo' => $_POST['modelo'],
-                'imei_serial' => $_POST['imei_serial'],
-                'falla_reportada' => $_POST['falla_reportada'],
-                'diagnostico' => $_POST['diagnostico'],
-                'estado' => $_POST['estado'],
-                'prioridad' => $_POST['prioridad'],
-                'contraseña_equipo' => $_POST['contraseña_equipo'],
-                'imagen_url' => $_POST['imagen_url'],
-                'fecha_ingreso' => $_POST['fecha_ingreso'],
-                'fecha_entrega_estimada' => $_POST['fecha_entrega_estimada']
-            ];
-
-            $resultado = $ordenController->agregarOrden($data);
-
-            header('Content-Type: application/json');
-            echo json_encode(['success' => $resultado]);
-            exit();
+            $ordenController->agregarOrden($_POST);
         }
         break;
 
-    case 'obtenerTecnicos':
-        $ordenController->obtenerTecnicos();
+    case 'obtenerOrden':
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $ordenController->obtenerOrden($_GET['id']);
+        }
+        break;
+
+    case 'editarOrden':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $ordenController->actualizarOrden($_POST['id'], $_POST);
+        }
+        break;
+
+    case 'eliminarOrden':
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $ordenController->eliminarOrden($_GET['id']);
+        }
         break;
 
     default:
