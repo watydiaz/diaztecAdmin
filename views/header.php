@@ -42,7 +42,7 @@
         <h1>Sistema de Gestión de Tickets</h1>
     </header>
     <nav>
-        <a href="index.php?controller=dashboard&action=home">Inicio</a>
+        <a href="index.php?action=dashboard">Inicio</a>
         <a href="index.php?action=clientes">Clientes</a>
         <a href="index.php?action=ordenes">Órdenes de Trabajo</a>
     </nav>

@@ -189,6 +189,12 @@ switch ($action) {
         $loginController->obtenerTecnicos();
         break;
 
+    case 'obtenerMetricas':
+        require_once 'controllers/DashboardController.php';
+        $dashboardController = new DashboardController();
+        $dashboardController->obtenerMetricas();
+        break;
+
     default:
         // Redirigir al login si la acción no es válida
         header('Location: index.php?action=login');

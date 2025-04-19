@@ -2,14 +2,15 @@
 require_once 'header.php';
 ?>
 
-<div class="container">
+<div class="container-fluid">
+    <center><br>
     <h3>Gestión de Clientes</h3>
-
+    <p>Desde aquí puedes agregar, editar y eliminar clientes.</p>
     <!-- Botón para abrir el modal -->
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarCliente">
-        Agregar Cliente
+    Agregar Cliente
     </button>
-
+    </center>
     <!-- Modal para agregar cliente -->
     <div class="modal fade" id="modalAgregarCliente" tabindex="-1" aria-labelledby="modalAgregarClienteLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -20,25 +21,33 @@ require_once 'header.php';
                 </div>
                 <div class="modal-body">
                     <form id="formAgregarCliente">
-                        <div class="mb-3">
-                            <label for="nombre" class="form-label">Nombre</label>
-                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="nombre" class="form-label">Nombre</label>
+                                <input type="text" class="form-control" id="nombre" name="nombre" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="identificacion" class="form-label">Identificación</label>
+                                <input type="text" class="form-control" id="identificacion" name="identificacion" required>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="identificacion" class="form-label">Identificación</label>
-                            <input type="text" class="form-control" id="identificacion" name="identificacion" required>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="telefono" class="form-label">Teléfono</label>
+                                <input type="text" class="form-control" id="telefono" name="telefono">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email">
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="telefono" class="form-label">Teléfono</label>
-                            <input type="text" class="form-control" id="telefono" name="telefono">
-                        </div>
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email">
-                        </div>
-                        <div class="mb-3">
-                            <label for="direccion" class="form-label">Dirección</label>
-                            <textarea class="form-control" id="direccion" name="direccion"></textarea>
+
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label for="direccion" class="form-label">Dirección</label>
+                                <textarea class="form-control" id="direccion" name="direccion"></textarea>
+                            </div>
                         </div>
                         <button type="submit" class="btn btn-primary">Guardar</button>
                     </form>
@@ -86,7 +95,7 @@ require_once 'header.php';
     </div>
 
     <!-- Tabla para listar clientes -->
-    <table class="table table-striped">
+    <table class="table table-striped w-100">
         <thead>
             <tr>
                 <th>ID</th>

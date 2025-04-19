@@ -51,4 +51,17 @@ class ClienteModel {
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
+
+    public function contarClientes() {
+        $query = "SELECT COUNT(*) as total FROM clientes";
+        $resultado = $this->conexion->query($query);
+
+        if (!$resultado) {
+            error_log('Error en la consulta contarClientes: ' . $this->conexion->error);
+            return 0;
+        }
+
+        $fila = $resultado->fetch_assoc();
+        return $fila['total'] ?? 0;
+    }
 }

@@ -14,8 +14,22 @@ class OrdenController {
     }
 
     public function agregarOrden($data) {
-        $this->ordenModel->agregarOrden($data);
-        header('Location: index.php?action=ordenes');
+        // Validar que cliente_id y usuario_tecnico_id sean válidos
+        if (empty($data['cliente_id']) || empty($data['usuario_tecnico_id'])) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Cliente o técnico no especificado.']);
+            exit();
+        }
+
+        // Intentar agregar la orden
+        $resultado = $this->ordenModel->agregarOrden($data);
+
+        header('Content-Type: application/json');
+        if ($resultado) {
+            echo json_encode(['success' => true, 'message' => 'Orden registrada exitosamente.']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Error al registrar la orden.']);
+        }
         exit();
     }
 

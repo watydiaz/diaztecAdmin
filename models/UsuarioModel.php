@@ -40,8 +40,8 @@ class UsuarioModel {
 
     // Método para obtener técnicos
     public function obtenerTecnicos() {
-        $sql = "SELECT * FROM usuarios WHERE rol = 'tecnico'";
-        $resultado = $this->conexion->query($sql);
+        $sql = "SELECT id, nombre, email FROM usuarios WHERE rol_id = 2 AND activo = 1";
+        $resultado = $this->db->query($sql);
         return $resultado->fetch_all(MYSQLI_ASSOC);
     }
 }
