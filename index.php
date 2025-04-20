@@ -15,6 +15,8 @@ require_once 'controllers/ClienteController.php';
 require_once 'models/ClienteModel.php';
 require_once 'controllers/OrdenController.php';
 require_once 'models/OrdenModel.php';
+require_once 'controllers/RemisionController.php';
+require_once 'models/RemisionModel.php';
 
 // Conexión a la base de datos
 $mysqli = new mysqli('localhost', 'root', '', 'reparaciones_taller');
@@ -193,6 +195,11 @@ switch ($action) {
         require_once 'controllers/DashboardController.php';
         $dashboardController = new DashboardController();
         $dashboardController->obtenerMetricas();
+        break;
+
+    case 'remisiones':
+        $remisionController = new RemisionController();
+        $remisionController->mostrarRemisiones();
         break;
 
     default:
