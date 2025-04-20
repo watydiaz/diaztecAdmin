@@ -2,6 +2,29 @@
 require_once 'header.php';
 ?>
 
+<style>
+    .responsive-table {
+        width: 100%;
+        overflow-x: auto;
+        display: block;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #f4f4f4;
+    }
+</style>
+
 <div class="container-fluid">
     <center><br>
     <h3>Gestión de Órdenes de Reparación</h3>
@@ -148,53 +171,56 @@ require_once 'header.php';
         </div>
     </div>
 
-    <table class="table table-striped w-100">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Cliente</th>
-                <th>Técnico</th>
-                <th>Marca</th>
-                <th>Modelo</th>
-                <th>Falla Reportada</th>
-                <th>Estado</th>
-                <th>Prioridad</th>
-                <th>Fecha de Ingreso</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($ordenes as $orden): ?>
+    <div class="responsive-table">
+        <table class="table table-striped w-100">
+            <thead>
                 <tr>
-                    <td><?php echo $orden['id']; ?></td>
-                    <td><?php echo $orden['cliente_nombre']; ?></td>
-                    <td><?php echo $orden['tecnico_nombre']; ?></td>
-                    <td><?php echo $orden['marca']; ?></td>
-                    <td><?php echo $orden['modelo']; ?></td>
-                    <td><?php echo $orden['falla_reportada']; ?></td>
-                    <td><?php echo $orden['estado']; ?></td>
-                    <td><?php echo $orden['prioridad']; ?></td>
-                    <td><?php echo $orden['fecha_ingreso']; ?></td>
-                    <td>
-                        <a href="#" class="btn btn-warning btn-sm" title="Editar">
-                            <i class="bi bi-pencil-square"></i>
-                        </a>
-                        <a href="#" class="btn btn-danger btn-sm" title="Eliminar">
-                            <i class="bi bi-trash"></i>
-                        </a>
-                        <a href="tel:<?php echo $orden['telefono_cliente']; ?>" class="btn btn-success btn-sm" title="Llamar">
-                            <i class="bi bi-telephone-fill"></i>
-                        </a>
-                        <a href="https://wa.me/<?php echo $orden['telefono_cliente']; ?>" target="_blank" class="btn btn-success btn-sm" title="WhatsApp">
-                            <i class="bi bi-whatsapp"></i>
-                        </a>
-                        <a href="#" class="btn btn-info btn-sm" title="Ver" onclick="verOrden(<?php echo $orden['id']; ?>)">
-                            <i class="bi bi-eye"></i>
-                        </a>
-                    </td>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Técnico</th>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>Falla Reportada</th>
+                    <th>Estado</th>
+                    <th>Prioridad</th>
+                    <th>Fecha de Ingreso</th>
+                    th>Acciones</th>
                 </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                <?php foreach ($ordenes as $orden): ?>
+                    <tr>
+                        <td><?php echo $orden['id']; ?></td>
+                        <td><?php echo $orden['cliente_nombre']; ?></td>
+                        <td><?php echo $orden['tecnico_nombre']; ?></td>
+                        <td><?php echo $orden['marca']; ?></td>
+                        <td><?php echo $orden['modelo']; ?></td>
+                        <td><?php echo $orden['falla_reportada']; ?></td>
+                        <td><?php echo $orden['estado']; ?></td>
+                        <td><?php echo $orden['prioridad']; ?></td>
+                        <td><?php echo $orden['fecha_ingreso']; ?></td>
+                        <td>
+                            <a href="#" class="btn btn-warning btn-sm" title="Editar">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <a href="#" class="btn btn-danger btn-sm" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                            <a href="tel:<?php echo $orden['telefono_cliente']; ?>" class="btn btn-success btn-sm" title="Llamar">
+                                <i class="bi bi-telephone-fill"></i>
+                            </a>
+                            <a href="https://wa.me/<?php echo $orden['telefono_cliente']; ?>" target="_blank" class="btn btn-success btn-sm" title="WhatsApp">
+                                <i class="bi bi-whatsapp"></i>
+                            </a>
+                            <a href="#" class="btn btn-info btn-sm" title="Ver" onclick="verOrden(<?php echo $orden['id']; ?>)">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>

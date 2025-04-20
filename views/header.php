@@ -10,41 +10,103 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="icon" href="https://diaztecnologia.com/img/logo.png" type="image/x-icon">
+    <link rel="apple-touch-icon" href="https://diaztecnologia.com/img/logo.png">
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
         }
-        header {
-            background-color: #333;
-            color: white;
-            padding: 10px 20px;
-            text-align: center;
-        }
         nav {
-            background-color: #444;
-            padding: 10px;
-            text-align: center;
+            background-color: black;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
         }
-        nav a {
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-logo img {
+            height: 80px;
+            margin-right: 10px;
+        }
+
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .menu-toggle div {
+            width: 25px;
+            height: 3px;
+            background-color: white;
+            margin: 3px 0;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-links a {
             color: white;
-            margin: 0 10px;
             text-decoration: none;
+            font-size: 16px;
         }
-        nav a:hover {
+
+        .nav-links a:hover {
             text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: flex;
+            }
+
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                align-items: center;
+                width: 100%;
+                margin-top: 10px;
+                background-color: black;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Sistema de Gestión de Tickets</h1>
-    </header>
     <nav>
-        <a href="index.php?action=dashboard">Inicio</a>
-        <a href="index.php?action=clientes">Clientes</a>
-        <a href="index.php?action=ordenes">Órdenes de Trabajo</a>
-        <a href="index.php?action=remisiones">Remisiones</a>
+        <div class="nav-logo">
+            <img src="https://diaztecnologia.com/img/logo.png" alt="Logo">
+            <span style="color: white; font-size: 18px;">Sistema de Tickets</span>
+        </div>
+        <div class="menu-toggle" onclick="toggleMenu()">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <div class="nav-links">
+            <a href="index.php?action=dashboard">Inicio</a>
+            <a href="index.php?action=clientes">Clientes</a>
+            <a href="index.php?action=ordenes">Órdenes de Trabajo</a>
+            <a href="index.php?action=remisiones">Remisiones</a>
+        </div>
     </nav>
+    <script>
+        function toggleMenu() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.classList.toggle('active');
+        }
+    </script>
     <main>

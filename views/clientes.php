@@ -2,6 +2,36 @@
 require_once 'header.php';
 ?>
 
+<style>
+    .responsive-table {
+        width: 100%;
+        overflow-x: auto;
+        display: block;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #f4f4f4;
+    }
+
+    @media (max-width: 768px) {
+        footer {
+            text-align: center;
+            font-size: 14px;
+        }
+    }
+</style>
+
 <div class="container-fluid">
     <center><br>
     <h3>Gestión de Clientes</h3>
@@ -95,48 +125,50 @@ require_once 'header.php';
     </div>
 
     <!-- Tabla para listar clientes -->
-    <table class="table table-striped w-100">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Identificación</th>
-                <th>Teléfono</th>
-                <th>Email</th>
-                <th>Dirección</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($clientes as $cliente): ?>
+    <div class="responsive-table">
+        <table class="table table-striped w-100">
+            <thead>
                 <tr>
-                    <td><?php echo $cliente['id']; ?></td>
-                    <td><?php echo $cliente['nombre']; ?></td>
-                    <td><?php echo $cliente['identificacion']; ?></td>
-                    <td><?php echo $cliente['telefono']; ?></td>
-                    <td><?php echo $cliente['email']; ?></td>
-                    <td><?php echo $cliente['direccion']; ?></td>
-                    <td>
-                        <a href="#" class="btn btn-warning btn-sm" onclick="abrirModalEditar(<?php echo $cliente['id']; ?>)" title="Editar">
-                            <i class="bi bi-pencil-square"></i>
-                        </a>
-                        <a href="tel:<?php echo $cliente['telefono']; ?>" class="btn btn-success btn-sm" title="Llamar">
-                            <i class="bi bi-telephone-fill"></i>
-                        </a>
-                        <a href="mailto:<?php echo $cliente['email']; ?>" class="btn btn-primary btn-sm" title="Correo">
-                            <i class="bi bi-envelope-fill"></i>
-                        </a>
-                        <a href="https://wa.me/<?php echo $cliente['telefono']; ?>" target="_blank" class="btn btn-success btn-sm" title="WhatsApp">
-                            <i class="bi bi-whatsapp"></i>
-                        </a>
-                        <a href="#" class="btn btn-danger btn-sm" onclick="confirmarEliminacion(event, <?php echo $cliente['id']; ?>)" title="Eliminar">
-                            <i class="bi bi-trash"></i>
-                        </a>
-                    </td>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Identificación</th>
+                    <th>Teléfono</th>
+                    <th>Email</th>
+                    <th>Dirección</th>
+                    <th>Acciones</th>
                 </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                <?php foreach ($clientes as $cliente): ?>
+                    <tr>
+                        <td><?php echo $cliente['id']; ?></td>
+                        <td><?php echo $cliente['nombre']; ?></td>
+                        <td><?php echo $cliente['identificacion']; ?></td>
+                        <td><?php echo $cliente['telefono']; ?></td>
+                        <td><?php echo $cliente['email']; ?></td>
+                        <td><?php echo $cliente['direccion']; ?></td>
+                        <td>
+                            <a href="#" class="btn btn-warning btn-sm" onclick="abrirModalEditar(<?php echo $cliente['id']; ?>)" title="Editar">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <a href="tel:<?php echo $cliente['telefono']; ?>" class="btn btn-success btn-sm" title="Llamar">
+                                <i class="bi bi-telephone-fill"></i>
+                            </a>
+                            <a href="mailto:<?php echo $cliente['email']; ?>" class="btn btn-primary btn-sm" title="Correo">
+                                <i class="bi bi-envelope-fill"></i>
+                            </a>
+                            <a href="https://wa.me/<?php echo $cliente['telefono']; ?>" target="_blank" class="btn btn-success btn-sm" title="WhatsApp">
+                                <i class="bi bi-whatsapp"></i>
+                            </a>
+                            <a href="#" class="btn btn-danger btn-sm" onclick="confirmarEliminacion(event, <?php echo $cliente['id']; ?>)" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
