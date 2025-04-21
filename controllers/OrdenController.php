@@ -14,6 +14,49 @@ class OrdenController {
     }
 
     public function agregarOrden($data) {
+        // Manejo de imágenes
+        $imagenes = [];
+        $rutaBase = realpath(__DIR__ . '/../assets/img/') . DIRECTORY_SEPARATOR; // Ruta absoluta compatible con Windows
+
+        // Agregar registro de errores para depuración
+        if (!is_writable($rutaBase)) {
+            error_log('La carpeta de destino no tiene permisos de escritura: ' . $rutaBase);
+        }
+
+        // Depuración: Verificar si los archivos están siendo recibidos correctamente
+        error_log('Archivos recibidos: ' . print_r($_FILES, true));
+
+        // Ajustar para manejar múltiples archivos desde el input `imagenes[]`
+        if (isset($_FILES['imagenes'])) {
+            foreach ($_FILES['imagenes']['tmp_name'] as $key => $tmpName) {
+                if ($_FILES['imagenes']['error'][$key] === UPLOAD_ERR_OK) {
+                    $nombreArchivo = uniqid() . '_' . basename($_FILES['imagenes']['name'][$key]);
+                    $rutaDestino = $rutaBase . $nombreArchivo;
+
+                    // Depuración: Verificar la ruta de destino
+                    error_log('Ruta destino para imagen: ' . $rutaDestino);
+
+                    if (move_uploaded_file($tmpName, $rutaDestino)) {
+                        $imagenes[] = $rutaDestino;
+                        // Depuración: Confirmar que el archivo se movió correctamente
+                        error_log('Archivo movido correctamente: ' . $rutaDestino);
+                    } else {
+                        // Depuración: Registrar si move_uploaded_file falla
+                        error_log('Error al mover el archivo a ' . $rutaDestino);
+                    }
+                } else {
+                    // Depuración: Registrar si hay errores en el archivo
+                    error_log('Error al subir el archivo: ' . $_FILES['imagenes']['error'][$key]);
+                }
+            }
+        } else {
+            // Depuración: Registrar si el input `imagenes[]` no está configurado
+            error_log('Input `imagenes[]` no configurado.');
+        }
+
+        // Agregar rutas de imágenes al arreglo de datos
+        $data['imagen_url'] = implode(',', $imagenes);
+
         // Validar que cliente_id y usuario_tecnico_id sean válidos
         if (empty($data['cliente_id']) || empty($data['usuario_tecnico_id'])) {
             header('Content-Type: application/json');

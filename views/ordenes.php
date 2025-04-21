@@ -43,7 +43,7 @@ require_once 'header.php';
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="formAgregarOrden">
+                    <form id="formAgregarOrden" enctype="multipart/form-data">
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="buscarCliente" class="form-label">Cliente</label>
@@ -104,16 +104,9 @@ require_once 'header.php';
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="imagen_url" class="form-label">URL de Imagen</label>
-                                <input type="text" class="form-control" id="imagen_url" name="imagen_url">
-                            </div>
-                            <div class="col-md-6 mb-3">
                                 <label for="fecha_ingreso" class="form-label">Fecha de Ingreso</label>
                                 <input type="datetime-local" class="form-control" id="fecha_ingreso" name="fecha_ingreso">
                             </div>
-                        </div>
-
-                        <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="fecha_entrega_estimada" class="form-label">Fecha de Entrega Estimada</label>
                                 <input type="datetime-local" class="form-control" id="fecha_entrega_estimada" name="fecha_entrega_estimada">
@@ -124,6 +117,20 @@ require_once 'header.php';
                             <div class="col-12 mb-3">
                                 <label for="falla_reportada" class="form-label">Falla Reportada</label>
                                 <textarea class="form-control" id="falla_reportada" name="falla_reportada"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label for="imagenes" class="form-label">Subir Imágenes</label>
+                                <input type="file" class="form-control" id="imagenes" name="imagenes[]" accept="image/*" multiple>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label for="diagnostico" class="form-label">Diagnóstico</label>
+                                <textarea class="form-control" id="diagnostico" name="diagnostico"></textarea>
                             </div>
                         </div>
 
@@ -184,7 +191,7 @@ require_once 'header.php';
                     <th>Estado</th>
                     <th>Prioridad</th>
                     <th>Fecha de Ingreso</th>
-                    th>Acciones</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
