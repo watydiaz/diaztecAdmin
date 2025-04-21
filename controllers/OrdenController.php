@@ -16,28 +16,25 @@ class OrdenController {
     public function agregarOrden($data) {
         // Manejo de imágenes
         $imagenes = [];
-        $rutaBase = realpath(__DIR__ . '/../assets/img/') . DIRECTORY_SEPARATOR; // Ruta absoluta compatible con Windows
+        $rutaBase = 'assets/img/'; // Ruta relativa para las imágenes
 
         // Agregar registro de errores para depuración
-        if (!is_writable($rutaBase)) {
+        if (!is_writable(__DIR__ . '/../' . $rutaBase)) {
             error_log('La carpeta de destino no tiene permisos de escritura: ' . $rutaBase);
         }
 
         // Depuración: Verificar si los archivos están siendo recibidos correctamente
         error_log('Archivos recibidos: ' . print_r($_FILES, true));
 
-        // Ajustar para manejar múltiples archivos desde el input `imagenes[]`
+        // Ajustar el manejo de imágenes para usar rutas relativas
         if (isset($_FILES['imagenes'])) {
             foreach ($_FILES['imagenes']['tmp_name'] as $key => $tmpName) {
                 if ($_FILES['imagenes']['error'][$key] === UPLOAD_ERR_OK) {
                     $nombreArchivo = uniqid() . '_' . basename($_FILES['imagenes']['name'][$key]);
                     $rutaDestino = $rutaBase . $nombreArchivo;
 
-                    // Depuración: Verificar la ruta de destino
-                    error_log('Ruta destino para imagen: ' . $rutaDestino);
-
-                    if (move_uploaded_file($tmpName, $rutaDestino)) {
-                        $imagenes[] = $rutaDestino;
+                    if (move_uploaded_file($tmpName, __DIR__ . '/../' . $rutaDestino)) {
+                        $imagenes[] = $rutaDestino; // Guardar la ruta relativa
                         // Depuración: Confirmar que el archivo se movió correctamente
                         error_log('Archivo movido correctamente: ' . $rutaDestino);
                     } else {
@@ -86,15 +83,17 @@ class OrdenController {
     public function actualizarOrden($id, $data) {
         // Manejo de imágenes
         $imagenes = [];
-        $rutaBase = realpath(__DIR__ . '/../assets/img/') . DIRECTORY_SEPARATOR;
+        $rutaBase = 'assets/img/'; // Ruta relativa para las imágenes
 
+        // Ajustar el manejo de imágenes para usar rutas relativas
         if (isset($_FILES['imagenes'])) {
             foreach ($_FILES['imagenes']['tmp_name'] as $key => $tmpName) {
                 if ($_FILES['imagenes']['error'][$key] === UPLOAD_ERR_OK) {
                     $nombreArchivo = uniqid() . '_' . basename($_FILES['imagenes']['name'][$key]);
                     $rutaDestino = $rutaBase . $nombreArchivo;
-                    if (move_uploaded_file($tmpName, $rutaDestino)) {
-                        $imagenes[] = $rutaDestino;
+
+                    if (move_uploaded_file($tmpName, __DIR__ . '/../' . $rutaDestino)) {
+                        $imagenes[] = $rutaDestino; // Guardar la ruta relativa
                     }
                 }
             }

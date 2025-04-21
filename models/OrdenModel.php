@@ -23,6 +23,9 @@ class OrdenModel {
             return false;
         }
 
+        // Convertir las rutas de imágenes a una cadena separada por comas
+        $data['imagen_url'] = implode(',', $data['imagen_url']);
+
         $stmt->bind_param('iisssssssssss', $data['cliente_id'], $data['usuario_tecnico_id'], $data['marca'], $data['modelo'], $data['imei_serial'], $data['falla_reportada'], $data['diagnostico'], $data['estado'], $data['prioridad'], $data['contraseña_equipo'], $data['imagen_url'], $data['fecha_ingreso'], $data['fecha_entrega_estimada']);
 
         if (!$stmt->execute()) {
@@ -34,7 +37,7 @@ class OrdenModel {
     }
 
     public function obtenerOrdenPorId($id) {
-        $query = "SELECT o.*, c.nombre AS cliente_nombre, u.nombre AS tecnico_nombre FROM ordenes_reparacion o INNER JOIN clientes c ON o.cliente_id = c.id INNER JOIN usuarios u ON o.usuario_tecnico_id = u.id WHERE o.id = ?";
+        $query = "SELECT o.*, c.nombre AS cliente_nombre, u.nombre AS tecnico_nombre, o.diagnostico FROM ordenes_reparacion o INNER JOIN clientes c ON o.cliente_id = c.id INNER JOIN usuarios u ON o.usuario_tecnico_id = u.id WHERE o.id = ?";
         $stmt = $this->conexion->prepare($query);
         $stmt->bind_param('i', $id);
         $stmt->execute();

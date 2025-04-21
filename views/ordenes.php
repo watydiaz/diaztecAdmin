@@ -273,6 +273,8 @@ require_once 'header.php';
                     <p><strong>Prioridad:</strong> <span id="detallePrioridad"></span></p>
                     <p><strong>Fecha de Ingreso:</strong> <span id="detalleFechaIngreso"></span></p>
                     <p><strong>Diagnóstico:</strong> <span id="detalleDiagnostico"></span></p>
+                    <p><strong>Imagen:</strong></p>
+                    <img id="detalleImagen" src="" alt="Imagen de la orden" style="width: 50%; height: auto;">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -509,6 +511,7 @@ require_once 'header.php';
                     document.getElementById('detallePrioridad').textContent = orden.prioridad;
                     document.getElementById('detalleFechaIngreso').textContent = orden.fecha_ingreso;
                     document.getElementById('detalleDiagnostico').textContent = orden.diagnostico;
+                    document.getElementById('detalleImagen').src = orden.imagen_url || ''; // Asignar la URL de la imagen
 
                     const modalVerOrden = new bootstrap.Modal(document.getElementById('modalVerOrden'));
                     modalVerOrden.show();
