@@ -19,7 +19,11 @@
             padding: 0;
         }
         nav {
-            background-color: black;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background-color: black; /* Fondo negro para que sea visible */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra para destacar */
             padding: 10px 20px;
             display: flex;
             align-items: center;
