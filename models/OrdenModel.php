@@ -34,7 +34,7 @@ class OrdenModel {
     }
 
     public function obtenerOrdenPorId($id) {
-        $query = "SELECT * FROM ordenes_reparacion WHERE id = ?";
+        $query = "SELECT o.*, c.nombre AS cliente_nombre, u.nombre AS tecnico_nombre FROM ordenes_reparacion o INNER JOIN clientes c ON o.cliente_id = c.id INNER JOIN usuarios u ON o.usuario_tecnico_id = u.id WHERE o.id = ?";
         $stmt = $this->conexion->prepare($query);
         $stmt->bind_param('i', $id);
         $stmt->execute();

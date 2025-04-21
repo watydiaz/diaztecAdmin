@@ -254,6 +254,33 @@ require_once 'header.php';
         </div>
     </div>
 
+    <!-- Modal para ver detalles de la orden -->
+    <div class="modal fade" id="modalVerOrden" tabindex="-1" aria-labelledby="modalVerOrdenLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalVerOrdenLabel">Detalles de la Orden</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>ID:</strong> <span id="detalleId"></span></p>
+                    <p><strong>Cliente:</strong> <span id="detalleCliente"></span></p>
+                    <p><strong>Técnico:</strong> <span id="detalleTecnico"></span></p>
+                    <p><strong>Marca:</strong> <span id="detalleMarca"></span></p>
+                    <p><strong>Modelo:</strong> <span id="detalleModelo"></span></p>
+                    <p><strong>Falla Reportada:</strong> <span id="detalleFalla"></span></p>
+                    <p><strong>Estado:</strong> <span id="detalleEstado"></span></p>
+                    <p><strong>Prioridad:</strong> <span id="detallePrioridad"></span></p>
+                    <p><strong>Fecha de Ingreso:</strong> <span id="detalleFechaIngreso"></span></p>
+                    <p><strong>Diagnóstico:</strong> <span id="detalleDiagnostico"></span></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="responsive-table">
         <table class="table table-striped w-100">
             <thead>
@@ -472,21 +499,25 @@ require_once 'header.php';
             .then(data => {
                 if (data.success) {
                     const orden = data.orden;
-                    alert(`Información de la Orden:\n\n` +
-                          `ID: ${orden.id}\n` +
-                          `Cliente: ${orden.cliente_nombre}\n` +
-                          `Técnico: ${orden.tecnico_nombre}\n` +
-                          `Marca: ${orden.marca}\n` +
-                          `Modelo: ${orden.modelo}\n` +
-                          `Falla Reportada: ${orden.falla_reportada}\n` +
-                          `Fecha de Ingreso: ${orden.fecha_ingreso}`);
+                    document.getElementById('detalleId').textContent = orden.id;
+                    document.getElementById('detalleCliente').textContent = orden.cliente_nombre || 'No disponible';
+                    document.getElementById('detalleTecnico').textContent = orden.tecnico_nombre || 'No disponible';
+                    document.getElementById('detalleMarca').textContent = orden.marca;
+                    document.getElementById('detalleModelo').textContent = orden.modelo;
+                    document.getElementById('detalleFalla').textContent = orden.falla_reportada;
+                    document.getElementById('detalleEstado').textContent = orden.estado;
+                    document.getElementById('detallePrioridad').textContent = orden.prioridad;
+                    document.getElementById('detalleFechaIngreso').textContent = orden.fecha_ingreso;
+                    document.getElementById('detalleDiagnostico').textContent = orden.diagnostico;
+
+                    const modalVerOrden = new bootstrap.Modal(document.getElementById('modalVerOrden'));
+                    modalVerOrden.show();
                 } else {
-                    alert('Error al obtener la información de la orden.');
+                    alert('Error al obtener los datos de la orden.');
                 }
             })
             .catch(error => {
-                console.error('Error al obtener la información de la orden:', error);
-                alert('Ocurrió un error al intentar obtener la información de la orden.');
+                console.error('Error al obtener los datos de la orden:', error);
             });
     }
 
