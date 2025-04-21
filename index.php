@@ -183,6 +183,11 @@ switch ($action) {
         }
         break;
 
+    case 'actualizarOrden':
+        $ordenController = new OrdenController();
+        $ordenController->actualizarOrden($_POST['id'], $_POST);
+        break;
+
     case 'buscarCliente':
         $clienteController->buscarClientes();
         break;

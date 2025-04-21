@@ -84,8 +84,55 @@ class OrdenController {
     }
 
     public function actualizarOrden($id, $data) {
-        $this->ordenModel->actualizarOrden($id, $data);
-        header('Location: index.php?action=ordenes');
+        // Manejo de imágenes
+        $imagenes = [];
+        $rutaBase = realpath(__DIR__ . '/../assets/img/') . DIRECTORY_SEPARATOR;
+
+        if (isset($_FILES['imagenes'])) {
+            foreach ($_FILES['imagenes']['tmp_name'] as $key => $tmpName) {
+                if ($_FILES['imagenes']['error'][$key] === UPLOAD_ERR_OK) {
+                    $nombreArchivo = uniqid() . '_' . basename($_FILES['imagenes']['name'][$key]);
+                    $rutaDestino = $rutaBase . $nombreArchivo;
+                    if (move_uploaded_file($tmpName, $rutaDestino)) {
+                        $imagenes[] = $rutaDestino;
+                    }
+                }
+            }
+        }
+
+        // Si no se subieron nuevas imágenes, mantener las existentes
+        if (empty($imagenes)) {
+            $ordenExistente = $this->ordenModel->obtenerOrdenPorId($id);
+            $data['imagen_url'] = $ordenExistente['imagen_url'];
+        } else {
+            $data['imagen_url'] = implode(',', $imagenes);
+        }
+
+        // Asegurar que los campos no modificados conserven su información existente
+        $ordenExistente = $this->ordenModel->obtenerOrdenPorId($id);
+
+        $data['cliente_id'] = $data['cliente_id'] ?? $ordenExistente['cliente_id'];
+        $data['usuario_tecnico_id'] = $data['usuario_tecnico_id'] ?? $ordenExistente['usuario_tecnico_id'];
+        $data['fecha_ingreso'] = $data['fecha_ingreso'] ?? $ordenExistente['fecha_ingreso'];
+        $data['fecha_entrega_estimada'] = $data['fecha_entrega_estimada'] ?? $ordenExistente['fecha_entrega_estimada'];
+        $data['marca'] = $data['marca'] ?? $ordenExistente['marca'];
+        $data['modelo'] = $data['modelo'] ?? $ordenExistente['modelo'];
+        $data['imei_serial'] = $data['imei_serial'] ?? $ordenExistente['imei_serial'];
+        $data['falla_reportada'] = $data['falla_reportada'] ?? $ordenExistente['falla_reportada'];
+        $data['diagnostico'] = $data['diagnostico'] ?? $ordenExistente['diagnostico'];
+        $data['estado'] = $data['estado'] ?? $ordenExistente['estado'];
+        $data['prioridad'] = $data['prioridad'] ?? $ordenExistente['prioridad'];
+        $data['contraseña_equipo'] = $data['contraseña_equipo'] ?? $ordenExistente['contraseña_equipo'];
+
+        // Actualizar la orden
+        $resultado = $this->ordenModel->actualizarOrden($id, $data);
+
+        header('Content-Type: application/json');
+        if ($resultado) {
+            echo json_encode(['success' => true, 'message' => 'Orden actualizada exitosamente.']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Error al actualizar la orden.']);
+        }
         exit();
     }
 

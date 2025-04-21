@@ -178,6 +178,82 @@ require_once 'header.php';
         </div>
     </div>
 
+    <!-- Modal para editar orden -->
+    <div class="modal fade" id="modalEditarOrden" tabindex="-1" aria-labelledby="modalEditarOrdenLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalEditarOrdenLabel">Editar Orden</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formEditarOrden" enctype="multipart/form-data">
+                        <input type="hidden" id="editarOrdenId" name="id">
+                        <!-- Campos del formulario -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editarMarca" class="form-label">Marca</label>
+                                <input type="text" class="form-control" id="editarMarca" name="marca">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editarModelo" class="form-label">Modelo</label>
+                                <input type="text" class="form-control" id="editarModelo" name="modelo">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editarImeiSerial" class="form-label">IMEI/Serial</label>
+                                <input type="text" class="form-control" id="editarImeiSerial" name="imei_serial">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editarEstado" class="form-label">Estado</label>
+                                <select class="form-control" id="editarEstado" name="estado">
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="en_proceso">En Proceso</option>
+                                    <option value="terminado">Terminado</option>
+                                    <option value="entregado">Entregado</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editarPrioridad" class="form-label">Prioridad</label>
+                                <select class="form-control" id="editarPrioridad" name="prioridad">
+                                    <option value="baja">Baja</option>
+                                    <option value="media">Media</option>
+                                    <option value="alta">Alta</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editarContraseñaEquipo" class="form-label">Contraseña del Equipo</label>
+                                <input type="text" class="form-control" id="editarContraseñaEquipo" name="contraseña_equipo">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label for="editarFallaReportada" class="form-label">Falla Reportada</label>
+                                <textarea class="form-control" id="editarFallaReportada" name="falla_reportada"></textarea>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label for="editarDiagnostico" class="form-label">Diagnóstico</label>
+                                <textarea class="form-control" id="editarDiagnostico" name="diagnostico"></textarea>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label for="editarImagenes" class="form-label">Actualizar Imágenes</label>
+                                <input type="file" class="form-control" id="editarImagenes" name="imagenes[]" accept="image/*" multiple>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Actualizar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="responsive-table">
         <table class="table table-striped w-100">
             <thead>
@@ -207,7 +283,7 @@ require_once 'header.php';
                         <td><?php echo $orden['prioridad']; ?></td>
                         <td><?php echo $orden['fecha_ingreso']; ?></td>
                         <td>
-                            <a href="#" class="btn btn-warning btn-sm" title="Editar">
+                            <a href="#" class="btn btn-warning btn-sm" title="Editar" onclick="abrirModalEditarOrden(<?php echo $orden['id']; ?>)">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
                             <a href="#" class="btn btn-danger btn-sm" title="Eliminar">
@@ -388,6 +464,56 @@ require_once 'header.php';
                 alert('Ocurrió un error al intentar obtener la información de la orden.');
             });
     }
+
+    function abrirModalEditarOrden(id) {
+        fetch(`index.php?action=obtenerOrden&id=${id}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const orden = data.orden;
+                    document.getElementById('editarOrdenId').value = orden.id;
+                    document.getElementById('editarMarca').value = orden.marca;
+                    document.getElementById('editarModelo').value = orden.modelo;
+                    document.getElementById('editarImeiSerial').value = orden.imei_serial;
+                    document.getElementById('editarEstado').value = orden.estado;
+                    document.getElementById('editarPrioridad').value = orden.prioridad;
+                    document.getElementById('editarContraseñaEquipo').value = orden.contraseña_equipo;
+                    document.getElementById('editarFallaReportada').value = orden.falla_reportada;
+                    document.getElementById('editarDiagnostico').value = orden.diagnostico;
+
+                    const modalEditar = new bootstrap.Modal(document.getElementById('modalEditarOrden'));
+                    modalEditar.show();
+                } else {
+                    alert('Error al obtener los datos de la orden.');
+                }
+            })
+            .catch(error => {
+                console.error('Error al obtener los datos de la orden:', error);
+            });
+    }
+
+    document.getElementById('formEditarOrden').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const formData = new FormData(this);
+
+        fetch('index.php?action=actualizarOrden', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Orden actualizada exitosamente.');
+                location.reload();
+            } else {
+                alert('Error al actualizar la orden: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error al actualizar la orden:', error);
+        });
+    });
 </script>
 
 <?php
