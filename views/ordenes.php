@@ -286,7 +286,7 @@ require_once 'header.php';
                             <a href="#" class="btn btn-warning btn-sm" title="Editar" onclick="abrirModalEditarOrden(<?php echo $orden['id']; ?>)">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
-                            <a href="#" class="btn btn-danger btn-sm" title="Eliminar">
+                            <a href="#" class="btn btn-danger btn-sm" title="Eliminar" data-id="<?php echo $orden['id']; ?>">
                                 <i class="bi bi-trash"></i>
                             </a>
                             <a href="tel:<?php echo $orden['telefono_cliente']; ?>" class="btn btn-success btn-sm" title="Llamar">
@@ -437,6 +437,31 @@ require_once 'header.php';
             .catch(error => {
                 console.error('Error al registrar la orden:', error);
                 alert('Ocurrió un error al intentar registrar la orden.');
+            });
+        });
+
+        // Manejar la acción de eliminar
+        document.querySelectorAll('.btn-danger').forEach(function(button) {
+            button.addEventListener('click', function(event) {
+                event.preventDefault();
+
+                if (confirm('¿Estás seguro de que deseas eliminar esta orden?')) {
+                    const id = this.dataset.id; // Obtener el ID de la orden
+
+                    fetch(`index.php?action=eliminarOrden&id=${id}`)
+                        .then(response => {
+                            if (response.ok) {
+                                alert('Orden eliminada exitosamente.');
+                                location.reload(); // Recargar la página
+                            } else {
+                                alert('Error al eliminar la orden.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error al eliminar la orden:', error);
+                            alert('Ocurrió un error al intentar eliminar la orden.');
+                        });
+                }
             });
         });
     });
