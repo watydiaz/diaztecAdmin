@@ -207,6 +207,14 @@ switch ($action) {
         $remisionController->mostrarRemisiones();
         break;
 
+    case 'generarRemision':
+        if (isset($_GET['id'])) {
+            $ordenController->generarRemision($_GET['id']);
+        } else {
+            echo "<h1>ID de la orden no proporcionado</h1>";
+        }
+        break;
+
     default:
         // Redirigir al login si la acción no es válida
         header('Location: index.php?action=login');

@@ -126,4 +126,17 @@ class OrdenController {
         header('Location: index.php?action=ordenes');
         exit();
     }
+
+    public function generarRemision($id) {
+        // Obtener los datos de la orden
+        $orden = $this->ordenModel->obtenerOrdenPorId($id);
+
+        if (!$orden) {
+            echo "<h1>Orden no encontrada</h1>";
+            exit();
+        }
+
+        // Incluir la vista de la remisión
+        include 'views/remision.php';
+    }
 }
