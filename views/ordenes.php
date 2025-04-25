@@ -318,14 +318,17 @@ require_once 'header.php';
                             <a href="#" class="btn btn-danger btn-sm" title="Eliminar" data-id="<?php echo $orden['id']; ?>">
                                 <i class="bi bi-trash"></i>
                             </a>
-                            <a href="tel:<?php echo $orden['telefono_cliente']; ?>" class="btn btn-success btn-sm" title="Llamar">
+                            <a href="tel:<?php echo $orden['telefono_cliente']; ?>" class="btn btn-primary btn-sm" title="Llamar">
                                 <i class="bi bi-telephone-fill"></i>
                             </a>
-                            <a href="https://wa.me/<?php echo $orden['telefono_cliente']; ?>" target="_blank" class="btn btn-success btn-sm" title="WhatsApp">
+                            <a href="https://wa.me/57<?php echo ltrim($orden['telefono_cliente'], '0'); ?>" target="_blank" class="btn btn-success btn-sm" title="WhatsApp">
                                 <i class="bi bi-whatsapp"></i>
                             </a>
                             <a href="index.php?action=generarRemision&id=<?php echo $orden['id']; ?>" class="btn btn-info btn-sm">
                                 <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="#" class="btn btn-dark btn-sm" title="Marcar como Entregado" onclick="cambiarEstadoEntregado(<?php echo $orden['id']; ?>)">
+                                <i class="bi bi-check-circle"></i>
                             </a>
                         </td>
                     </tr>
@@ -573,6 +576,25 @@ require_once 'header.php';
             console.error('Error al actualizar la orden:', error);
         });
     });
+
+    function cambiarEstadoEntregado(id) {
+        if (confirm('¿Estás seguro de que deseas marcar esta orden como entregada?')) {
+            fetch(`index.php?action=cambiarEstadoEntregado&id=${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('La orden ha sido marcada como entregada.');
+                        location.reload();
+                    } else {
+                        alert('Error al cambiar el estado de la orden: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ocurrió un error al intentar cambiar el estado de la orden.');
+                });
+        }
+    }
 </script>
 
 <?php

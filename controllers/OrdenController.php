@@ -139,4 +139,16 @@ class OrdenController {
         // Incluir la vista de la remisión
         include 'views/remision.php';
     }
+
+    public function cambiarEstadoEntregado($id) {
+        $resultado = $this->ordenModel->actualizarEstadoOrden($id, 'entregado');
+
+        header('Content-Type: application/json');
+        if ($resultado) {
+            echo json_encode(['success' => true, 'message' => 'Estado cambiado a entregado.']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Error al cambiar el estado de la orden.']);
+        }
+        exit();
+    }
 }

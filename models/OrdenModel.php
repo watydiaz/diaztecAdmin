@@ -9,7 +9,7 @@ class OrdenModel {
     }
 
     public function obtenerOrdenes() {
-        $query = "SELECT o.id, c.nombre AS cliente_nombre, c.telefono AS telefono_cliente, u.nombre AS tecnico_nombre, o.marca, o.modelo, o.falla_reportada, o.estado, o.prioridad, o.fecha_ingreso FROM ordenes_reparacion o INNER JOIN clientes c ON o.cliente_id = c.id INNER JOIN usuarios u ON o.usuario_tecnico_id = u.id";
+        $query = "SELECT o.id, c.nombre AS cliente_nombre, c.telefono AS telefono_cliente, u.nombre AS tecnico_nombre, o.marca, o.modelo, o.falla_reportada, o.estado, o.prioridad, o.fecha_ingreso FROM ordenes_reparacion o INNER JOIN clientes c ON o.cliente_id = c.id INNER JOIN usuarios u ON o.usuario_tecnico_id = u.id WHERE o.estado != 'entregado'";
         $resultado = $this->conexion->query($query);
         return $resultado->fetch_all(MYSQLI_ASSOC);
     }
@@ -78,5 +78,12 @@ class OrdenModel {
 
         $fila = $resultado->fetch_assoc();
         return $fila['total'] ?? 0;
+    }
+
+    public function actualizarEstadoOrden($id, $estado) {
+        $query = "UPDATE ordenes_reparacion SET estado = ? WHERE id = ?";
+        $stmt = $this->conexion->prepare($query);
+        $stmt->bind_param('si', $estado, $id);
+        return $stmt->execute();
     }
 }

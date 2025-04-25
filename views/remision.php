@@ -6,87 +6,50 @@
     <title>Remisión</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
-        .remision-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #f9f9f9;
-            font-family: Arial, sans-serif;
-        }
-
-        .remision-header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .remision-header img {
-            max-width: 100px;
-            margin-bottom: 10px;
-        }
-
-        .remision-header h1 {
-            margin: 0;
-            font-size: 24px;
-        }
-
-        .remision-header p {
-            margin: 5px 0;
-            font-size: 14px;
-            color: #555;
-        }
-
-        .remision-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        .remision-table th, .remision-table td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-        }
-
-        .remision-table th {
-            background-color: #f4f4f4;
-        }
-
-        .imagenes {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .imagenes img {
-            max-width: 100px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        @media (max-width: 600px) {
             .remision-container {
-                padding: 10px;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                background-color: #f9f9f9;
+                font-family: Arial, sans-serif;
+                overflow-x: auto; /* Agregado para evitar desbordamiento horizontal */
             }
 
-            .remision-header h1 {
-                font-size: 20px;
-            }
-
-            .remision-header p {
-                font-size: 12px;
+            .remision-table {
+                width: 100%;
+                border-collapse: collapse;
             }
 
             .remision-table th, .remision-table td {
-                font-size: 12px;
+                border: 1px solid #ddd;
+                padding: 10px;
+                text-align: left;
             }
 
-            .imagenes img {
-                max-width: 80px;
+            .remision-table th {
+                background-color: #f4f4f4;
             }
-        }
-    </style>
+
+            @media (max-width: 600px) {
+                .remision-header h1 {
+                    font-size: 20px;
+                }
+
+                .remision-header p {
+                    font-size: 12px;
+                }
+
+                .remision-table th, .remision-table td {
+                    font-size: 12px;
+                }
+
+                .imagenes img {
+                    max-width: 80px;
+                }
+            }
+        </style>
 </head>
 <body>
     <div class="remision-container">
@@ -165,7 +128,7 @@
             ?>
         </div>
 
-        <div class="acciones" style="margin-top: 20px; text-align: center;">
+        <div class="acciones" style="margin-top: 20px; text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center;">
             <a href="https://wa.me/57<?php echo ltrim($orden['cliente_telefono'], '0'); ?>?text=Hola%20<?php echo urlencode($orden['cliente_nombre']); ?>,%20aquí%20está%20la%20remisión%20de%20su%20servicio:%20<?php echo urlencode('http://example.com/index.php?action=generarRemision&id=' . $orden['id']); ?>" target="_blank" class="btn btn-success" style="padding: 10px 20px; background-color: #25D366; color: white; border: none; border-radius: 5px; text-decoration: none; font-size: 16px;">Enviar por WhatsApp</a>
             <button onclick="enviarPorEmail()" class="btn btn-primary" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px;">Enviar por Email</button>
         </div>
