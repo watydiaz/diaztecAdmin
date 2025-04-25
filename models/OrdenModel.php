@@ -23,8 +23,8 @@ class OrdenModel {
             return false;
         }
 
-        // Convertir las rutas de imágenes a una cadena separada por comas
-        $data['imagen_url'] = implode(',', $data['imagen_url']);
+        // Asegurar que el campo imagen_url tenga un valor válido
+        $data['imagen_url'] = $data['imagen_url'] ?? ''; // Usar cadena vacía si es null
 
         $stmt->bind_param('iisssssssssss', $data['cliente_id'], $data['usuario_tecnico_id'], $data['marca'], $data['modelo'], $data['imei_serial'], $data['falla_reportada'], $data['diagnostico'], $data['estado'], $data['prioridad'], $data['contraseña_equipo'], $data['imagen_url'], $data['fecha_ingreso'], $data['fecha_entrega_estimada']);
 

@@ -16,43 +16,30 @@ class OrdenController {
     public function agregarOrden($data) {
         // Manejo de imágenes
         $imagenes = [];
-        $rutaBase = realpath(__DIR__ . '/../assets/img/') . DIRECTORY_SEPARATOR; // Ruta absoluta compatible con Windows
+        $rutaBase = realpath(__DIR__ . '/../assets/img/') . DIRECTORY_SEPARATOR; // Ruta absoluta correcta
 
-        // Agregar registro de errores para depuración
-        if (!is_writable(__DIR__ . '/../' . $rutaBase)) {
-            error_log('La carpeta de destino no tiene permisos de escritura: ' . $rutaBase);
-        }
-
-        // Depuración: Verificar si los archivos están siendo recibidos correctamente
-        error_log('Archivos recibidos: ' . print_r($_FILES, true));
-
-        // Ajustar el manejo de imágenes para usar rutas relativas
         if (isset($_FILES['imagenes'])) {
             foreach ($_FILES['imagenes']['tmp_name'] as $key => $tmpName) {
                 if ($_FILES['imagenes']['error'][$key] === UPLOAD_ERR_OK) {
                     $nombreArchivo = uniqid() . '_' . basename($_FILES['imagenes']['name'][$key]);
                     $rutaDestino = $rutaBase . $nombreArchivo;
 
-                    if (move_uploaded_file($tmpName, __DIR__ . '/../' . $rutaDestino)) {
-                        $imagenes[] = $rutaDestino; // Guardar la ruta relativa
-                        // Depuración: Confirmar que el archivo se movió correctamente
-                        error_log('Archivo movido correctamente: ' . $rutaDestino);
+                    if (move_uploaded_file($tmpName, $rutaDestino)) {
+                        $imagenes[] = 'assets/img/' . $nombreArchivo; // Guardar ruta relativa
+                        error_log('Archivo subido correctamente: ' . $rutaDestino); // Registro para depuración
                     } else {
-                        // Depuración: Registrar si move_uploaded_file falla
-                        error_log('Error al mover el archivo a ' . $rutaDestino);
+                        error_log('Error al mover el archivo a ' . $rutaDestino); // Registro de error
                     }
                 } else {
-                    // Depuración: Registrar si hay errores en el archivo
-                    error_log('Error al subir el archivo: ' . $_FILES['imagenes']['error'][$key]);
+                    error_log('Error al subir el archivo: ' . $_FILES['imagenes']['error'][$key]); // Registro de error
                 }
             }
         } else {
-            // Depuración: Registrar si el input `imagenes[]` no está configurado
-            error_log('Input `imagenes[]` no configurado.');
+            $imagenes = []; // Asegurar que sea un array vacío si no hay imágenes
         }
 
         // Agregar rutas de imágenes al arreglo de datos
-        $data['imagen_url'] = implode(',', $imagenes);
+        $data['imagen_url'] = implode(',', $imagenes); // Guardar las rutas relativas en la base de datos
 
         // Validar que cliente_id y usuario_tecnico_id sean válidos
         if (empty($data['cliente_id']) || empty($data['usuario_tecnico_id'])) {
@@ -63,6 +50,7 @@ class OrdenController {
 
         // Intentar agregar la orden
         $resultado = $this->ordenModel->agregarOrden($data);
+        error_log('Datos enviados al modelo: ' . print_r($data, true)); // Registro de depuración
 
         header('Content-Type: application/json');
         if ($resultado) {
@@ -85,24 +73,22 @@ class OrdenController {
         $imagenes = [];
         $rutaBase = realpath(__DIR__ . '/../assets/img/') . DIRECTORY_SEPARATOR;
 
-        // Ajustar el manejo de imágenes para usar rutas relativas
         if (isset($_FILES['imagenes'])) {
             foreach ($_FILES['imagenes']['tmp_name'] as $key => $tmpName) {
                 if ($_FILES['imagenes']['error'][$key] === UPLOAD_ERR_OK) {
                     $nombreArchivo = uniqid() . '_' . basename($_FILES['imagenes']['name'][$key]);
                     $rutaDestino = $rutaBase . $nombreArchivo;
 
-                    if (move_uploaded_file($tmpName, __DIR__ . '/../' . $rutaDestino)) {
-                        $imagenes[] = $rutaDestino; // Guardar la ruta relativa
+                    if (move_uploaded_file($tmpName, $rutaDestino)) {
+                        $imagenes[] = 'assets/img/' . $nombreArchivo; // Guardar ruta relativa
                     }
                 }
             }
         }
 
-        // Si no se subieron nuevas imágenes, mantener las existentes
+        // Si no se subieron imágenes, establecer el campo como null o vacío
         if (empty($imagenes)) {
-            $ordenExistente = $this->ordenModel->obtenerOrdenPorId($id);
-            $data['imagen_url'] = $ordenExistente['imagen_url'];
+            $data['imagen_url'] = null; // O una cadena vacía dependiendo de la base de datos
         } else {
             $data['imagen_url'] = implode(',', $imagenes);
         }
