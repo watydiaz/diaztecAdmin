@@ -16,7 +16,7 @@ class OrdenController {
     public function agregarOrden($data) {
         // Manejo de imágenes
         $imagenes = [];
-        $rutaBase = 'assets/img/'; // Ruta relativa para las imágenes
+        $rutaBase = realpath(__DIR__ . '/../assets/img/') . DIRECTORY_SEPARATOR; // Ruta absoluta compatible con Windows
 
         // Agregar registro de errores para depuración
         if (!is_writable(__DIR__ . '/../' . $rutaBase)) {
@@ -83,7 +83,7 @@ class OrdenController {
     public function actualizarOrden($id, $data) {
         // Manejo de imágenes
         $imagenes = [];
-        $rutaBase = 'assets/img/'; // Ruta relativa para las imágenes
+        $rutaBase = realpath(__DIR__ . '/../assets/img/') . DIRECTORY_SEPARATOR;
 
         // Ajustar el manejo de imágenes para usar rutas relativas
         if (isset($_FILES['imagenes'])) {
