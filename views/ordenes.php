@@ -324,8 +324,8 @@ require_once 'header.php';
                             <a href="https://wa.me/<?php echo $orden['telefono_cliente']; ?>" target="_blank" class="btn btn-success btn-sm" title="WhatsApp">
                                 <i class="bi bi-whatsapp"></i>
                             </a>
-                            <a href="index.php?action=generarRemision&id=<?php echo $orden['id']; ?>" class="btn btn-primary btn-sm" title="Ver Remisión">
-                                <i class="bi bi-file-earmark-text"></i>
+                            <a href="index.php?action=generarRemision&id=<?php echo $orden['id']; ?>" class="btn btn-info btn-sm">
+                                <i class="bi bi-eye"></i>
                             </a>
                         </td>
                     </tr>

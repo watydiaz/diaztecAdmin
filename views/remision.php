@@ -154,9 +154,15 @@
 
         <div class="imagenes">
             <p><strong>Imágenes:</strong></p>
-            <?php foreach (explode(',', $orden['imagen_url']) as $imagen): ?>
-                <img src="<?php echo $imagen; ?>" alt="Imagen de la orden">
-            <?php endforeach; ?>
+            <?php 
+            if (!empty($orden['imagen_url'])) {
+                foreach (explode(',', $orden['imagen_url']) as $imagen): ?>
+                    <img src="<?php echo $imagen; ?>" alt="Imagen de la orden">
+                <?php endforeach; 
+            } else {
+                echo '<p>No hay imágenes disponibles.</p>';
+            }
+            ?>
         </div>
 
         <div class="acciones" style="margin-top: 20px; text-align: center;">
@@ -169,7 +175,7 @@
                 const email = prompt('Ingrese el correo electrónico del destinatario:');
                 if (email) {
                     const subject = 'Remisión de Servicio';
-                    const body = `Hola ${encodeURIComponent('<?php echo $orden['cliente_nombre']; ?>')}, aquí está la remisión de su servicio: ${encodeURIComponent('http://example.com/remision.php?id=' + <?php echo $orden['id']; ?>)}`;
+                    const body = `Hola ${encodeURIComponent('<?php echo $orden['cliente_nombre']; ?>')}, aquí está la remisión de su servicio: ${encodeURIComponent('http://example.com/index.php?action=generarRemision&id=' + <?php echo $orden['id']; ?>)}`;
                     window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
                 }
             }
