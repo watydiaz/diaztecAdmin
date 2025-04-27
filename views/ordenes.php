@@ -452,10 +452,33 @@ require_once 'header.php';
         });
 
         // Manejar el envío del formulario de agregar orden
-        const formAgregarOrden = document.getElementById('formAgregarOrden');
-
-        formAgregarOrden.addEventListener('submit', function(event) {
+        document.getElementById('formAgregarOrden').addEventListener('submit', function(event) {
             event.preventDefault(); // Evitar el envío por defecto del formulario
+
+            // Mostrar la imagen de cargando
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.style.position = 'fixed';
+            loadingOverlay.style.top = '0';
+            loadingOverlay.style.left = '0';
+            loadingOverlay.style.width = '100%';
+            loadingOverlay.style.height = '100%';
+            loadingOverlay.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+            loadingOverlay.style.display = 'flex';
+            loadingOverlay.style.justifyContent = 'center';
+            loadingOverlay.style.alignItems = 'center';
+            loadingOverlay.style.zIndex = '9999';
+
+            const loadingImage = document.createElement('img');
+            loadingImage.src = 'assets/img/loading-gear.gif'; // Asegúrate de tener una imagen de engranaje en esta ruta
+            loadingImage.alt = 'Cargando...';
+            loadingImage.style.width = '100px';
+
+            loadingOverlay.appendChild(loadingImage);
+            document.body.appendChild(loadingOverlay);
+
+            // Deshabilitar el botón de envío
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
 
             const formData = new FormData(this);
 
@@ -465,6 +488,12 @@ require_once 'header.php';
             })
             .then(response => response.json())
             .then(data => {
+                // Ocultar la imagen de cargando
+                document.body.removeChild(loadingOverlay);
+
+                // Habilitar el botón de envío
+                submitButton.disabled = false;
+
                 if (data.success) {
                     alert('Orden de trabajo registrada exitosamente.');
                     location.reload(); // Recargar la página para reflejar los cambios
@@ -475,6 +504,12 @@ require_once 'header.php';
             .catch(error => {
                 console.error('Error al registrar la orden:', error);
                 alert('Ocurrió un error al intentar registrar la orden.');
+
+                // Ocultar la imagen de cargando
+                document.body.removeChild(loadingOverlay);
+
+                // Habilitar el botón de envío
+                submitButton.disabled = false;
             });
         });
 
