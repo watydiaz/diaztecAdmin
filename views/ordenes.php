@@ -301,7 +301,13 @@ require_once 'header.php';
             </thead>
             <tbody>
                 <?php foreach ($ordenes as $orden): ?>
-                    <tr>
+                    <tr style="<?php 
+                        if ($orden['estado'] === 'terminado') {
+                            echo 'background-color: rgba(0, 128, 0, 0.1);';
+                        } elseif ($orden['estado'] !== 'entregado' && $orden['prioridad'] === 'alta') {
+                            echo 'background-color: rgba(255, 0, 0, 0.1);';
+                        }
+                    ?>">
                         <td><?php echo $orden['id']; ?></td>
                         <td><?php echo $orden['cliente_nombre']; ?></td>
                         <td><?php echo $orden['tecnico_nombre']; ?></td>
