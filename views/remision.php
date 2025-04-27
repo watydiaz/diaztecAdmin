@@ -129,7 +129,7 @@
         </div>
 
         <div class="acciones" style="margin-top: 20px; text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center;">
-            <a href="https://wa.me/57<?php echo ltrim($orden['cliente_telefono'], '0'); ?>?text=Hola%20<?php echo urlencode($orden['cliente_nombre']); ?>,%20aquí%20está%20la%20remisión%20de%20su%20servicio:%20<?php echo urlencode('http://example.com/index.php?action=generarRemision&id=' . $orden['id']); ?>" target="_blank" class="btn btn-success" style="padding: 10px 20px; background-color: #25D366; color: white; border: none; border-radius: 5px; text-decoration: none; font-size: 16px;">Enviar por WhatsApp</a>
+            <a href="https://wa.me/57<?php echo ltrim($orden['cliente_telefono'], '0'); ?>?text=Hola%20<?php echo urlencode($orden['cliente_nombre']); ?>,%20aquí%20está%20la%20remisión%20de%20su%20servicio:%20<?php echo urlencode('https://admin.diaztecnologia.com/index.php?action=generarRemision&id=' . $orden['id']); ?>" target="_blank" class="btn btn-success" style="padding: 10px 20px; background-color: #25D366; color: white; border: none; border-radius: 5px; text-decoration: none; font-size: 16px;">Enviar por WhatsApp</a>
             <button onclick="enviarPorEmail()" class="btn btn-primary" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px;">Enviar por Email</button>
         </div>
 
