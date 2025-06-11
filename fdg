@@ -1,0 +1,20 @@
+* [33m58a2c3a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmejora-gestion-ordenes[m[33m)[m Limitar caracteres en 'Falla Reportada', mostrar solo fecha en 'Fecha de Ingreso' y mostrar detalles completos al seleccionar la fila de la orden.
+* [33mcb3fc5a[m Mover columna de imagen junto a ID en la tabla de órdenes y mantener gestión de imágenes en modelo. Mejoras visuales y de funcionalidad para slider y edición/eliminación de imágenes.
+* [33m15dc8b0[m Mejora en la gestión de órdenes: manejo de imágenes, corrección de acciones en tabla, y manuales HTML
+* [33maf239aa[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m Url de Remision por whatsapp Habilitada en servidor
+* [33mf3fe474[m Url de Remision por whatsapp Habilitada
+* [33mca1df67[m Se añden colores de priorizacion para ls ordenes
+* [33m654d67a[m Todas las funciones listas, pero estan en prueba, detallar y mejorar, vamos para el tema de caja
+* [33me9d5de6[m Se Agrego la funcion de remision, con accion de enviar whatsapp y email.
+* [33m95ef6a1[m Se Agrego la funcion de remision, generada desde la url con las cciones de enviar por whatsapp o email
+* [33m3a404df[m Se ajustaro el tema de guardar y editar ordenes de manera correcta, adjuntando la imagen.
+* [33mb65265a[m Se ajustaron las rutas para que sean relativas en el servidor
+* [33m2936e61[m La imagen ya se puede ver en el modal ver orden de trabajo
+* [33ma1f8b5f[m La imagen ya se puede ver en el modal ver orden de trabajo
+* [33m5618a85[m edicion, eliminacion, vista, falta ver la imagen asociada
+* [33mbc70d96[m header pegajoso
+* [33mbbcd7ee[m Se habilita la accion de eliminar registro en el modulo de ordenes
+* [33m955927d[m Se habilita la subido de imagenes relacionadas con las ordenes de reparacion y  el formulario de edicion
+* [33m7c426d7[m Actualizamos el formulario de ordenes, se habilita el poder subir imagnes al servidor y guardar la ruta de la imagen, ahora comenzaremos a habilitar la funcion de edicion de informacion
+* [33m1439091[m Actualizamos la visualizacion del header y footer , dinamico, el nav desde dipositivos moviles, ahora es responsivo, pusimos un menu desplegable, detallaremos el modulo de ordenes arreglando cada una de sus funcionalidades.
+* [33m9c04a47[m Detallar modulo de Ordenes
