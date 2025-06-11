@@ -23,6 +23,19 @@ require_once 'header.php';
     th {
         background-color: #f4f4f4;
     }
+
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        background-color: rgba(0,0,0,0.5);
+        border-radius: 50%;
+        width: 2.5rem;
+        height: 2.5rem;
+        background-size: 60% 60%;
+    }
+    .carousel-control-prev,
+    .carousel-control-next {
+        filter: drop-shadow(0 0 2px #fff);
+    }
 </style>
 
 <div class="container-fluid">
@@ -243,8 +256,18 @@ require_once 'header.php';
                         </div>
                         <div class="row">
                             <div class="col-12 mb-3">
-                                <label for="editarImagenes" class="form-label">Actualizar Imágenes</label>
-                                <input type="file" class="form-control" id="editarImagenes" name="imagenes[]" accept="image/*" multiple>
+                                <label class="form-label">Imágenes actuales</label>
+                                <div id="imagenesActuales" class="d-flex flex-wrap gap-2"></div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label for="editarImagenes" class="form-label">Agregar otra imagen</label>
+                                <div class="input-group">
+                                    <input type="file" class="form-control" id="editarImagenes" name="imagenes[]" accept="image/*">
+                                    <button type="button" class="btn btn-secondary" id="btnAgregarInputImagen">Agregar otra imagen</button>
+                                </div>
+                                <div id="inputsExtraImagenes"></div>
                             </div>
                         </div>
                         <button type="submit" class="btn btn-primary">Actualizar</button>
@@ -283,11 +306,37 @@ require_once 'header.php';
         </div>
     </div>
 
+    <!-- Modal para ver imagen en grande -->
+    <div class="modal fade" id="modalImagen" tabindex="-1" aria-labelledby="modalImagenLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalImagenLabel">Imágenes de la Orden</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="sliderImagenesOrden" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner" id="carouselImagenesInner"></div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#sliderImagenesOrden" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Anterior</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#sliderImagenesOrden" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Siguiente</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="responsive-table">
         <table class="table table-striped w-100">
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Imagen</th>
                     <th>Cliente</th>
                     <th>Técnico</th>
                     <th>Marca</th>
@@ -309,6 +358,20 @@ require_once 'header.php';
                         }
                     ?>">
                         <td><?php echo $orden['id']; ?></td>
+                        <td>
+                            <?php 
+                            $miniatura = '';
+                            if (!empty($orden['imagen_url'])) {
+                                $imagenes = explode(',', $orden['imagen_url']);
+                                $miniatura = $imagenes[0];
+                            }
+                            ?>
+                            <?php if ($miniatura): ?>
+                                <img src="<?php echo $miniatura; ?>" alt="Imagen principal" style="width: 50px; height: 50px; object-fit: cover; cursor: pointer;" onclick="verImagenModal('<?php echo htmlspecialchars(json_encode($orden['imagen_url']), ENT_QUOTES, 'UTF-8'); ?>')">
+                            <?php else: ?>
+                                <span class="text-muted">Sin imagen</span>
+                            <?php endif; ?>
+                        </td>
                         <td><?php echo $orden['cliente_nombre']; ?></td>
                         <td><?php echo $orden['tecnico_nombre']; ?></td>
                         <td><?php echo $orden['marca']; ?></td>
@@ -341,6 +404,24 @@ require_once 'header.php';
                 <?php endforeach; ?>
             </tbody>
         </table>
+    </div>
+
+    <!-- Modal para ver imagen en tamaño completo -->
+    <div class="modal fade" id="modalVerImagen" tabindex="-1" aria-labelledby="modalVerImagenLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalVerImagenLabel">Imagen de la Orden</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <img id="imagenOrdenCompleta" src="" alt="Imagen de la orden" style="width: 100%; height: auto;">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -536,7 +617,62 @@ require_once 'header.php';
                     }
                 });
             });
+
+            // Lógica para agregar más inputs de imagen en la edición de orden
+            let contadorInputsImagen = 1;
+            const btnAgregarInputImagen = document.getElementById('btnAgregarInputImagen');
+            const inputsExtraImagenesDiv = document.getElementById('inputsExtraImagenes');
+
+            btnAgregarInputImagen.addEventListener('click', function() {
+                contadorInputsImagen++;
+                const nuevoInputImagen = document.createElement('div');
+                nuevoInputImagen.className = 'mb-3';
+                nuevoInputImagen.innerHTML = `
+                    <input type="file" class="form-control" id="editarImagenes${contadorInputsImagen}" name="imagenes[]" accept="image/*">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="eliminarInputImagen(this)">Eliminar</button>
+                `;
+                inputsExtraImagenesDiv.appendChild(nuevoInputImagen);
+            });
+
         });
+
+    // Función para mostrar las imágenes en un slider modal
+    function verImagenModal(imagenesStr) {
+        let imagenes = [];
+        if (Array.isArray(imagenesStr)) {
+            imagenes = imagenesStr;
+        } else if (typeof imagenesStr === 'string') {
+            try {
+                imagenes = JSON.parse(imagenesStr);
+                if (!Array.isArray(imagenes)) {
+                    imagenes = imagenesStr.split(',');
+                }
+            } catch (e) {
+                imagenes = imagenesStr.split(',');
+            }
+        }
+        // Limpiar comillas y espacios
+        imagenes = imagenes.map(img => img.replace(/^"|"$/g, '').trim()).filter(img => img);
+        const carouselInner = document.getElementById('carouselImagenesInner');
+        carouselInner.innerHTML = '';
+        let tieneVarias = imagenes.length > 1;
+        imagenes.forEach((img, idx) => {
+            const div = document.createElement('div');
+            div.className = 'carousel-item' + (idx === 0 ? ' active' : '');
+            const image = document.createElement('img');
+            image.src = img;
+            image.className = 'd-block w-100';
+            image.style.maxHeight = '70vh';
+            image.style.objectFit = 'contain';
+            div.appendChild(image);
+            carouselInner.appendChild(div);
+        });
+        // Mostrar/ocultar controles del slider
+        document.querySelector('#sliderImagenesOrden .carousel-control-prev').style.display = tieneVarias ? '' : 'none';
+        document.querySelector('#sliderImagenesOrden .carousel-control-next').style.display = tieneVarias ? '' : 'none';
+        const modal = new bootstrap.Modal(document.getElementById('modalImagen'));
+        modal.show();
+    }
 
     function verOrden(id) {
         fetch(`index.php?action=obtenerOrden&id=${id}`)
@@ -555,6 +691,17 @@ require_once 'header.php';
                     document.getElementById('detalleFechaIngreso').textContent = orden.fecha_ingreso;
                     document.getElementById('detalleDiagnostico').textContent = orden.diagnostico;
                     document.getElementById('detalleImagen').src = orden.imagen_url || ''; // Asignar la URL de la imagen
+
+                    if (orden.imagen_url) {
+                        const imagenes = orden.imagen_url.split(',');
+                        document.getElementById('detalleImagen').src = imagenes[0] || '';
+                        document.getElementById('detalleImagen').onclick = function() {
+                            verImagenModal(JSON.stringify(imagenes));
+                        };
+                    } else {
+                        document.getElementById('detalleImagen').src = '';
+                        document.getElementById('detalleImagen').onclick = null;
+                    }
 
                     const modalVerOrden = new bootstrap.Modal(document.getElementById('modalVerOrden'));
                     modalVerOrden.show();
@@ -582,6 +729,59 @@ require_once 'header.php';
                     document.getElementById('editarContraseñaEquipo').value = orden.contraseña_equipo;
                     document.getElementById('editarFallaReportada').value = orden.falla_reportada;
                     document.getElementById('editarDiagnostico').value = orden.diagnostico;
+
+                    // Mostrar imágenes actuales con opción de eliminar
+                    const imagenesActualesDiv = document.getElementById('imagenesActuales');
+                    imagenesActualesDiv.innerHTML = '';
+                    if (orden.imagen_url) {
+                        const imagenes = orden.imagen_url.split(',');
+                        imagenes.forEach(img => {
+                            const wrapper = document.createElement('div');
+                            wrapper.style.position = 'relative';
+                            wrapper.style.display = 'inline-block';
+                            wrapper.style.margin = '2px';
+                            const image = document.createElement('img');
+                            image.src = img;
+                            image.style.width = '60px';
+                            image.style.height = '60px';
+                            image.style.objectFit = 'cover';
+                            image.style.border = '1px solid #ccc';
+                            image.style.borderRadius = '4px';
+                            // Botón eliminar
+                            const btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.innerHTML = '&times;';
+                            btn.title = 'Eliminar imagen';
+                            btn.style.position = 'absolute';
+                            btn.style.top = '0';
+                            btn.style.right = '0';
+                            btn.style.background = 'rgba(255,0,0,0.7)';
+                            btn.style.color = '#fff';
+                            btn.style.border = 'none';
+                            btn.style.borderRadius = '0 4px 0 4px';
+                            btn.style.cursor = 'pointer';
+                            btn.onclick = function() {
+                                if (confirm('¿Eliminar esta imagen?')) {
+                                    fetch('index.php?action=eliminarImagenOrden', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                        body: `id=${orden.id}&imagen=${encodeURIComponent(img)}`
+                                    })
+                                    .then(r => r.json())
+                                    .then(resp => {
+                                        if (resp.success) {
+                                            wrapper.remove();
+                                        } else {
+                                            alert('Error: ' + resp.message);
+                                        }
+                                    });
+                                }
+                            };
+                            wrapper.appendChild(image);
+                            wrapper.appendChild(btn);
+                            imagenesActualesDiv.appendChild(wrapper);
+                        });
+                    }
 
                     const modalEditar = new bootstrap.Modal(document.getElementById('modalEditarOrden'));
                     modalEditar.show();
@@ -634,6 +834,30 @@ require_once 'header.php';
                     alert('Ocurrió un error al intentar cambiar el estado de la orden.');
                 });
         }
+    }
+
+    function eliminarImagen(imagenId, imgElement) {
+        if (confirm('¿Estás seguro de que deseas eliminar esta imagen?')) {
+            fetch(`index.php?action=eliminarImagen&id=${imagenId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Imagen eliminada exitosamente.');
+                        // Eliminar el elemento de imagen del DOM
+                        imgElement.parentElement.remove();
+                    } else {
+                        alert('Error al eliminar la imagen: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al eliminar la imagen:', error);
+                    alert('Ocurrió un error al intentar eliminar la imagen.');
+                });
+        }
+    }
+
+    function eliminarInputImagen(button) {
+        button.parentElement.remove();
     }
     </script>
 </div>

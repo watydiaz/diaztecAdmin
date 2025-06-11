@@ -86,4 +86,11 @@ class OrdenModel {
         $stmt->bind_param('si', $estado, $id);
         return $stmt->execute();
     }
+
+    public function actualizarImagenesOrden($id, $imagenes) {
+        $query = "UPDATE ordenes_reparacion SET imagen_url = ? WHERE id = ?";
+        $stmt = $this->conexion->prepare($query);
+        $stmt->bind_param('si', $imagenes, $id);
+        return $stmt->execute();
+    }
 }
