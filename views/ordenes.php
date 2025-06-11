@@ -36,6 +36,24 @@ require_once 'header.php';
     .carousel-control-next {
         filter: drop-shadow(0 0 2px #fff);
     }
+
+    /* Acciones en la tabla: mostrar en fila horizontal en móviles */
+    @media (max-width: 768px) {
+        .acciones-responsive {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            gap: 4px;
+            justify-content: flex-start;
+            overflow-x: auto;
+            width: 100%;
+            -webkit-overflow-scrolling: touch;
+        }
+        .acciones-responsive a {
+            flex: 0 0 auto;
+            min-width: 36px;
+            margin: 0 2px;
+        }
+    }
 </style>
 
 <div class="container-fluid">
@@ -384,9 +402,15 @@ require_once 'header.php';
                         <td title="<?php echo $orden['fecha_ingreso']; ?>">
                             <?php echo date('Y-m-d', strtotime($orden['fecha_ingreso'])); ?>
                         </td>
-                        <td>
+                        <td class="acciones-responsive">
                             <a href="#" class="btn btn-warning btn-sm" title="Editar" onclick="abrirModalEditarOrden(<?php echo $orden['id']; ?>)">
                                 <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <a href="#" class="btn btn-success btn-sm" title="Marcar como Terminado" onclick="cambiarEstadoTerminado(<?php echo $orden['id']; ?>); return false;">
+                                <i class="bi bi-check2-square"></i>
+                            </a>
+                            <a href="#" class="btn btn-dark btn-sm" title="Marcar como Entregado" onclick="cambiarEstadoEntregado(<?php echo $orden['id']; ?>)">
+                                <i class="bi bi-check-circle"></i>
                             </a>
                             <a href="#" class="btn btn-danger btn-sm" title="Eliminar" data-id="<?php echo $orden['id']; ?>">
                                 <i class="bi bi-trash"></i>
@@ -400,8 +424,8 @@ require_once 'header.php';
                             <a href="index.php?action=generarRemision&id=<?php echo $orden['id']; ?>" class="btn btn-info btn-sm">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <a href="#" class="btn btn-dark btn-sm" title="Marcar como Entregado" onclick="cambiarEstadoEntregado(<?php echo $orden['id']; ?>)">
-                                <i class="bi bi-check-circle"></i>
+                            <a href="#" class="btn btn-secondary btn-sm" title="Pagos" data-id="<?php echo $orden['id']; ?>">
+                                <i class="bi bi-cash-coin"></i>
                             </a>
                         </td>
                     </tr>
@@ -734,7 +758,7 @@ require_once 'header.php';
                     document.getElementById('editarFallaReportada').value = orden.falla_reportada;
                     document.getElementById('editarDiagnostico').value = orden.diagnostico;
 
-                    // Mostrar imágenes actuales con opción de eliminar
+                    // Mostrar imágenes actuales with opción de eliminar
                     const imagenesActualesDiv = document.getElementById('imagenesActuales');
                     imagenesActualesDiv.innerHTML = '';
                     if (orden.imagen_url) {
