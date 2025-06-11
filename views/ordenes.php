@@ -350,13 +350,13 @@ require_once 'header.php';
             </thead>
             <tbody>
                 <?php foreach ($ordenes as $orden): ?>
-                    <tr style="<?php 
+                    <tr class="fila-orden" style="<?php 
                         if ($orden['estado'] === 'terminado') {
                             echo 'background-color: rgba(0, 128, 0, 0.1);';
                         } elseif ($orden['estado'] !== 'entregado' && $orden['prioridad'] === 'alta') {
                             echo 'background-color: rgba(255, 0, 0, 0.1);';
                         }
-                    ?>">
+                    ?>" data-id="<?php echo $orden['id']; ?>">
                         <td><?php echo $orden['id']; ?></td>
                         <td>
                             <?php 
@@ -376,10 +376,14 @@ require_once 'header.php';
                         <td><?php echo $orden['tecnico_nombre']; ?></td>
                         <td><?php echo $orden['marca']; ?></td>
                         <td><?php echo $orden['modelo']; ?></td>
-                        <td><?php echo $orden['falla_reportada']; ?></td>
+                        <td title="<?php echo htmlspecialchars($orden['falla_reportada']); ?>">
+                            <?php echo mb_strimwidth($orden['falla_reportada'], 0, 30, '...'); ?>
+                        </td>
                         <td><?php echo $orden['estado']; ?></td>
                         <td><?php echo $orden['prioridad']; ?></td>
-                        <td><?php echo $orden['fecha_ingreso']; ?></td>
+                        <td title="<?php echo $orden['fecha_ingreso']; ?>">
+                            <?php echo date('Y-m-d', strtotime($orden['fecha_ingreso'])); ?>
+                        </td>
                         <td>
                             <a href="#" class="btn btn-warning btn-sm" title="Editar" onclick="abrirModalEditarOrden(<?php echo $orden['id']; ?>)">
                                 <i class="bi bi-pencil-square"></i>
@@ -859,6 +863,17 @@ require_once 'header.php';
     function eliminarInputImagen(button) {
         button.parentElement.remove();
     }
+
+    // Agregar evento para mostrar detalles al seleccionar la fila
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.fila-orden').forEach(function(fila) {
+            fila.addEventListener('click', function(e) {
+                // Evitar conflicto con botones de acción
+                if (e.target.tagName === 'A' || e.target.tagName === 'I' || e.target.tagName === 'IMG' || e.target.closest('a,button')) return;
+                verOrden(this.dataset.id);
+            });
+        });
+    });
     </script>
 </div>
 
