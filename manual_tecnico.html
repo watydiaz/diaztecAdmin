@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Técnico</title>
+</head>
+<body>
+    <h1>Manual Técnico</h1>
+    <h2>1. Introducción</h2>
+    <p><strong>Nombre del Proyecto:</strong> Sistema de Gestión de Reparaciones de Taller.</p>
+    <p><strong>Descripción:</strong> Este sistema permite gestionar clientes, órdenes, roles, remisiones y métricas de un taller de reparaciones.</p>
+    <p><strong>Tecnologías Utilizadas:</strong></p>
+    <ul>
+        <li>PHP (Backend)</li>
+        <li>MySQL (Base de datos)</li>
+        <li>HTML, CSS, JavaScript (Frontend)</li>
+        <li>Librería FPDF para generación de documentos PDF.</li>
+    </ul>
+
+    <h2>2. Estructura del Proyecto</h2>
+    <p><strong>Directorio Principal:</strong></p>
+    <ul>
+        <li><code>index.php</code>: Archivo principal para manejar el enrutamiento.</li>
+        <li><code>manifest.json</code>: Archivo de configuración.</li>
+        <li><code>README.md</code>: Documentación básica del proyecto.</li>
+    </ul>
+    <p><strong>Carpetas:</strong></p>
+    <ul>
+        <li><code>assets/</code>: Contiene recursos como imágenes, estilos CSS, scripts JS y la base de datos.</li>
+        <li><code>controllers/</code>: Controladores para manejar la lógica de negocio.</li>
+        <li><code>models/</code>: Modelos para interactuar con la base de datos.</li>
+        <li><code>views/</code>: Vistas para la interfaz de usuario.</li>
+    </ul>
+
+    <h2>3. Configuración del Entorno</h2>
+    <p><strong>Requisitos:</strong></p>
+    <ul>
+        <li>Servidor web (XAMPP, WAMP, etc.).</li>
+        <li>PHP 7.4 o superior.</li>
+        <li>MySQL.</li>
+    </ul>
+    <p><strong>Configuración de la Base de Datos:</strong></p>
+    <ul>
+        <li>Importar el archivo <code>baseDatos.sql</code> ubicado en <code>assets/bd/</code> a MySQL.</li>
+        <li>Configurar las credenciales de conexión en <code>index.php</code>:</li>
+    </ul>
+    <pre><code>$mysqli = new mysqli('localhost', 'root', '', 'reparaciones_taller');</code></pre>
+
+    <h2>4. Descripción de los Componentes</h2>
+    <p><strong>Controladores:</strong></p>
+    <ul>
+        <li><code>LoginController.php</code>: Maneja la autenticación de usuarios.</li>
+        <li><code>ClienteController.php</code>: Gestiona las operaciones relacionadas con clientes.</li>
+        <li><code>OrdenController.php</code>: Gestiona las órdenes de reparación.</li>
+        <li><code>RolController.php</code>: Administra los roles y permisos.</li>
+        <li><code>RemisionController.php</code>: Genera y gestiona remisiones.</li>
+    </ul>
+    <p><strong>Modelos:</strong></p>
+    <ul>
+        <li><code>UsuarioModel.php</code>: Modelo para usuarios.</li>
+        <li><code>ClienteModel.php</code>: Modelo para clientes.</li>
+        <li><code>OrdenModel.php</code>: Modelo para órdenes.</li>
+        <li><code>RolModel.php</code>: Modelo para roles.</li>
+        <li><code>RemisionModel.php</code>: Modelo para remisiones.</li>
+    </ul>
+
+    <h2>5. Flujo del Sistema</h2>
+    <p>El archivo <code>index.php</code> actúa como enrutador principal.</p>
+    <p>Las acciones se manejan mediante el parámetro <code>action</code> en la URL.</p>
+    <p>Ejemplo: <code>index.php?action=login</code> muestra la página de inicio de sesión.</p>
+
+    <h2>6. Mantenimiento</h2>
+    <p><strong>Errores:</strong> Activar la visualización de errores en <code>index.php</code>:</p>
+    <pre><code>ini_set('display_errors', 1);
+error_reporting(E_ALL);</code></pre>
+    <p><strong>Actualización de Dependencias:</strong> Asegurarse de que las librerías externas como FPDF estén actualizadas.</p>
+</body>
+</html>

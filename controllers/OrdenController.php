@@ -73,7 +73,7 @@ class OrdenController {
         $imagenes = [];
         $rutaBase = realpath(__DIR__ . '/../assets/img/') . DIRECTORY_SEPARATOR;
 
-        if (isset($_FILES['imagenes'])) {
+        if (isset($_FILES['imagenes']) && isset($_FILES['imagenes']['tmp_name']) && !empty($_FILES['imagenes']['tmp_name'][0])) {
             foreach ($_FILES['imagenes']['tmp_name'] as $key => $tmpName) {
                 if ($_FILES['imagenes']['error'][$key] === UPLOAD_ERR_OK) {
                     $nombreArchivo = uniqid() . '_' . basename($_FILES['imagenes']['name'][$key]);
@@ -86,15 +86,15 @@ class OrdenController {
             }
         }
 
-        // Si no se subieron imágenes, establecer el campo como null o vacío
+        // Obtener la orden existente para conservar datos no modificados
+        $ordenExistente = $this->ordenModel->obtenerOrdenPorId($id);
+
+        // Si no se subieron imágenes, mantener las anteriores
         if (empty($imagenes)) {
-            $data['imagen_url'] = null; // O una cadena vacía dependiendo de la base de datos
+            $data['imagen_url'] = $ordenExistente['imagen_url'];
         } else {
             $data['imagen_url'] = implode(',', $imagenes);
         }
-
-        // Asegurar que los campos no modificados conserven su información existente
-        $ordenExistente = $this->ordenModel->obtenerOrdenPorId($id);
 
         $data['cliente_id'] = $data['cliente_id'] ?? $ordenExistente['cliente_id'];
         $data['usuario_tecnico_id'] = $data['usuario_tecnico_id'] ?? $ordenExistente['usuario_tecnico_id'];

@@ -9,7 +9,7 @@ class OrdenModel {
     }
 
     public function obtenerOrdenes() {
-        $query = "SELECT o.id, c.nombre AS cliente_nombre, c.telefono AS telefono_cliente, u.nombre AS tecnico_nombre, o.marca, o.modelo, o.falla_reportada, o.estado, o.prioridad, o.fecha_ingreso FROM ordenes_reparacion o INNER JOIN clientes c ON o.cliente_id = c.id INNER JOIN usuarios u ON o.usuario_tecnico_id = u.id WHERE o.estado != 'entregado' ORDER BY o.id DESC";
+        $query = "SELECT o.id, c.nombre AS cliente_nombre, c.telefono AS telefono_cliente, u.nombre AS tecnico_nombre, o.marca, o.modelo, o.falla_reportada, o.estado, o.prioridad, o.fecha_ingreso, o.imagen_url FROM ordenes_reparacion o INNER JOIN clientes c ON o.cliente_id = c.id INNER JOIN usuarios u ON o.usuario_tecnico_id = u.id WHERE o.estado != 'entregado' ORDER BY o.id DESC";
         $resultado = $this->conexion->query($query);
         return $resultado->fetch_all(MYSQLI_ASSOC);
     }

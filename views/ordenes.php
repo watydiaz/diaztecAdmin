@@ -342,190 +342,189 @@ require_once 'header.php';
             </tbody>
         </table>
     </div>
-</div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const buscarClienteInput = document.getElementById('buscarCliente');
-        const listaClientes = document.getElementById('listaClientes');
-        const clienteIdInput = document.getElementById('cliente_id');
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const buscarClienteInput = document.getElementById('buscarCliente');
+            const listaClientes = document.getElementById('listaClientes');
+            const clienteIdInput = document.getElementById('cliente_id');
 
-        buscarClienteInput.addEventListener('input', function() {
-            const query = this.value;
+            buscarClienteInput.addEventListener('input', function() {
+                const query = this.value;
 
-            if (query.length > 2) {
-                fetch(`index.php?action=buscarCliente&query=${query}`)
+                if (query.length > 2) {
+                    fetch(`index.php?action=buscarCliente&query=${query}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            listaClientes.innerHTML = '';
+                            if (data.clientes.length > 0) {
+                                listaClientes.style.display = 'block';
+                                data.clientes.forEach(cliente => {
+                                    const li = document.createElement('li');
+                                    li.className = 'list-group-item list-group-item-action';
+                                    li.textContent = `${cliente.nombre} (${cliente.identificacion})`;
+                                    li.dataset.id = cliente.id;
+                                    listaClientes.appendChild(li);
+                                });
+                            } else {
+                                listaClientes.style.display = 'none';
+                            }
+                        });
+                } else {
+                    listaClientes.style.display = 'none';
+                }
+            });
+
+            listaClientes.addEventListener('click', function(event) {
+                if (event.target.tagName === 'LI') {
+                    const selectedCliente = event.target;
+                    buscarClienteInput.value = selectedCliente.textContent;
+                    clienteIdInput.value = selectedCliente.dataset.id;
+                    listaClientes.style.display = 'none';
+                }
+            });
+
+            // Cargar técnicos dinámicamente al abrir el modal
+            const modalAgregarOrden = document.getElementById('modalAgregarOrden');
+            modalAgregarOrden.addEventListener('show.bs.modal', function() {
+                const tecnicoSelect = document.getElementById('usuario_tecnico_id');
+                tecnicoSelect.innerHTML = '<option value="">Seleccione un técnico</option>'; // Limpiar opciones previas
+
+                fetch('index.php?action=obtenerTecnicos')
                     .then(response => response.json())
                     .then(data => {
-                        listaClientes.innerHTML = '';
-                        if (data.clientes.length > 0) {
-                            listaClientes.style.display = 'block';
-                            data.clientes.forEach(cliente => {
-                                const li = document.createElement('li');
-                                li.className = 'list-group-item list-group-item-action';
-                                li.textContent = `${cliente.nombre} (${cliente.identificacion})`;
-                                li.dataset.id = cliente.id;
-                                listaClientes.appendChild(li);
+                        if (data.success) {
+                            data.tecnicos.forEach(tecnico => {
+                                const option = document.createElement('option');
+                                option.value = tecnico.id;
+                                option.textContent = tecnico.nombre;
+                                tecnicoSelect.appendChild(option);
                             });
                         } else {
-                            listaClientes.style.display = 'none';
+                            alert('Error al cargar técnicos: ' + data.message);
                         }
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar técnicos:', error);
                     });
-            } else {
-                listaClientes.style.display = 'none';
-            }
-        });
 
-        listaClientes.addEventListener('click', function(event) {
-            if (event.target.tagName === 'LI') {
-                const selectedCliente = event.target;
-                buscarClienteInput.value = selectedCliente.textContent;
-                clienteIdInput.value = selectedCliente.dataset.id;
-                listaClientes.style.display = 'none';
-            }
-        });
+                // Establecer la fecha y hora de ingreso automáticamente al abrir el modal
+                const fechaIngresoInput = document.getElementById('fecha_ingreso');
+                const now = new Date();
+                const formattedDate = now.toISOString().slice(0, 16); // Formato compatible con datetime-local
+                fechaIngresoInput.value = formattedDate;
+            });
 
-        // Cargar técnicos dinámicamente al abrir el modal
-        const modalAgregarOrden = document.getElementById('modalAgregarOrden');
-        modalAgregarOrden.addEventListener('show.bs.modal', function() {
-            const tecnicoSelect = document.getElementById('usuario_tecnico_id');
-            tecnicoSelect.innerHTML = '<option value="">Seleccione un técnico</option>'; // Limpiar opciones previas
+            // Crear nuevo cliente desde el submodal
+            const formSubmodalAgregarCliente = document.getElementById('formSubmodalAgregarCliente');
 
-            fetch('index.php?action=obtenerTecnicos')
+            formSubmodalAgregarCliente.addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const formData = new FormData(this);
+
+                fetch('index.php?action=agregarCliente', {
+                    method: 'POST',
+                    body: formData
+                })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        data.tecnicos.forEach(tecnico => {
-                            const option = document.createElement('option');
-                            option.value = tecnico.id;
-                            option.textContent = tecnico.nombre;
-                            tecnicoSelect.appendChild(option);
-                        });
+                        // Asociar el cliente recién creado
+                        buscarClienteInput.value = `${formData.get('nombre')} (${formData.get('identificacion')})`;
+                        clienteIdInput.value = data.cliente_id; // Suponiendo que el backend devuelve el ID del cliente creado
+
+                        // Cerrar solo el submodal
+                        const submodal = bootstrap.Modal.getInstance(document.getElementById('submodalAgregarCliente'));
+                        submodal.hide();
+
+                        // Simular clic en el botón de agregar orden
+                        const botonAgregarOrden = document.querySelector('[data-bs-target="#modalAgregarOrden"]');
+                        botonAgregarOrden.click();
                     } else {
-                        alert('Error al cargar técnicos: ' + data.message);
+                        alert('Error al agregar cliente: ' + data.message);
                     }
                 })
                 .catch(error => {
-                    console.error('Error al cargar técnicos:', error);
+                    console.error('Error:', error);
                 });
-
-            // Establecer la fecha y hora de ingreso automáticamente al abrir el modal
-            const fechaIngresoInput = document.getElementById('fecha_ingreso');
-            const now = new Date();
-            const formattedDate = now.toISOString().slice(0, 16); // Formato compatible con datetime-local
-            fechaIngresoInput.value = formattedDate;
-        });
-
-        // Crear nuevo cliente desde el submodal
-        const formSubmodalAgregarCliente = document.getElementById('formSubmodalAgregarCliente');
-
-        formSubmodalAgregarCliente.addEventListener('submit', function(event) {
-            event.preventDefault();
-
-            const formData = new FormData(this);
-
-            fetch('index.php?action=agregarCliente', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Asociar el cliente recién creado
-                    buscarClienteInput.value = `${formData.get('nombre')} (${formData.get('identificacion')})`;
-                    clienteIdInput.value = data.cliente_id; // Suponiendo que el backend devuelve el ID del cliente creado
-
-                    // Cerrar solo el submodal
-                    const submodal = bootstrap.Modal.getInstance(document.getElementById('submodalAgregarCliente'));
-                    submodal.hide();
-
-                    // Simular clic en el botón de agregar orden
-                    const botonAgregarOrden = document.querySelector('[data-bs-target="#modalAgregarOrden"]');
-                    botonAgregarOrden.click();
-                } else {
-                    alert('Error al agregar cliente: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
             });
-        });
 
-        // Manejar el envío del formulario de agregar orden
-        document.getElementById('formAgregarOrden').addEventListener('submit', function(event) {
-            event.preventDefault(); // Evitar el envío por defecto del formulario
+            // Manejar el envío del formulario de agregar orden
+            document.getElementById('formAgregarOrden').addEventListener('submit', function(event) {
+                event.preventDefault(); // Evitar el envío por defecto del formulario
 
-            // Mostrar la imagen de cargando
-            const loadingOverlay = document.createElement('div');
-            loadingOverlay.style.position = 'fixed';
-            loadingOverlay.style.top = '0';
-            loadingOverlay.style.left = '0';
-            loadingOverlay.style.width = '100%';
-            loadingOverlay.style.height = '100%';
-            loadingOverlay.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-            loadingOverlay.style.display = 'flex';
-            loadingOverlay.style.justifyContent = 'center';
-            loadingOverlay.style.alignItems = 'center';
-            loadingOverlay.style.zIndex = '9999';
+                // Mostrar la imagen de cargando
+                const loadingOverlay = document.createElement('div');
+                loadingOverlay.style.position = 'fixed';
+                loadingOverlay.style.top = '0';
+                loadingOverlay.style.left = '0';
+                loadingOverlay.style.width = '100%';
+                loadingOverlay.style.height = '100%';
+                loadingOverlay.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+                loadingOverlay.style.display = 'flex';
+                loadingOverlay.style.justifyContent = 'center';
+                loadingOverlay.style.alignItems = 'center';
+                loadingOverlay.style.zIndex = '9999';
 
-            const loadingImage = document.createElement('img');
-            loadingImage.src = 'assets/img/loading-gear.gif'; // Asegúrate de tener una imagen de engranaje en esta ruta
-            loadingImage.alt = 'Cargando...';
-            loadingImage.style.width = '100px';
+                const loadingImage = document.createElement('img');
+                loadingImage.src = 'assets/img/loading-gear.gif'; // Asegúrate de tener una imagen de engranaje en esta ruta
+                loadingImage.alt = 'Cargando...';
+                loadingImage.style.width = '100px';
 
-            loadingOverlay.appendChild(loadingImage);
-            document.body.appendChild(loadingOverlay);
+                loadingOverlay.appendChild(loadingImage);
+                document.body.appendChild(loadingOverlay);
 
-            // Deshabilitar el botón de envío
-            const submitButton = this.querySelector('button[type="submit"]');
-            submitButton.disabled = true;
+                // Deshabilitar el botón de envío
+                const submitButton = this.querySelector('button[type="submit"]');
+                submitButton.disabled = true;
 
-            const formData = new FormData(this);
+                const formData = new FormData(this);
 
-            fetch('index.php?action=agregarOrden', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Ocultar la imagen de cargando
-                document.body.removeChild(loadingOverlay);
+                fetch('index.php?action=agregarOrden', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Ocultar la imagen de cargando
+                    document.body.removeChild(loadingOverlay);
 
-                // Habilitar el botón de envío
-                submitButton.disabled = false;
+                    // Habilitar el botón de envío
+                    submitButton.disabled = false;
 
-                if (data.success) {
-                    alert('Orden de trabajo registrada exitosamente.');
-                    location.reload(); // Recargar la página para reflejar los cambios
-                } else {
-                    alert('Error al registrar la orden: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error al registrar la orden:', error);
-                alert('Ocurrió un error al intentar registrar la orden.');
+                    if (data.success) {
+                        alert('Orden de trabajo registrada exitosamente.');
+                        location.reload(); // Recargar la página para reflejar los cambios
+                    } else {
+                        alert('Error al registrar la orden: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al registrar la orden:', error);
+                    alert('Ocurrió un error al intentar registrar la orden.');
 
-                // Ocultar la imagen de cargando
-                document.body.removeChild(loadingOverlay);
+                    // Ocultar la imagen de cargando
+                    document.body.removeChild(loadingOverlay);
 
-                // Habilitar el botón de envío
-                submitButton.disabled = false;
+                    // Habilitar el botón de envío
+                    submitButton.disabled = false;
+                });
             });
-        });
 
-        // Manejar la acción de eliminar
-        document.querySelectorAll('.btn-danger').forEach(function(button) {
-            button.addEventListener('click', function(event) {
-                event.preventDefault();
+            // Manejar la acción de eliminar
+            document.querySelectorAll('.btn-danger').forEach(function(button) {
+                button.addEventListener('click', function(event) {
+                    event.preventDefault();
 
-                if (confirm('¿Estás seguro de que deseas eliminar esta orden?')) {
-                    const id = this.dataset.id; // Obtener el ID de la orden
+                    if (confirm('¿Estás seguro de que deseas eliminar esta orden?')) {
+                        const id = this.dataset.id; // Obtener el ID de la orden
 
-                    fetch(`index.php?action=eliminarOrden&id=${id}`)
-                        .then(response => {
-                            if (response.ok) {
-                                alert('Orden eliminada exitosamente.');
-                                location.reload(); // Recargar la página
+                        fetch(`index.php?action=eliminarOrden&id=${id}`)
+                            .then(response => {
+                                if (response.ok) {
+                                    alert('Orden eliminada exitosamente.');
+                                    location.reload(); // Recargar la página
                             } else {
                                 alert('Error al eliminar la orden.');
                             }
@@ -534,10 +533,10 @@ require_once 'header.php';
                             console.error('Error al eliminar la orden:', error);
                             alert('Ocurrió un error al intentar eliminar la orden.');
                         });
-                }
+                    }
+                });
             });
         });
-    });
 
     function verOrden(id) {
         fetch(`index.php?action=obtenerOrden&id=${id}`)
@@ -636,7 +635,8 @@ require_once 'header.php';
                 });
         }
     }
-</script>
+    </script>
+</div>
 
 <?php
 require_once 'footer.php';
