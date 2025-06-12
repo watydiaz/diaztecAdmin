@@ -151,4 +151,15 @@ class OrdenController {
         }
         exit();
     }
+
+    public function cambiarEstadoTerminado($id) {
+        $resultado = $this->ordenModel->actualizarEstadoOrden($id, 'terminado');
+        header('Content-Type: application/json');
+        if ($resultado) {
+            echo json_encode(['success' => true, 'message' => 'Estado cambiado a terminado.']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Error al cambiar el estado de la orden.']);
+        }
+        exit();
+    }
 }

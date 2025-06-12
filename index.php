@@ -223,6 +223,14 @@ switch ($action) {
         }
         break;
 
+    case 'cambiarEstadoTerminado':
+        if (isset($_GET['id'])) {
+            $ordenController->cambiarEstadoTerminado($_GET['id']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'ID de la orden no proporcionado.']);
+        }
+        break;
+
     default:
         // Redirigir al login si la acción no es válida
         header('Location: index.php?action=login');

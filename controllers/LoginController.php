@@ -34,10 +34,9 @@ class LoginController {
         exit();
     }
 
-    // Método para obtener técnicos
+    // Método para obtener técnicos (llamando directamente a la base y retornando tal cual, sin lógica extra)
     public function obtenerTecnicos() {
         $tecnicos = $this->usuarioModel->obtenerTecnicos();
-
         header('Content-Type: application/json');
         echo json_encode(['success' => true, 'tecnicos' => $tecnicos]);
         exit();

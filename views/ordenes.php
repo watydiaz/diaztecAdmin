@@ -154,7 +154,7 @@ require_once 'header.php';
                         <div class="row">
                             <div class="col-12 mb-3">
                                 <label for="imagenes" class="form-label">Subir Imágenes</label>
-                                <input type="file" class="form-control" id="imagenes" name="imagenes[]" accept="image/*" multiple>
+                                <input type="file" class="form-control" id="imagenes" name="imagenes[]" accept="image/*" multiple capture="environment">
                             </div>
                         </div>
 
@@ -282,10 +282,19 @@ require_once 'header.php';
                             <div class="col-12 mb-3">
                                 <label for="editarImagenes" class="form-label">Agregar otra imagen</label>
                                 <div class="input-group">
-                                    <input type="file" class="form-control" id="editarImagenes" name="imagenes[]" accept="image/*">
+                                    <input type="file" class="form-control" id="editarImagenes" name="imagenes[]" accept="image/*" capture="environment">
                                     <button type="button" class="btn btn-secondary" id="btnAgregarInputImagen">Agregar otra imagen</button>
                                 </div>
                                 <div id="inputsExtraImagenes"></div>
+                            </div>
+                        </div>
+                        <!-- Select de técnico para editar orden -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editar_usuario_tecnico_id" class="form-label">Técnico</label>
+                                <select class="form-control" id="editar_usuario_tecnico_id" name="usuario_tecnico_id">
+                                    <option value="">Seleccione un técnico</option>
+                                </select>
                             </div>
                         </div>
                         <button type="submit" class="btn btn-primary">Actualizar</button>
@@ -452,6 +461,12 @@ require_once 'header.php';
         </div>
     </div>
 
+    <!-- Preloader para carga de imágenes -->
+    <div id="preloaderImagenes" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.7);z-index:99999;align-items:center;justify-content:center;">
+      <img src="assets/img/loading-gear.gif" alt="Cargando..." style="width:80px;">
+      <p style="text-align:center;">Subiendo imágenes...</p>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const buscarClienteInput = document.getElementById('buscarCliente');
@@ -493,21 +508,35 @@ require_once 'header.php';
                 }
             });
 
-            // Cargar técnicos dinámicamente al abrir el modal
+            // Cargar técnicos dinámicamente al abrir el modal de agregar orden
             const modalAgregarOrden = document.getElementById('modalAgregarOrden');
             modalAgregarOrden.addEventListener('show.bs.modal', function() {
-                const tecnicoSelect = document.getElementById('usuario_tecnico_id');
-                tecnicoSelect.innerHTML = '<option value="">Seleccione un técnico</option>'; // Limpiar opciones previas
-
+                // Eliminar el select anterior y crear uno nuevo para evitar residuos y duplicados
+                const colTecnico = document.querySelector('#modalAgregarOrden .col-md-6.mb-3 select#usuario_tecnico_id').parentElement;
+                let oldSelect = document.getElementById('usuario_tecnico_id');
+                if (oldSelect) oldSelect.remove();
+                const newSelect = document.createElement('select');
+                newSelect.className = 'form-control';
+                newSelect.id = 'usuario_tecnico_id';
+                newSelect.name = 'usuario_tecnico_id';
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Seleccione un técnico';
+                newSelect.appendChild(defaultOption);
+                colTecnico.appendChild(newSelect);
                 fetch('index.php?action=obtenerTecnicos')
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
+                            const idsAgregados = new Set();
                             data.tecnicos.forEach(tecnico => {
-                                const option = document.createElement('option');
-                                option.value = tecnico.id;
-                                option.textContent = tecnico.nombre;
-                                tecnicoSelect.appendChild(option);
+                                if (!idsAgregados.has(tecnico.id)) {
+                                    const option = document.createElement('option');
+                                    option.value = tecnico.id;
+                                    option.textContent = tecnico.nombre;
+                                    newSelect.appendChild(option);
+                                    idsAgregados.add(tecnico.id);
+                                }
                             });
                         } else {
                             alert('Error al cargar técnicos: ' + data.message);
@@ -516,12 +545,42 @@ require_once 'header.php';
                     .catch(error => {
                         console.error('Error al cargar técnicos:', error);
                     });
-
                 // Establecer la fecha y hora de ingreso automáticamente al abrir el modal
                 const fechaIngresoInput = document.getElementById('fecha_ingreso');
                 const now = new Date();
                 const formattedDate = now.toISOString().slice(0, 16); // Formato compatible con datetime-local
                 fechaIngresoInput.value = formattedDate;
+            });
+
+            // Cargar técnicos dinámicamente al abrir el modal de editar orden
+            const modalEditarOrden = document.getElementById('modalEditarOrden');
+            modalEditarOrden.addEventListener('show.bs.modal', function() {
+                const tecnicoSelect = document.getElementById('editar_usuario_tecnico_id');
+                if (tecnicoSelect) {
+                    tecnicoSelect.innerHTML = '';
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = 'Seleccione un técnico';
+                    tecnicoSelect.appendChild(defaultOption);
+                    fetch('index.php?action=obtenerTecnicos')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                const tecnicosMap = new Map();
+                                data.tecnicos.forEach(tecnico => {
+                                    if (!tecnicosMap.has(tecnico.id)) {
+                                        tecnicosMap.set(tecnico.id, tecnico.nombre);
+                                    }
+                                });
+                                tecnicosMap.forEach((nombre, id) => {
+                                    const option = document.createElement('option');
+                                    option.value = id;
+                                    option.textContent = nombre;
+                                    tecnicoSelect.appendChild(option);
+                                });
+                            }
+                        });
+                }
             });
 
             // Crear nuevo cliente desde el submodal
@@ -656,7 +715,7 @@ require_once 'header.php';
                 const nuevoInputImagen = document.createElement('div');
                 nuevoInputImagen.className = 'mb-3';
                 nuevoInputImagen.innerHTML = `
-                    <input type="file" class="form-control" id="editarImagenes${contadorInputsImagen}" name="imagenes[]" accept="image/*">
+                    <input type="file" class="form-control" id="editarImagenes${contadorInputsImagen}" name="imagenes[]" accept="image/*" capture="environment">
                     <button type="button" class="btn btn-danger btn-sm" onclick="eliminarInputImagen(this)">Eliminar</button>
                 `;
                 inputsExtraImagenesDiv.appendChild(nuevoInputImagen);
@@ -811,6 +870,14 @@ require_once 'header.php';
                         });
                     }
 
+                    // Seleccionar el técnico correspondiente
+                    const tecnicoSelect = document.getElementById('editar_usuario_tecnico_id');
+                    if (tecnicoSelect && orden.usuario_tecnico_id) {
+                        setTimeout(() => {
+                            tecnicoSelect.value = orden.usuario_tecnico_id;
+                        }, 300); // Espera a que se carguen las opciones
+                    }
+
                     const modalEditar = new bootstrap.Modal(document.getElementById('modalEditarOrden'));
                     modalEditar.show();
                 } else {
@@ -864,6 +931,25 @@ require_once 'header.php';
         }
     }
 
+    function cambiarEstadoTerminado(id) {
+        if (confirm('¿Estás seguro de que deseas marcar esta orden como terminada?')) {
+            fetch(`index.php?action=cambiarEstadoTerminado&id=${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('La orden ha sido marcada como terminada.');
+                        location.reload();
+                    } else {
+                        alert('Error al cambiar el estado de la orden: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ocurrió un error al intentar cambiar el estado de la orden.');
+                });
+        }
+    }
+
     function eliminarImagen(imagenId, imgElement) {
         if (confirm('¿Estás seguro de que deseas eliminar esta imagen?')) {
             fetch(`index.php?action=eliminarImagen&id=${imagenId}`)
@@ -898,6 +984,20 @@ require_once 'header.php';
             });
         });
     });
+
+    // Mostrar preloader al seleccionar imágenes
+    ['imagenes', 'editarImagenes'].forEach(function(id) {
+      const input = document.getElementById(id);
+      if(input) {
+        input.addEventListener('change', function() {
+          if(this.files && this.files.length > 0) {
+            document.getElementById('preloaderImagenes').style.display = 'flex';
+          }
+        });
+      }
+    });
+    // Ocultar preloader al terminar la carga (en fetch de agregar/editar orden)
+    document.getElementById('preloaderImagenes').style.display = 'none';
     </script>
 </div>
 
