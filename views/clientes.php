@@ -124,6 +124,13 @@ require_once 'header.php';
         </div>
     </div>
 
+    <!-- Buscador de clientes -->
+    <div class="row mb-3">
+        <div class="col-md-6 offset-md-3">
+            <input type="text" id="buscadorClientes" class="form-control" placeholder="Buscar cliente por nombre, identificación, teléfono, email, dirección, etc...">
+        </div>
+    </div>
+
     <!-- Tabla para listar clientes -->
     <div class="responsive-table">
         <table class="table table-striped w-100">
@@ -264,6 +271,22 @@ require_once 'header.php';
             });
         }
     }
+
+    // --- FILTRO DE TABLA POR BUSCADOR DE CLIENTES ---
+    document.getElementById('buscadorClientes').addEventListener('input', function() {
+        const filtro = this.value.toLowerCase();
+        document.querySelectorAll('.responsive-table tbody tr').forEach(function(fila) {
+            let textoFila = '';
+            fila.querySelectorAll('td').forEach(function(td) {
+                textoFila += (td.textContent || '').toLowerCase() + ' ';
+            });
+            if (textoFila.includes(filtro)) {
+                fila.style.display = '';
+            } else {
+                fila.style.display = 'none';
+            }
+        });
+    });
 </script>
 
 <?php

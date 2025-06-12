@@ -358,6 +358,13 @@ require_once 'header.php';
         </div>
     </div>
 
+    <!-- Buscador de órdenes y clientes -->
+    <div class="row mb-3">
+        <div class="col-md-6 offset-md-3">
+            <input type="text" id="buscadorOrdenes" class="form-control" placeholder="Buscar por cliente, técnico, marca, modelo, estado, prioridad, ID, etc...">
+        </div>
+    </div>
+
     <div class="responsive-table">
         <table class="table table-striped w-100">
             <thead>
@@ -1018,6 +1025,23 @@ require_once 'header.php';
         }
     });
     // --- FIN PERSISTENCIA DE SCROLL ---
+
+    // --- FILTRO DE TABLA POR BUSCADOR ---
+    document.getElementById('buscadorOrdenes').addEventListener('input', function() {
+        const filtro = this.value.toLowerCase();
+        document.querySelectorAll('.responsive-table tbody tr').forEach(function(fila) {
+            let textoFila = '';
+            fila.querySelectorAll('td').forEach(function(td) {
+                textoFila += (td.textContent || '').toLowerCase() + ' ';
+            });
+            if (textoFila.includes(filtro)) {
+                fila.style.display = '';
+            } else {
+                fila.style.display = 'none';
+            }
+        });
+    });
+    // --- FIN FILTRO DE TABLA ---
     </script>
 </div>
 
