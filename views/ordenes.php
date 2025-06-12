@@ -188,11 +188,11 @@ require_once 'header.php';
                         </div>
                         <div class="mb-3">
                             <label for="submodalIdentificacion" class="form-label">Identificación</label>
-                            <input type="text" class="form-control" id="submodalIdentificacion" name="identificacion" required>
+                            <input type="number" class="form-control" id="submodalIdentificacion" name="identificacion" required>
                         </div>
                         <div class="mb-3">
                             <label for="submodalTelefono" class="form-label">Teléfono</label>
-                            <input type="text" class="form-control" id="submodalTelefono" name="telefono">
+                            <input type="number" class="form-control" id="submodalTelefono" name="telefono">
                         </div>
                         <div class="mb-3">
                             <label for="submodalEmail" class="form-label">Email</label>
@@ -654,7 +654,7 @@ require_once 'header.php';
                     body: formData
                 })
                 .then(response => response.json())
-                .then(data => {
+                .then(data => { // <-- CORREGIDO
                     // Ocultar la imagen de cargando
                     document.body.removeChild(loadingOverlay);
 
@@ -663,6 +663,7 @@ require_once 'header.php';
 
                     if (data.success) {
                         alert('Orden de trabajo registrada exitosamente.');
+                        guardarScrollAntesDeRecargar();
                         location.reload(); // Recargar la página para reflejar los cambios
                     } else {
                         alert('Error al registrar la orden: ' + data.message);
@@ -692,6 +693,7 @@ require_once 'header.php';
                             .then(response => {
                                 if (response.ok) {
                                     alert('Orden eliminada exitosamente.');
+                                    guardarScrollAntesDeRecargar();
                                     location.reload(); // Recargar la página
                             } else {
                                 alert('Error al eliminar la orden.');
@@ -723,7 +725,7 @@ require_once 'header.php';
 
         });
 
-    // Función para mostrar las imágenes en un slider modal
+    // --- FUNCIONES GLOBALES PARA BOTONES DE LA TABLA DE ÓRDENES ---
     function verImagenModal(imagenesStr) {
         let imagenes = [];
         if (Array.isArray(imagenesStr)) {
@@ -902,6 +904,7 @@ require_once 'header.php';
         .then(data => {
             if (data.success) {
                 alert('Orden actualizada exitosamente.');
+                guardarScrollAntesDeRecargar();
                 location.reload();
             } else {
                 alert('Error al actualizar la orden: ' + data.message);
@@ -919,6 +922,7 @@ require_once 'header.php';
                 .then(data => {
                     if (data.success) {
                         alert('La orden ha sido marcada como entregada.');
+                        guardarScrollAntesDeRecargar();
                         location.reload();
                     } else {
                         alert('Error al cambiar el estado de la orden: ' + data.message);
@@ -931,6 +935,7 @@ require_once 'header.php';
         }
     }
 
+    // --- MOVER cambiarEstadoTerminado AL ÁMBITO GLOBAL ---
     function cambiarEstadoTerminado(id) {
         if (confirm('¿Estás seguro de que deseas marcar esta orden como terminada?')) {
             fetch(`index.php?action=cambiarEstadoTerminado&id=${id}`)
@@ -938,6 +943,7 @@ require_once 'header.php';
                 .then(data => {
                     if (data.success) {
                         alert('La orden ha sido marcada como terminada.');
+                        guardarScrollAntesDeRecargar();
                         location.reload();
                     } else {
                         alert('Error al cambiar el estado de la orden: ' + data.message);
@@ -998,6 +1004,20 @@ require_once 'header.php';
     });
     // Ocultar preloader al terminar la carga (en fetch de agregar/editar orden)
     document.getElementById('preloaderImagenes').style.display = 'none';
+
+    // --- PERSISTENCIA DE SCROLL EN ACCIONES DE LA TABLA DE ÓRDENES ---
+    function guardarScrollAntesDeRecargar() {
+        sessionStorage.setItem('scrollY_ordenes', window.scrollY);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const scrollY = sessionStorage.getItem('scrollY_ordenes');
+        if (scrollY !== null) {
+            window.scrollTo(0, parseInt(scrollY, 10));
+            sessionStorage.removeItem('scrollY_ordenes');
+        }
+    });
+    // --- FIN PERSISTENCIA DE SCROLL ---
     </script>
 </div>
 
