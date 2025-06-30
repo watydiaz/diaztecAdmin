@@ -896,7 +896,16 @@ require_once 'header.php';
                             }
                         });
                     // --- Botones de acciones en el modal ---
-                    let accionesHtml = `<div style='margin-top:15px; border-top:1px solid #eee; padding-top:10px;'>`;
+                    let clienteHtml = `<div style='margin-bottom:10px; padding:10px; background:#f8f9fa; border-radius:6px;'>`;
+                    clienteHtml += `<h6 style='font-weight:bold; color:#333;'><i class='bi bi-person'></i> Datos del Cliente</h6>`;
+                    clienteHtml += `<p style='margin-bottom:2px;'><strong>Nombre:</strong> ${orden.cliente_nombre || 'No disponible'}</p>`;
+                    clienteHtml += `<p style='margin-bottom:2px;'><strong>Teléfono:</strong> ${orden.telefono_cliente || 'No disponible'}</p>`;
+                    clienteHtml += `<p style='margin-bottom:2px;'><strong>Identificación:</strong> ${orden.cliente_identificacion || 'No disponible'}</p>`;
+                    clienteHtml += `<p style='margin-bottom:2px;'><strong>Correo:</strong> ${orden.cliente_correo || 'No disponible'}</p>`;
+                    clienteHtml += `</div>`;
+
+                    let accionesHtml = clienteHtml;
+                    accionesHtml += `<div style='margin-top:10px; border-top:1px solid #eee; padding-top:10px;'>`;
                     accionesHtml += `<button class='btn btn-success btn-sm' onclick='cambiarEstadoTerminado(${orden.id})'><i class='bi bi-check2-square'></i> Terminar</button> `;
                     accionesHtml += `<button class='btn btn-dark btn-sm' onclick='cambiarEstadoEntregado(${orden.id})'><i class='bi bi-check-circle'></i> Entregar</button> `;
                     accionesHtml += `<a href='tel:${orden.telefono_cliente ? orden.telefono_cliente : ''}' class='btn btn-primary btn-sm'><i class='bi bi-telephone-fill'></i> Llamar</a> `;
