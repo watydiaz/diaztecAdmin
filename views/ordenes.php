@@ -358,6 +358,59 @@ require_once 'header.php';
         </div>
     </div>
 
+    <!-- Modal para pagos de la orden -->
+    <div class="modal fade" id="modalPagosOrden" tabindex="-1" aria-labelledby="modalPagosOrdenLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalPagosOrdenLabel">Gestión de Pagos</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formPagosOrden">
+                        <div class="mb-3">
+                            <label for="pagoOrdenId" class="form-label">ID Orden</label>
+                            <input type="text" class="form-control" id="pagoOrdenId" name="pagoOrdenId" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="costoTotal" class="form-label">Costo total</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="text" class="form-control" id="costoTotal" name="costoTotal" inputmode="numeric" pattern="[0-9.]*" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="valorRepuestos" class="form-label">Valor repuestos</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="text" class="form-control" id="valorRepuestos" name="valorRepuestos" inputmode="numeric" pattern="[0-9.]*" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="descripcionRepuestos" class="form-label">Descripción repuestos</label>
+                            <textarea class="form-control" id="descripcionRepuestos" name="descripcionRepuestos"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="abono" class="form-label">Abono</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="text" class="form-control" id="abono" name="abono" inputmode="numeric" pattern="[0-9.]*" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="saldo" class="form-label">Saldo</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="text" class="form-control" id="saldo" name="saldo" readonly>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Buscador de órdenes y clientes -->
     <div class="row mb-3">
         <div class="col-md-6 offset-md-3">
@@ -1042,6 +1095,48 @@ require_once 'header.php';
         });
     });
     // --- FIN FILTRO DE TABLA ---
+
+    // --- MODAL PAGOS ---
+    document.addEventListener('DOMContentLoaded', function() {
+        function formatMiles(value) {
+            value = value.replace(/\D/g, '');
+            if (!value) return '';
+            return value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+        function getIntValue(str) {
+            return parseInt(str.replace(/\D/g, '')) || 0;
+        }
+        function updateSaldo() {
+            const costo = getIntValue(document.getElementById('costoTotal').value);
+            const abono = getIntValue(document.getElementById('abono').value);
+            const saldo = Math.max(costo - abono, 0);
+            document.getElementById('saldo').value = saldo ? formatMiles(saldo.toString()) : '';
+        }
+        ['costoTotal', 'valorRepuestos', 'abono'].forEach(function(id) {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('input', function(e) {
+                    let val = this.value.replace(/\D/g, '');
+                    this.value = formatMiles(val);
+                    if (id === 'costoTotal' || id === 'abono') updateSaldo();
+                });
+            }
+        });
+        document.querySelectorAll('.btn-secondary[title="Pagos"]').forEach(function(btnPagos) {
+            btnPagos.addEventListener('click', function(e) {
+                e.preventDefault();
+                const ordenId = this.dataset.id;
+                document.getElementById('pagoOrdenId').value = ordenId;
+                document.getElementById('costoTotal').value = '';
+                document.getElementById('valorRepuestos').value = '';
+                document.getElementById('descripcionRepuestos').value = '';
+                document.getElementById('abono').value = '';
+                document.getElementById('saldo').value = '';
+                const modalPagos = new bootstrap.Modal(document.getElementById('modalPagosOrden'));
+                modalPagos.show();
+            });
+        });
+    });
     </script>
 </div>
 
