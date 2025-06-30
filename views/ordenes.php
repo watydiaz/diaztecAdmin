@@ -404,6 +404,16 @@ require_once 'header.php';
                                 <input type="text" class="form-control" id="saldo" name="saldo" readonly>
                             </div>
                         </div>
+                        <div class="mb-3">
+                            <label for="metodo_pago" class="form-label">Método de pago</label>
+                            <select class="form-select" id="metodo_pago" name="metodo_pago" required>
+                                <option value="">Seleccione...</option>
+                                <option value="efectivo">Efectivo</option>
+                                <option value="nequi">Nequi</option>
+                                <option value="daviplata">Daviplata</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success">Registrar Pago</button>
                         <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
                     </form>
                 </div>
@@ -1136,6 +1146,41 @@ require_once 'header.php';
                 modalPagos.show();
             });
         });
+        // --- ENVÍO FORMULARIO PAGOS ---
+        const formPagos = document.getElementById('formPagosOrden');
+        if (formPagos) {
+            formPagos.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const datos = {
+                    orden_id: document.getElementById('pagoOrdenId').value, // Asegura que el nombre coincida con el backend
+                    usuario_id: 1, // TODO: Reemplazar por el usuario logueado
+                    fecha_pago: new Date().toISOString().slice(0, 19).replace('T', ' '),
+                    costo_total: document.getElementById('costoTotal').value.replace(/\./g, ''),
+                    valor_repuestos: document.getElementById('valorRepuestos').value.replace(/\./g, ''),
+                    descripcion_repuestos: document.getElementById('descripcionRepuestos').value,
+                    metodo_pago: document.getElementById('metodo_pago').value,
+                    saldo: document.getElementById('saldo').value.replace(/\./g, '')
+                };
+                fetch('controllers/OrdenPagoController.php?accion=insertar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams(datos)
+                })
+                .then(res => res.json())
+                .then(res => {
+                    console.log(res); // Para depuración
+                    alert(res.message);
+                    if (res.success) {
+                        formPagos.reset();
+                        document.getElementById('saldo').value = '';
+                    }
+                })
+                .catch((err) => { 
+                    alert('Error al registrar el pago');
+                    console.error(err);
+                });
+            });
+        }
     });
     </script>
 </div>

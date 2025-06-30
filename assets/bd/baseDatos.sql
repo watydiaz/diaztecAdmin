@@ -113,6 +113,26 @@ CREATE TABLE pagos (
     FOREIGN KEY (remision_id) REFERENCES remisiones(id)
 );
 
+--11. orden_pagos (para registrar pagos parciales o totales de órdenes de reparación)
+CREATE TABLE orden_pagos (
+  id INT(11) NOT NULL AUTO_INCREMENT,
+  orden_id INT(11) DEFAULT NULL,
+  usuario_id INT(11) DEFAULT NULL,
+  fecha_pago DATETIME DEFAULT NULL,
+  costo_total DECIMAL(10,2) DEFAULT NULL,
+  valor_repuestos DECIMAL(10,2) DEFAULT NULL,
+  descripcion_repuestos TEXT DEFAULT NULL,
+  metodo_pago VARCHAR(50) DEFAULT NULL,
+  saldo DECIMAL(10,2) DEFAULT NULL,
+  PRIMARY KEY (id),
+  KEY idx_orden_id (orden_id),
+  KEY idx_usuario_id (usuario_id)
+  -- Puedes agregar aquí tus claves foráneas si las necesitas, por ejemplo:
+  -- ,CONSTRAINT fk_orden FOREIGN KEY (orden_id) REFERENCES ordenes(id)
+  -- ,CONSTRAINT fk_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
 -- Insertar datos en la tabla roles
 INSERT INTO roles (nombre) VALUES ('Administrador'), ('Técnico'), ('Cliente');
 
