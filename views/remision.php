@@ -115,6 +115,56 @@
             </tr>
         </table>
 
+        <!-- DATOS DE PAGO -->
+        <table class="remision-table" style="margin-top:20px;">
+            <tr>
+                <th colspan="4">Datos de Pago</th>
+            </tr>
+            <?php 
+            // Obtener el último pago si existe
+            if (function_exists('obtenerPagosPorOrden')) {
+                $pagos = obtenerPagosPorOrden($orden['id']);
+                $pago = !empty($pagos) ? $pagos[0] : null;
+            } else if (isset($pago)) {
+                // Si ya viene de un controlador
+            } else {
+                // --- Obtener el último pago desde el modelo si no viene del controlador ---
+                if (!isset($pago)) {
+                    require_once __DIR__ . '/../models/Conexion.php';
+                    require_once __DIR__ . '/../models/OrdenPagoModel.php';
+                    $db = Conexion::getConexion();
+                    $pagoModel = new OrdenPagoModel($db);
+                    $pagos = $pagoModel->obtenerPagosPorOrden($orden['id']);
+                    $pago = !empty($pagos) ? $pagos[0] : null;
+                }
+            }
+            ?>
+            <?php if (!empty($pago)): ?>
+            <tr>
+                <td><strong>Método de Pago:</strong></td>
+                <td><?php echo ucfirst($pago['metodo_pago']); ?></td>
+                <td><strong>Fecha de Pago:</strong></td>
+                <td><?php echo $pago['fecha_pago']; ?></td>
+            </tr>
+            <tr>
+                <td><strong style="font-size:1.1em;color:#222;">Costo Total:</strong></td>
+                <td colspan="3"><span style="font-weight:bold;font-size:1.3em;color:#007bff;">$<?php echo number_format($pago['costo_total'], 0, ',', '.'); ?></span></td>
+            </tr>
+            <tr>
+                <td><strong>Descripción Repuestos:</strong></td>
+                <td colspan="3"><?php echo $pago['descripcion_repuestos']; ?></td>
+            </tr>
+            <tr>
+                <td><strong style="font-size:1.1em;color:#222;">Abono:</strong></td>
+                <td><span style="font-weight:bold;font-size:1.2em;color:#28a745;">$<?php echo number_format($pago['costo_total'] - $pago['saldo'], 0, ',', '.'); ?></span></td>
+                <td><strong style="font-size:1.1em;color:#222;">Saldo:</strong></td>
+                <td><span style="font-weight:bold;font-size:1.2em;color:#dc3545;">$<?php echo number_format($pago['saldo'], 0, ',', '.'); ?></span></td>
+            </tr>
+            <?php else: ?>
+            <tr><td colspan="4"><em>No hay datos de pago registrados para esta orden.</em></td></tr>
+            <?php endif; ?>
+        </table>
+
         <div class="imagenes">
             <p><strong>Imágenes:</strong></p>
             <?php 
