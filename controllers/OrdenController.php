@@ -54,7 +54,9 @@ class OrdenController {
 
         header('Content-Type: application/json');
         if ($resultado) {
-            echo json_encode(['success' => true, 'message' => 'Orden registrada exitosamente.']);
+            // Obtener el último ID insertado
+            $lastId = $this->ordenModel->getLastInsertId();
+            echo json_encode(['success' => true, 'message' => 'Orden registrada exitosamente.', 'orden_id' => $lastId]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Error al registrar la orden.']);
         }

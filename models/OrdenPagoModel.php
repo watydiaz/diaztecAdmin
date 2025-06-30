@@ -9,16 +9,25 @@ class OrdenPagoModel {
     // Insertar un nuevo pago para una orden
     public function insertarPago($data) {
         $stmt = $this->db->prepare("INSERT INTO orden_pagos (orden_id, usuario_id, fecha_pago, costo_total, valor_repuestos, descripcion_repuestos, metodo_pago, saldo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        // Forzar tipos correctos
+        $orden_id = (int)$data['orden_id'];
+        $usuario_id = (int)$data['usuario_id'];
+        $fecha_pago = $data['fecha_pago'];
+        $costo_total = (float)$data['costo_total'];
+        $valor_repuestos = (float)$data['valor_repuestos'];
+        $descripcion_repuestos = $data['descripcion_repuestos'];
+        $metodo_pago = $data['metodo_pago'];
+        $saldo = (float)$data['saldo'];
         $stmt->bind_param(
-            "iissdssd",
-            $data['orden_id'],
-            $data['usuario_id'],
-            $data['fecha_pago'],
-            $data['costo_total'],
-            $data['valor_repuestos'],
-            $data['descripcion_repuestos'],
-            $data['metodo_pago'],
-            $data['saldo']
+            "iisdsssd",
+            $orden_id,
+            $usuario_id,
+            $fecha_pago,
+            $costo_total,
+            $valor_repuestos,
+            $descripcion_repuestos,
+            $metodo_pago,
+            $saldo
         );
         return $stmt->execute();
     }

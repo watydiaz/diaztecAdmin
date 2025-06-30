@@ -9,7 +9,13 @@ class OrdenModel {
     }
 
     public function obtenerOrdenes() {
-        $query = "SELECT o.id, c.nombre AS cliente_nombre, c.telefono AS telefono_cliente, u.nombre AS tecnico_nombre, o.marca, o.modelo, o.falla_reportada, o.estado, o.prioridad, o.fecha_ingreso, o.imagen_url FROM ordenes_reparacion o INNER JOIN clientes c ON o.cliente_id = c.id INNER JOIN usuarios u ON o.usuario_tecnico_id = u.id WHERE o.estado != 'entregado' ORDER BY o.id DESC";
+        $query = "SELECT o.id, c.nombre AS cliente_nombre, c.telefono AS telefono_cliente, u.nombre AS tecnico_nombre, o.marca, o.modelo, o.falla_reportada, o.estado, o.prioridad, o.fecha_ingreso, o.imagen_url,
+        (SELECT COUNT(*) FROM orden_pagos op WHERE op.orden_id = o.id) AS tiene_pago
+        FROM ordenes_reparacion o
+        INNER JOIN clientes c ON o.cliente_id = c.id
+        INNER JOIN usuarios u ON o.usuario_tecnico_id = u.id
+        WHERE o.estado != 'entregado'
+        ORDER BY o.id DESC";
         $resultado = $this->conexion->query($query);
         return $resultado->fetch_all(MYSQLI_ASSOC);
     }
@@ -37,7 +43,12 @@ class OrdenModel {
     }
 
     public function obtenerOrdenPorId($id) {
-        $query = "SELECT o.*, c.nombre AS cliente_nombre, c.identificacion AS cliente_identificacion, c.telefono AS cliente_telefono, c.email AS cliente_email, u.nombre AS tecnico_nombre, o.diagnostico FROM ordenes_reparacion o INNER JOIN clientes c ON o.cliente_id = c.id INNER JOIN usuarios u ON o.usuario_tecnico_id = u.id WHERE o.id = ?";
+        $query = "SELECT o.*, c.nombre AS cliente_nombre, c.identificacion AS cliente_identificacion, c.telefono AS cliente_telefono, c.email AS cliente_email, u.nombre AS tecnico_nombre, o.diagnostico,
+        (SELECT COUNT(*) FROM orden_pagos op WHERE op.orden_id = o.id) AS tiene_pago
+        FROM ordenes_reparacion o
+        INNER JOIN clientes c ON o.cliente_id = c.id
+        INNER JOIN usuarios u ON o.usuario_tecnico_id = u.id
+        WHERE o.id = ?";
         $stmt = $this->conexion->prepare($query);
         $stmt->bind_param('i', $id);
         $stmt->execute();
@@ -92,5 +103,9 @@ class OrdenModel {
         $stmt = $this->conexion->prepare($query);
         $stmt->bind_param('si', $imagenes, $id);
         return $stmt->execute();
+    }
+
+    public function getLastInsertId() {
+        return $this->conexion->insert_id;
     }
 }

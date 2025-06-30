@@ -503,7 +503,7 @@ require_once 'header.php';
                             <a href="index.php?action=generarRemision&id=<?php echo $orden['id']; ?>" class="btn btn-info btn-sm">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <a href="#" class="btn btn-secondary btn-sm" title="Pagos" data-id="<?php echo $orden['id']; ?>">
+                            <a href="#" class="btn btn-secondary btn-sm" title="Pagos" data-id="<?php echo $orden['id']; ?>" <?php echo ($orden['tiene_pago'] > 0 ? 'disabled' : ''); ?>>
                                 <i class="bi bi-cash-coin"></i>
                             </a>
                         </td>
@@ -733,6 +733,10 @@ require_once 'header.php';
 
                     if (data.success) {
                         alert('Orden de trabajo registrada exitosamente.');
+                        // Guardar el ID de la orden creada en sessionStorage para abrir el modal de pagos tras recargar
+                        if (data.orden_id) {
+                            sessionStorage.setItem('abrirModalPagoOrdenId', data.orden_id);
+                        }
                         guardarScrollAntesDeRecargar();
                         location.reload(); // Recargar la página para reflejar los cambios
                     } else {
@@ -1134,6 +1138,7 @@ require_once 'header.php';
         });
         document.querySelectorAll('.btn-secondary[title="Pagos"]').forEach(function(btnPagos) {
             btnPagos.addEventListener('click', function(e) {
+                if (this.hasAttribute('disabled')) return; // No abrir modal si está deshabilitado
                 e.preventDefault();
                 const ordenId = this.dataset.id;
                 document.getElementById('pagoOrdenId').value = ordenId;
@@ -1146,6 +1151,16 @@ require_once 'header.php';
                 modalPagos.show();
             });
         });
+
+        // Función global para abrir el modal de pagos desde JS
+        window.abrirModalPago = function(ordenId) {
+            // Busca el botón de pagos de la orden y simula el click si no está deshabilitado
+            var btn = document.querySelector('.btn-secondary[title="Pagos"][data-id="' + ordenId + '"]');
+            if (btn && !btn.hasAttribute('disabled')) {
+                btn.click();
+            }
+        }
+
         // --- ENVÍO FORMULARIO PAGOS ---
         const formPagos = document.getElementById('formPagosOrden');
         if (formPagos) {
@@ -1180,6 +1195,15 @@ require_once 'header.php';
                     console.error(err);
                 });
             });
+        }
+    });
+
+    window.addEventListener('DOMContentLoaded', function() {
+        // Revisar si hay una orden para abrir el modal de pagos automáticamente
+        const ordenId = sessionStorage.getItem('abrirModalPagoOrdenId');
+        if (ordenId) {
+            sessionStorage.removeItem('abrirModalPagoOrdenId');
+            abrirModalPago(ordenId); // Asume que existe la función abrirModalPago(id)
         }
     });
     </script>
