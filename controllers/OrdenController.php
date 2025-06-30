@@ -124,8 +124,23 @@ class OrdenController {
     }
 
     public function eliminarOrden($id) {
-        $this->ordenModel->eliminarOrden($id);
-        header('Location: index.php?action=ordenes');
+        header('Content-Type: application/json');
+        try {
+            $resultado = $this->ordenModel->eliminarOrden($id);
+            if ($resultado) {
+                echo json_encode(['success' => true, 'message' => 'Orden eliminada exitosamente.']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'No se pudo eliminar la orden.']);
+            }
+        } catch (mysqli_sql_exception $e) {
+            if (strpos($e->getMessage(), 'a foreign key constraint fails') !== false) {
+                echo json_encode(['success' => false, 'message' => 'No se puede eliminar la orden porque tiene pagos asociados. Elimine primero los pagos.']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Error al eliminar la orden: ' . $e->getMessage()]);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Error al eliminar la orden: ' . $e->getMessage()]);
+        }
         exit();
     }
 

@@ -770,19 +770,19 @@ require_once 'header.php';
                         const id = this.dataset.id; // Obtener el ID de la orden
 
                         fetch(`index.php?action=eliminarOrden&id=${id}`)
-                            .then(response => {
-                                if (response.ok) {
-                                    alert('Orden eliminada exitosamente.');
-                                    guardarScrollAntesDeRecargar();
-                                    location.reload(); // Recargar la página
-                            } else {
-                                alert('Error al eliminar la orden.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error al eliminar la orden:', error);
-                            alert('Ocurrió un error al intentar eliminar la orden.');
-                        });
+                            .then(response => response.json())
+                            .then(res => {
+                                if (res.success) {
+                                    alert(res.message);
+                                    location.reload();
+                                } else {
+                                    alert(res.message || 'No se pudo eliminar la orden.');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error al eliminar la orden:', error);
+                                alert('Ocurrió un error al intentar eliminar la orden.');
+                            });
                     }
                 });
             });
@@ -1253,12 +1253,13 @@ require_once 'header.php';
         if (confirm('¿Estás seguro de que deseas eliminar esta orden?')) {
             guardarScrollAntesDeRecargar();
             fetch(`index.php?action=eliminarOrden&id=${id}`)
-                .then(response => {
-                    if (response.ok) {
-                        alert('Orden eliminada exitosamente.');
+                .then(response => response.json())
+                .then(res => {
+                    if (res.success) {
+                        alert(res.message);
                         location.reload();
                     } else {
-                        alert('Error al eliminar la orden.');
+                        alert(res.message || 'No se pudo eliminar la orden.');
                     }
                 })
                 .catch(error => {
