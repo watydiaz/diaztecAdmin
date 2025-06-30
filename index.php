@@ -231,6 +231,12 @@ switch ($action) {
         }
         break;
 
+    case 'obtenerPagosDashboard':
+        require_once 'controllers/DashboardController.php';
+        $dashboardController = new DashboardController();
+        $dashboardController->obtenerPagosDashboard();
+        break;
+
     default:
         // Redirigir al login si la acción no es válida
         header('Location: index.php?action=login');

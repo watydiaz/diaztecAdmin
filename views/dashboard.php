@@ -67,6 +67,26 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Card para pagos diarios -->
+                    <div class="col-md-3">
+                        <div class="card text-white bg-success mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Pagos de Hoy</h5>
+                                <p class="card-text" id="pagosDiarios">$0.00</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card para pagos mensuales -->
+                    <div class="col-md-3">
+                        <div class="card text-white bg-info mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Pagos del Mes</h5>
+                                <p class="card-text" id="pagosMensuales">$0.00</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -89,6 +109,33 @@
                 })
                 .catch(error => {
                     console.error('Error al obtener las métricas:', error);
+                });
+
+            // Cargar pagos diarios y mensuales
+            fetch('index.php?action=obtenerPagosDashboard')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Formatear con separador de miles y sin decimales
+                        function formatMilesSinDecimales(num) {
+                            return parseInt(num).toLocaleString('es-CO');
+                        }
+                        let pagosDiarios = parseInt(data.pagosDiarios) || 0;
+                        let pagosMensuales = parseInt(data.pagosMensuales) || 0;
+                        document.getElementById('pagosDiarios').textContent = `$${formatMilesSinDecimales(pagosDiarios)}`;
+                        document.getElementById('pagosMensuales').textContent = `$${formatMilesSinDecimales(pagosMensuales)}`;
+                        document.getElementById('pagosDiarios').style.fontWeight = '';
+                        document.getElementById('pagosDiarios').style.fontSize = '';
+                        document.getElementById('pagosMensuales').style.fontWeight = '';
+                        document.getElementById('pagosMensuales').style.fontSize = '';
+                    } else {
+                        document.getElementById('pagosDiarios').textContent = 'Error';
+                        document.getElementById('pagosMensuales').textContent = 'Error';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('pagosDiarios').textContent = 'Error';
+                    document.getElementById('pagosMensuales').textContent = 'Error';
                 });
         });
     </script>
