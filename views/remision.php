@@ -179,8 +179,59 @@
         </div>
 
         <div class="acciones" style="margin-top: 20px; text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center;">
-            <a href="https://wa.me/57<?php echo ltrim($orden['cliente_telefono'], '0'); ?>?text=Hola%20<?php echo urlencode($orden['cliente_nombre']); ?>,%20aquí%20está%20la%20remisión%20de%20su%20servicio:%20<?php echo urlencode('https://admin.diaztecnologia.com/index.php?action=generarRemision&id=' . $orden['id']); ?>" target="_blank" class="btn btn-success" style="padding: 10px 20px; background-color: #25D366; color: white; border: none; border-radius: 5px; text-decoration: none; font-size: 16px;">Enviar por WhatsApp</a>
+            <?php
+            // --- Generar mensaje de remisión para WhatsApp con encabezado y presentación ---
+            $mensajeRemision = "*DIAZTECNOLOGÍA*\n";
+            $mensajeRemision .= "Transversal 12a #41b-31\nTel: +57 3203200992\nwww.diaztecnologia.com\n";
+            $mensajeRemision .= "-----------------------------\n";
+            $mensajeRemision .= "*Remisión de Servicio*\n";
+            $mensajeRemision .= "N°: {$orden['id']}\n";
+            $mensajeRemision .= "Fecha: " . date('d/m/Y') . "\n";
+            $mensajeRemision .= "-----------------------------\n";
+            $mensajeRemision .= "¡Hola {$orden['cliente_nombre']}!\n";
+            $mensajeRemision .= "Hemos recibido su equipo para revisión y/o reparación. A continuación el detalle de su remisión:\n";
+            $mensajeRemision .= "-----------------------------\n";
+            $mensajeRemision .= "*Datos del Cliente*\n";
+            $mensajeRemision .= "Nombre: {$orden['cliente_nombre']}\n";
+            $mensajeRemision .= "Identificación: {$orden['cliente_identificacion']}\n";
+            $mensajeRemision .= "Teléfono: {$orden['cliente_telefono']}\n";
+            $mensajeRemision .= "Email: {$orden['cliente_email']}\n";
+            $mensajeRemision .= "-----------------------------\n";
+            $mensajeRemision .= "*Equipo*\n";
+            $mensajeRemision .= "Marca: {$orden['marca']}\n";
+            $mensajeRemision .= "Modelo: {$orden['modelo']}\n";
+            $mensajeRemision .= "Falla Reportada: {$orden['falla_reportada']}\n";
+            $mensajeRemision .= "Diagnóstico: {$orden['diagnostico']}\n";
+            $mensajeRemision .= "Estado: {$orden['estado']}\n";
+            $mensajeRemision .= "Fecha Ingreso: {$orden['fecha_ingreso']}\n";
+            $mensajeRemision .= "Fecha Estimada Entrega: {$orden['fecha_entrega_estimada']}\n";
+            if (!empty($pago)) {
+                $mensajeRemision .= "-----------------------------\n";
+                $mensajeRemision .= "*Datos de Pago*\n";
+                $mensajeRemision .= "Método de Pago: " . ucfirst($pago['metodo_pago']) . "\n";
+                $mensajeRemision .= "Fecha de Pago: {$pago['fecha_pago']}\n";
+                $mensajeRemision .= "Costo Total: $" . number_format($pago['costo_total'], 0, ',', '.') . "\n";
+                $mensajeRemision .= "Descripción Repuestos: {$pago['descripcion_repuestos']}\n";
+                $mensajeRemision .= "Abono: $" . number_format($pago['costo_total'] - $pago['saldo'], 0, ',', '.') . "\n";
+                $mensajeRemision .= "Saldo: $" . number_format($pago['saldo'], 0, ',', '.') . "\n";
+            }
+            $mensajeRemision .= "-----------------------------\n";
+            $mensajeRemision .= "*Términos y Condiciones*\n";
+            $mensajeRemision .= "No se otorga garantía por pantallas rotas, equipos mojados o golpeados. Para los cambios de pantalla, la entrega se realiza de dos maneras: si la pantalla se instala en el local y es probada por el cliente, no tiene garantía posterior; es responsabilidad del cliente dar un buen uso al equipo. Recuerde que una pantalla es un componente muy frágil: incluso una presión excesiva, aunque no la rompa, puede dañarla internamente. Ante cualquier inquietud, comuníquese a cualquiera de nuestros números de contacto. Gracias por confiar en DIAZTECNOLOGÍA.";
+            $mensajeRemision .= "-----------------------------\n";
+            $mensajeRemision .= "¡Gracias por confiar en nosotros!";
+            $mensajeRemision = rawurlencode($mensajeRemision);
+            $urlRemision = rawurlencode('https://admin.diaztecnologia.com/index.php?action=generarRemision&id=' . $orden['id']);
+            $telefono = ltrim($orden['cliente_telefono'], '0');
+            ?>
+            <a href="https://wa.me/57<?php echo $telefono; ?>?text=Hola%20<?php echo urlencode($orden['cliente_nombre']); ?>,%20aquí%20está%20la%20remisión%20de%20su%20servicio:%20<?php echo $urlRemision; ?>" target="_blank" class="btn btn-success" style="padding: 10px 20px; background-color: #25D366; color: white; border: none; border-radius: 5px; text-decoration: none; font-size: 16px;">Enviar por WhatsApp (URL)</a>
+            <a href="https://wa.me/57<?php echo $telefono; ?>?text=<?php echo $mensajeRemision; ?>" target="_blank" class="btn btn-dark" style="padding: 10px 20px; background-color: #222; color: white; border: none; border-radius: 5px; text-decoration: none; font-size: 16px;">Enviar por WhatsApp (Factura Detallada)</a>
             <button onclick="enviarPorEmail()" class="btn btn-primary" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px;">Enviar por Email</button>
+        </div>
+
+        <div class="terminos-condiciones" style="margin-top:30px; font-size:13px; color:#555; border-top:1px solid #ccc; padding-top:15px;">
+            <strong>Términos y Condiciones:</strong><br>
+            No se otorga garantía por pantallas rotas, equipos mojados o golpeados. Para los cambios de pantalla, la entrega se realiza de dos maneras: si la pantalla se instala en el local y es probada por el cliente, no tiene garantía posterior; es responsabilidad del cliente dar un buen uso al equipo. Recuerde que una pantalla es un componente muy frágil: incluso una presión excesiva, aunque no la rompa, puede dañarla internamente. Ante cualquier inquietud, comuníquese a cualquiera de nuestros números de contacto. Gracias por confiar en DIAZTECNOLOGÍA.
         </div>
 
         <script>
