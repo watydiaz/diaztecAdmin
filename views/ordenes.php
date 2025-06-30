@@ -325,6 +325,12 @@ require_once 'header.php';
                     <p><strong>Diagnóstico:</strong> <span id="detalleDiagnostico"></span></p>
                     <p><strong>Imagen:</strong></p>
                     <center><img id="detalleImagen" src="" alt="Imagen de la orden" style="width: 50%; height: auto;"></center>
+
+                    <!-- --- Sección de detalles de pago --- -->
+                    <div id="detallePagoSection" style="margin-top:10px;display:none;"></div>
+
+                    <!-- --- Sección de acciones --- -->
+                    <div id="detalleAcciones" style="margin-top:10px;display:none;"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -866,6 +872,41 @@ require_once 'header.php';
                         document.getElementById('detalleImagen').onclick = null;
                     }
 
+                    // --- Mostrar datos de pago en el modal de detalles ---
+                    fetch('controllers/OrdenPagoController.php?accion=obtener&orden_id=' + orden.id)
+                        .then(res => res.json())
+                        .then(pagos => {
+                            if (Array.isArray(pagos) && pagos.length > 0) {
+                                const pago = pagos[0];
+                                let htmlPago = `<div style='margin-top:15px; border-top:1px solid #eee; padding-top:10px;'>`;
+                                htmlPago += `<h6 style='font-weight:bold;'>Datos de Pago</h6>`;
+                                htmlPago += `<p><strong>Método de Pago:</strong> ${pago.metodo_pago ? pago.metodo_pago.charAt(0).toUpperCase() + pago.metodo_pago.slice(1) : ''}</p>`;
+                                htmlPago += `<p><strong>Fecha de Pago:</strong> ${pago.fecha_pago || ''}</p>`;
+                                htmlPago += `<p><strong style='color:#007bff;'>Costo Total:</strong> <span style='font-weight:bold;color:#007bff;'>$${Number(pago.costo_total).toLocaleString('es-CO')}</span></p>`;
+                                const abono = pago.costo_total - pago.saldo;
+                                htmlPago += `<p><strong style='color:#28a745;'>Abono:</strong> <span style='font-weight:bold;color:#28a745;'>$${Number(abono).toLocaleString('es-CO')}</span></p>`;
+                                htmlPago += `<p><strong style='color:#dc3545;'>Saldo:</strong> <span style='font-weight:bold;color:#dc3545;'>$${Number(pago.saldo).toLocaleString('es-CO')}</span></p>`;
+                                htmlPago += `<p><strong>Descripción Repuestos:</strong> ${pago.descripcion_repuestos || ''}</p>`;
+                                htmlPago += `</div>`;
+                                document.getElementById('detallePagoSection').innerHTML = htmlPago;
+                                document.getElementById('detallePagoSection').style.display = '';
+                            } else {
+                                document.getElementById('detallePagoSection').innerHTML = '<em>No hay datos de pago registrados para esta orden.</em>';
+                                document.getElementById('detallePagoSection').style.display = '';
+                            }
+                        });
+                    // --- Botones de acciones en el modal ---
+                    let accionesHtml = `<div style='margin-top:15px; border-top:1px solid #eee; padding-top:10px;'>`;
+                    accionesHtml += `<button class='btn btn-success btn-sm' onclick='cambiarEstadoTerminado(${orden.id})'><i class='bi bi-check2-square'></i> Terminar</button> `;
+                    accionesHtml += `<button class='btn btn-dark btn-sm' onclick='cambiarEstadoEntregado(${orden.id})'><i class='bi bi-check-circle'></i> Entregar</button> `;
+                    accionesHtml += `<a href='tel:${orden.telefono_cliente ? orden.telefono_cliente : ''}' class='btn btn-primary btn-sm'><i class='bi bi-telephone-fill'></i> Llamar</a> `;
+                    accionesHtml += `<a href='https://wa.me/57${(orden.telefono_cliente || '').replace(/^0+/, "")}' target='_blank' class='btn btn-success btn-sm'><i class='bi bi-whatsapp'></i> WhatsApp</a> `;
+                    accionesHtml += `<a href='index.php?action=generarRemision&id=${orden.id}' class='btn btn-info btn-sm' target='_blank'><i class='bi bi-eye'></i> Remisión</a> `;
+                    accionesHtml += `<button class='btn btn-danger btn-sm' onclick='eliminarOrden(${orden.id})'><i class='bi bi-trash'></i> Eliminar</button> `;
+                    accionesHtml += `</div>`;
+                    document.getElementById('detalleAcciones').innerHTML = accionesHtml;
+                    document.getElementById('detalleAcciones').style.display = '';
+
                     const modalVerOrden = new bootstrap.Modal(document.getElementById('modalVerOrden'));
                     modalVerOrden.show();
                 } else {
@@ -1206,6 +1247,26 @@ require_once 'header.php';
             abrirModalPago(ordenId); // Asume que existe la función abrirModalPago(id)
         }
     });
+
+    // --- FUNCIÓN GLOBAL PARA ELIMINAR ORDEN ---
+    function eliminarOrden(id) {
+        if (confirm('¿Estás seguro de que deseas eliminar esta orden?')) {
+            guardarScrollAntesDeRecargar();
+            fetch(`index.php?action=eliminarOrden&id=${id}`)
+                .then(response => {
+                    if (response.ok) {
+                        alert('Orden eliminada exitosamente.');
+                        location.reload();
+                    } else {
+                        alert('Error al eliminar la orden.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al eliminar la orden:', error);
+                    alert('Ocurrió un error al intentar eliminar la orden.');
+                });
+        }
+    }
     </script>
 </div>
 
