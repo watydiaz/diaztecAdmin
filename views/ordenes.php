@@ -386,13 +386,6 @@ require_once 'header.php';
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="valorRepuestos" class="form-label">Valor repuestos</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input type="text" class="form-control" id="valorRepuestos" name="valorRepuestos" inputmode="numeric" pattern="[0-9.]*" autocomplete="off">
-                            </div>
-                        </div>
-                        <div class="mb-3">
                             <label for="descripcionRepuestos" class="form-label">Descripción repuestos</label>
                             <textarea class="form-control" id="descripcionRepuestos" name="descripcionRepuestos"></textarea>
                         </div>
@@ -418,6 +411,13 @@ require_once 'header.php';
                                 <option value="nequi">Nequi</option>
                                 <option value="daviplata">Daviplata</option>
                             </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="valorRepuestos" class="form-label">Valor repuestos</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="text" class="form-control" id="valorRepuestos" name="valorRepuestos" inputmode="numeric" pattern="[0-9.]*" autocomplete="off">
+                            </div>
                         </div>
                         <button type="submit" class="btn btn-success">Registrar Pago</button>
                         <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
@@ -509,7 +509,11 @@ require_once 'header.php';
                             <a href="index.php?action=generarRemision&id=<?php echo $orden['id']; ?>" class="btn btn-info btn-sm">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <a href="#" class="btn btn-secondary btn-sm" title="Pagos" data-id="<?php echo $orden['id']; ?>" <?php echo ($orden['tiene_pago'] > 0 ? 'disabled' : ''); ?>>
+                            <a href="#" 
+                               class="btn <?php echo ($orden['tiene_pago'] > 0 ? 'btn-success' : 'btn-secondary'); ?> btn-sm" 
+                               title="Pagos" 
+                               data-id="<?php echo $orden['id']; ?>" 
+                               <?php echo ($orden['tiene_pago'] > 0 ? 'disabled' : ''); ?>>
                                 <i class="bi bi-cash-coin"></i>
                             </a>
                         </td>
@@ -1203,10 +1207,11 @@ require_once 'header.php';
         });
 
         // Función global para abrir el modal de pagos desde JS
-        window.abrirModalPago = function(ordenId) {
+        window.abrirModalPago = function(ordenId, auto = false) {
             // Busca el botón de pagos de la orden y simula el click si no está deshabilitado
             var btn = document.querySelector('.btn-secondary[title="Pagos"][data-id="' + ordenId + '"]');
             if (btn && !btn.hasAttribute('disabled')) {
+                if (auto) sessionStorage.setItem('modalPagoAuto', '1');
                 btn.click();
             }
         }
@@ -1238,6 +1243,24 @@ require_once 'header.php';
                     if (res.success) {
                         formPagos.reset();
                         document.getElementById('saldo').value = '';
+                        // Cerrar modal automáticamente SIEMPRE tras registrar pago
+                        const modalPagos = bootstrap.Modal.getInstance(document.getElementById('modalPagosOrden'));
+                        if (modalPagos) modalPagos.hide();
+                        sessionStorage.removeItem('modalPagoAuto');
+                        // --- ACTUALIZAR TABLA Y BOTÓN DE PAGO ---
+                        const ordenId = datos.orden_id;
+                        // Buscar la fila de la orden
+                        const fila = document.querySelector('tr.fila-orden[data-id="' + ordenId + '"]');
+                        if (fila) {
+                            // Cambiar el botón de pago a verde, deshabilitado y texto "Pagado"
+                            const btnPago = fila.querySelector('.btn-secondary[title="Pagos"], .btn-success[title="Pagos"]');
+                            if (btnPago) {
+                                btnPago.classList.remove('btn-secondary');
+                                btnPago.classList.add('btn-success');
+                                btnPago.setAttribute('disabled', 'disabled');
+                                btnPago.innerHTML = '<i class="bi bi-cash-coin"></i>';
+                            }
+                        }
                     }
                 })
                 .catch((err) => { 
@@ -1253,7 +1276,7 @@ require_once 'header.php';
         const ordenId = sessionStorage.getItem('abrirModalPagoOrdenId');
         if (ordenId) {
             sessionStorage.removeItem('abrirModalPagoOrdenId');
-            abrirModalPago(ordenId); // Asume que existe la función abrirModalPago(id)
+            abrirModalPago(ordenId, true); // true: abierto automáticamente
         }
     });
 
