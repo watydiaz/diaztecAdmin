@@ -168,14 +168,14 @@ class OrdenController {
         $orden = $this->ordenModel->obtenerOrdenPorId($id);
         $pagos = $pagoModel->obtenerPagosPorOrden($id);
 
-        $totalPagado = 0;
-        foreach ($pagos as $pago) {
-            $totalPagado += floatval($pago['dinero_recibido'] ?? $pago['costo_total']);
+        // Tomar el saldo del último pago
+        $saldoPendiente = 0;
+        if (!empty($pagos)) {
+            $ultimoPago = $pagos[0]; // El más reciente por fecha
+            $saldoPendiente = floatval($ultimoPago['saldo']);
         }
-        $totalOrden = floatval($orden['costo_total'] ?? 0);
-        // Si no hay campo costo_total en la orden, puedes cambiarlo por el campo correcto
+        // Si no hay pagos, no hay saldo pendiente
 
-        $saldoPendiente = $totalOrden - $totalPagado;
         if ($saldoPendiente > 0.01) { // Si hay saldo pendiente, registrar pago automático
             $usuario_id = isset($_SESSION['usuario_id']) ? $_SESSION['usuario_id'] : 1; // Ajusta según tu sistema de sesiones
             $dataPago = [
