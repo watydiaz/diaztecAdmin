@@ -158,6 +158,41 @@ class OrdenController {
     }
 
     public function cambiarEstadoEntregado($id) {
+        // --- NUEVO: Registrar pago automático si hay saldo pendiente ---
+        require_once __DIR__ . '/../models/OrdenPagoModel.php';
+        require_once __DIR__ . '/../models/Conexion.php';
+        $db = Conexion::getConexion();
+        $pagoModel = new OrdenPagoModel($db);
+
+        // Obtener la orden y los pagos realizados
+        $orden = $this->ordenModel->obtenerOrdenPorId($id);
+        $pagos = $pagoModel->obtenerPagosPorOrden($id);
+
+        $totalPagado = 0;
+        foreach ($pagos as $pago) {
+            $totalPagado += floatval($pago['dinero_recibido'] ?? $pago['costo_total']);
+        }
+        $totalOrden = floatval($orden['costo_total'] ?? 0);
+        // Si no hay campo costo_total en la orden, puedes cambiarlo por el campo correcto
+
+        $saldoPendiente = $totalOrden - $totalPagado;
+        if ($saldoPendiente > 0.01) { // Si hay saldo pendiente, registrar pago automático
+            $usuario_id = isset($_SESSION['usuario_id']) ? $_SESSION['usuario_id'] : 1; // Ajusta según tu sistema de sesiones
+            $dataPago = [
+                'orden_id' => $id,
+                'usuario_id' => $usuario_id,
+                'fecha_pago' => date('Y-m-d H:i:s'),
+                'costo_total' => $saldoPendiente,
+                'dinero_recibido' => $saldoPendiente,
+                'valor_repuestos' => 0,
+                'descripcion_repuestos' => 'Pago automático al entregar',
+                'metodo_pago' => 'efectivo', // O puedes dejarlo configurable
+                'saldo' => 0
+            ];
+            $pagoModel->insertarPago($dataPago);
+        }
+        // --- FIN NUEVO ---
+
         $resultado = $this->ordenModel->actualizarEstadoOrden($id, 'entregado');
 
         header('Content-Type: application/json');

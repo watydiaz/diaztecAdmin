@@ -44,6 +44,7 @@ class OrdenPagoController {
                 'usuario_id' => $_POST['usuario_id'],
                 'fecha_pago' => $_POST['fecha_pago'],
                 'costo_total' => $_POST['costo_total'],
+                'dinero_recibido' => $_POST['dinero_recibido'],
                 'valor_repuestos' => $_POST['valor_repuestos'],
                 'descripcion_repuestos' => $_POST['descripcion_repuestos'],
                 'metodo_pago' => $_POST['metodo_pago'],

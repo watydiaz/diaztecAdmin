@@ -390,7 +390,7 @@ require_once 'header.php';
                             <textarea class="form-control" id="descripcionRepuestos" name="descripcionRepuestos"></textarea>
                         </div>
                         <div class="mb-3">
-                            <label for="abono" class="form-label">Abono</label>
+                            <label for="abono" class="form-label">Dinero recibido</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
                                 <input type="text" class="form-control" id="abono" name="abono" inputmode="numeric" pattern="[0-9.]*" autocomplete="off">
@@ -887,8 +887,8 @@ require_once 'header.php';
                                 htmlPago += `<p><strong>Método de Pago:</strong> ${pago.metodo_pago ? pago.metodo_pago.charAt(0).toUpperCase() + pago.metodo_pago.slice(1) : ''}</p>`;
                                 htmlPago += `<p><strong>Fecha de Pago:</strong> ${pago.fecha_pago || ''}</p>`;
                                 htmlPago += `<p><strong style='color:#007bff;'>Costo Total:</strong> <span style='font-weight:bold;color:#007bff;'>$${Number(pago.costo_total).toLocaleString('es-CO')}</span></p>`;
-                                const abono = pago.costo_total - pago.saldo;
-                                htmlPago += `<p><strong style='color:#28a745;'>Abono:</strong> <span style='font-weight:bold;color:#28a745;'>$${Number(abono).toLocaleString('es-CO')}</span></p>`;
+                                const dineroRecibido = pago.dinero_recibido !== undefined ? pago.dinero_recibido : (pago.costo_total - pago.saldo);
+                                htmlPago += `<p><strong style='color:#28a745;'>Dinero recibido:</strong> <span style='font-weight:bold;color:#28a745;'>$${Number(dineroRecibido).toLocaleString('es-CO')}</span></p>`;
                                 htmlPago += `<p><strong style='color:#dc3545;'>Saldo:</strong> <span style='font-weight:bold;color:#dc3545;'>$${Number(pago.saldo).toLocaleString('es-CO')}</span></p>`;
                                 htmlPago += `<p><strong>Descripción Repuestos:</strong> ${pago.descripcion_repuestos || ''}</p>`;
                                 htmlPago += `</div>`;
@@ -1226,6 +1226,7 @@ require_once 'header.php';
                     usuario_id: 1, // TODO: Reemplazar por el usuario logueado
                     fecha_pago: new Date().toISOString().slice(0, 19).replace('T', ' '),
                     costo_total: document.getElementById('costoTotal').value.replace(/\./g, ''),
+                    dinero_recibido: document.getElementById('abono').value.replace(/\./g, ''),
                     valor_repuestos: document.getElementById('valorRepuestos').value.replace(/\./g, ''),
                     descripcion_repuestos: document.getElementById('descripcionRepuestos').value,
                     metodo_pago: document.getElementById('metodo_pago').value,
