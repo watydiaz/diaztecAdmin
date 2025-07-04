@@ -374,49 +374,55 @@ require_once 'header.php';
                 </div>
                 <div class="modal-body">
                     <form id="formPagosOrden">
-                        <div class="mb-3">
-                            <label for="pagoOrdenId" class="form-label">ID Orden</label>
-                            <input type="text" class="form-control" id="pagoOrdenId" name="pagoOrdenId" readonly>
-                        </div>
-                        <div class="mb-3">
-                            <label for="costoTotal" class="form-label">Costo total</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input type="text" class="form-control" id="costoTotal" name="costoTotal" inputmode="numeric" pattern="[0-9.]*" autocomplete="off">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="pagoOrdenId" class="form-label">ID Orden</label>
+                                    <input type="text" class="form-control" id="pagoOrdenId" name="pagoOrdenId" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="costoTotal" class="form-label">Costo total</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="text" class="form-control" id="costoTotal" name="costoTotal" inputmode="numeric" pattern="[0-9.]*" autocomplete="off">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="abono" class="form-label">Dinero recibido</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="text" class="form-control" id="abono" name="abono" inputmode="numeric" pattern="[0-9.]*" autocomplete="off">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="saldo" class="form-label">Saldo</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="text" class="form-control" id="saldo" name="saldo" readonly>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="descripcionRepuestos" class="form-label">Descripción repuestos</label>
-                            <textarea class="form-control" id="descripcionRepuestos" name="descripcionRepuestos"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="abono" class="form-label">Dinero recibido</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input type="text" class="form-control" id="abono" name="abono" inputmode="numeric" pattern="[0-9.]*" autocomplete="off">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="saldo" class="form-label">Saldo</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input type="text" class="form-control" id="saldo" name="saldo" readonly>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="metodo_pago" class="form-label">Método de pago</label>
-                            <select class="form-select" id="metodo_pago" name="metodo_pago" required>
-                                <option value="">Seleccione...</option>
-                                <option value="efectivo">Efectivo</option>
-                                <option value="nequi">Nequi</option>
-                                <option value="daviplata">Daviplata</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="valorRepuestos" class="form-label">Valor repuestos</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input type="text" class="form-control" id="valorRepuestos" name="valorRepuestos" inputmode="numeric" pattern="[0-9.]*" autocomplete="off">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="valorRepuestos" class="form-label">Valor repuestos</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="text" class="form-control" id="valorRepuestos" name="valorRepuestos" inputmode="numeric" pattern="[0-9.]*" autocomplete="off" value="0">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="descripcionRepuestos" class="form-label">Descripción repuestos</label>
+                                    <textarea class="form-control" id="descripcionRepuestos" name="descripcionRepuestos"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="metodo_pago" class="form-label">Método de pago</label>
+                                    <select class="form-select" id="metodo_pago" name="metodo_pago" required>
+                                        <option value="">Seleccione...</option>
+                                        <option value="efectivo">Efectivo</option>
+                                        <option value="nequi">Nequi</option>
+                                        <option value="daviplata">Daviplata</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                         <button type="submit" class="btn btn-success">Registrar Pago</button>
@@ -1180,7 +1186,7 @@ require_once 'header.php';
             const saldo = Math.max(costo - abono, 0);
             document.getElementById('saldo').value = saldo ? formatMiles(saldo.toString()) : '';
         }
-        ['costoTotal', 'valorRepuestos', 'abono'].forEach(function(id) {
+        ['costoTotal', 'abono'].forEach(function(id) {
             const input = document.getElementById(id);
             if (input) {
                 input.addEventListener('input', function(e) {
@@ -1197,8 +1203,6 @@ require_once 'header.php';
                 const ordenId = this.dataset.id;
                 document.getElementById('pagoOrdenId').value = ordenId;
                 document.getElementById('costoTotal').value = '';
-                document.getElementById('valorRepuestos').value = '';
-                document.getElementById('descripcionRepuestos').value = '';
                 document.getElementById('abono').value = '';
                 document.getElementById('saldo').value = '';
                 const modalPagos = new bootstrap.Modal(document.getElementById('modalPagosOrden'));
