@@ -18,7 +18,11 @@ class ClienteModel {
         $query = "INSERT INTO clientes (nombre, identificacion, telefono, email, direccion) VALUES (?, ?, ?, ?, ?)";
         $stmt = $this->conexion->prepare($query);
         $stmt->bind_param('sssss', $nombre, $identificacion, $telefono, $email, $direccion);
-        return $stmt->execute();
+        
+        if ($stmt->execute()) {
+            return $this->conexion->insert_id; // Retorna el ID del cliente insertado
+        }
+        return false;
     }
 
     public function obtenerClientePorId($id) {

@@ -19,9 +19,16 @@ class ClienteController {
     }
 
     public function agregarCliente($nombre, $identificacion, $telefono, $email, $direccion) {
-        $this->clienteModel->agregarCliente($nombre, $identificacion, $telefono, $email, $direccion);
-        header('Location: index.php?action=listarClientes');
-        exit();
+        $resultado = $this->clienteModel->agregarCliente($nombre, $identificacion, $telefono, $email, $direccion);
+        
+        if ($resultado) {
+            header('Location: index.php?action=listarClientes');
+            exit();
+        } else {
+            // En caso de error, redirigir con un mensaje de error
+            header('Location: index.php?action=listarClientes&error=1');
+            exit();
+        }
     }
 
     public function editarCliente($id, $nombre, $identificacion, $telefono, $email, $direccion) {
@@ -54,7 +61,13 @@ class ClienteController {
 
             header('Content-Type: application/json');
             if ($resultado) {
-                echo json_encode(['success' => true, 'message' => 'Cliente agregado exitosamente']);
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Cliente agregado exitosamente',
+                    'cliente_id' => $resultado,
+                    'nombre' => $nombre,
+                    'identificacion' => $identificacion
+                ]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Error al agregar cliente']);
             }

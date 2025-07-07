@@ -227,8 +227,7 @@ function cargarPagosCaja() {
 <!-- Botón flotante para agregar pago de productos -->
 <button id="btnFlotanteAgregarPagoProducto" type="button" class="btn btn-primary rounded-circle shadow"
     style="position: fixed; bottom: 40px; right: 40px; width: 60px; height: 60px; z-index: 1050; display: flex; align-items: center; justify-content: center; font-size: 2rem;"
-    title="Agregar venta de producto"
-    data-bs-toggle="modal" data-bs-target="#modalPagoProducto">
+    title="Agregar venta de producto">
     <i class="bi bi-plus"></i>
 </button>
 
@@ -244,24 +243,10 @@ function cargarPagosCaja() {
                 <form id="formVentaProducto">
                     <div class="mb-3">
                         <label for="clienteBusqueda" class="form-label">Cliente</label>
-                        <input type="text" class="form-control" id="clienteBusqueda" list="clientesList" placeholder="Buscar cliente por nombre o identificación...">
+                        <input type="text" class="form-control" id="clienteBusqueda" list="clientesList" placeholder="Buscar cliente por nombre... (si no existe, se creará automáticamente)">
                         <datalist id="clientesList"><!-- Opciones dinámicas JS --></datalist>
                         <input type="hidden" id="clienteSeleccionadoId" name="cliente_id">
-                        <button type="button" class="btn btn-link p-0 mt-1" id="btnNuevoCliente">Agregar cliente manualmente</button>
-                    </div>
-                    <div id="nuevoClienteFields" style="display:none;">
-                        <div class="mb-2">
-                            <label class="form-label">Nombre</label>
-                            <input type="text" class="form-control" id="nuevoClienteNombre" name="nuevo_cliente_nombre">
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label">Teléfono</label>
-                            <input type="text" class="form-control" id="nuevoClienteTelefono" name="nuevo_cliente_telefono">
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-control" id="nuevoClienteEmail" name="nuevo_cliente_email">
-                        </div>
+                        <small class="form-text text-muted">Escribe el nombre del cliente. Si no existe, aparecerá la opción de crearlo automáticamente.</small>
                     </div>
                     <!-- Buscador de productos -->
                     <div class="mb-3">
@@ -319,6 +304,51 @@ function cargarPagosCaja() {
         </div>
     </div>
 </div>
+
+<!-- Modal para crear nuevo cliente -->
+<div class="modal fade" id="modalNuevoCliente" tabindex="-1" aria-labelledby="modalNuevoClienteLabel" aria-hidden="true" data-bs-focus="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalNuevoClienteLabel">Crear Nuevo Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info alert-sm mb-3">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <small>Después de crear el cliente, regresarás automáticamente al registro de venta con el cliente seleccionado.</small>
+                </div>
+                <form id="formNuevoCliente">
+                    <div class="mb-3">
+                        <label for="nuevoClienteNombre" class="form-label">Nombre *</label>
+                        <input type="text" class="form-control" id="nuevoClienteNombre" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nuevoClienteIdentificacion" class="form-label">Identificación *</label>
+                        <input type="text" class="form-control" id="nuevoClienteIdentificacion" name="identificacion" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nuevoClienteTelefono" class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" id="nuevoClienteTelefono" name="telefono">
+                    </div>
+                    <div class="mb-3">
+                        <label for="nuevoClienteEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="nuevoClienteEmail" name="email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="nuevoClienteDireccion" class="form-label">Dirección</label>
+                        <textarea class="form-control" id="nuevoClienteDireccion" name="direccion" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnGuardarNuevoCliente">Guardar Cliente</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // --- CLIENTES ---
@@ -327,15 +357,201 @@ document.addEventListener('DOMContentLoaded', function() {
     const datalist = document.getElementById('clientesList');
     const inputClienteId = document.getElementById('clienteSeleccionadoId');
     let clientes = [];
-    document.getElementById('btnNuevoCliente').onclick = function() {
-        const fields = document.getElementById('nuevoClienteFields');
-        fields.style.display = fields.style.display === 'none' ? 'block' : 'none';
-    };
-    if (modalVenta) {
-        modalVenta.addEventListener('show.bs.modal', function() {
-            datalist.innerHTML = '';
-            inputBusqueda.value = '';
-            inputClienteId.value = '';
+
+    // Función para abrir el modal de venta de forma controlada
+    function abrirModalVenta() {
+        console.log('Abriendo modal de venta...');
+        const modalInstance = new bootstrap.Modal(modalVenta, {
+            focus: true,
+            backdrop: true,
+            keyboard: true
+        });
+        modalInstance.show();
+    }
+
+    // Función para abrir el modal de nuevo cliente con nombre prellenado
+    function abrirModalNuevoClienteConNombre(nombreSugerido = '') {
+        console.log('Abriendo modal de nuevo cliente con nombre sugerido:', nombreSugerido);
+        
+        // Cerrar el modal de venta temporalmente
+        const modalVentaInstance = bootstrap.Modal.getInstance(document.getElementById('modalPagoProducto'));
+        if (modalVentaInstance) {
+            modalVentaInstance.hide();
+        }
+        
+        // Esperar a que se cierre completamente antes de abrir el nuevo
+        setTimeout(() => {
+            const modalNuevoCliente = new bootstrap.Modal(document.getElementById('modalNuevoCliente'), {
+                focus: false,
+                backdrop: 'static'
+            });
+            modalNuevoCliente.show();
+            
+            // Prellenar el campo nombre si se proporciona
+            if (nombreSugerido) {
+                setTimeout(() => {
+                    document.getElementById('nuevoClienteNombre').value = nombreSugerido;
+                    // Poner el foco en el campo de identificación para continuar el flujo
+                    document.getElementById('nuevoClienteIdentificacion').focus();
+                }, 100);
+            }
+        }, 300);
+    }
+
+    // Event listener para el botón flotante
+    document.getElementById('btnFlotanteAgregarPagoProducto').addEventListener('click', function() {
+        abrirModalVenta();
+    });
+
+    // Manejar guardado de nuevo cliente
+    document.getElementById('btnGuardarNuevoCliente').addEventListener('click', function() {
+        const form = document.getElementById('formNuevoCliente');
+        const formData = new FormData(form);
+        const btn = this;
+        
+        // Validaciones básicas
+        const nombre = formData.get('nombre').trim();
+        const identificacion = formData.get('identificacion').trim();
+        
+        if (!nombre || !identificacion) {
+            alert('Por favor completa los campos obligatorios (Nombre e Identificación)');
+            return;
+        }
+        
+        // Deshabilitar botón mientras se procesa
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Guardando...';
+        
+        // Enviar datos al servidor
+        fetch('index.php?action=agregarCliente', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Respuesta completa del servidor:', data);
+            console.log('cliente_id recibido:', data.cliente_id, 'tipo:', typeof data.cliente_id);
+            
+            if (data.success) {
+                // Cliente creado exitosamente
+                const nuevoCliente = {
+                    id: data.cliente_id,
+                    nombre: nombre,
+                    identificacion: identificacion
+                };
+                
+                console.log('Objeto nuevoCliente creado:', nuevoCliente);
+                
+                // Agregar a la lista de clientes
+                clientes.push(nuevoCliente);
+                
+                // Actualizar el datalist inmediatamente con el nuevo cliente
+                datalist.innerHTML = `<option value="${nombre} (${identificacion})" data-id="${data.cliente_id}">${nombre} (${identificacion})</option>`;
+                
+                // Seleccionar automáticamente el nuevo cliente
+                inputBusqueda.value = `${nombre} (${identificacion})`;
+                inputClienteId.value = data.cliente_id;
+                
+                console.log('Cliente creado y seleccionado:', {
+                    nombre: nombre,
+                    identificacion: identificacion,
+                    id: data.cliente_id,
+                    inputValue: inputBusqueda.value,
+                    hiddenValue: inputClienteId.value
+                });
+                
+                // Cerrar modal
+                const modalNuevoCliente = bootstrap.Modal.getInstance(document.getElementById('modalNuevoCliente'));
+                modalNuevoCliente.hide();
+                
+                // Limpiar formulario
+                form.reset();
+                
+                // Guardar datos del cliente seleccionado para mantenerlos al reabrir el modal
+                sessionStorage.setItem('clienteSeleccionado', JSON.stringify({
+                    id: data.cliente_id,
+                    nombre: nombre,
+                    identificacion: identificacion,
+                    displayText: `${nombre} (${identificacion})`
+                }));
+                
+                // Reabrir el modal de venta después de crear el cliente
+                setTimeout(() => {
+                    abrirModalVenta();
+                }, 300);
+                
+                alert('Cliente creado exitosamente');
+            } else {
+                alert('Error al crear cliente: ' + (data.message || 'Error desconocido'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al conectar con el servidor');
+        })
+        .finally(() => {
+            // Restaurar botón
+            btn.disabled = false;
+            btn.innerHTML = 'Guardar Cliente';
+        });
+    });
+
+    let modalVentaInicializado = false; // Flag para inicialización única
+    let modalAbierto = false; // Flag para evitar múltiples aperturas simultáneas
+
+    if (modalVenta && !modalVentaInicializado) {
+        modalVentaInicializado = true;
+        
+        modalVenta.addEventListener('show.bs.modal', function(e) {
+            if (modalAbierto) {
+                console.log('Modal ya está abierto, evitando duplicación...');
+                return;
+            }
+            modalAbierto = true;
+            
+            console.log('Modal de venta abriéndose...');
+            
+            // Verificar si hay un cliente seleccionado guardado
+            const clienteGuardado = sessionStorage.getItem('clienteSeleccionado');
+            if (clienteGuardado) {
+                const cliente = JSON.parse(clienteGuardado);
+                console.log('Cliente encontrado en sessionStorage:', cliente);
+                
+                // Asegurar que el cliente se establezca correctamente
+                inputBusqueda.value = cliente.displayText;
+                inputClienteId.value = cliente.id;
+                
+                // Agregar el cliente a la lista si no está
+                if (!clientes.find(c => c.id === cliente.id)) {
+                    clientes.push({
+                        id: cliente.id,
+                        nombre: cliente.nombre,
+                        identificacion: cliente.identificacion
+                    });
+                }
+                
+                // Actualizar el datalist con el cliente seleccionado
+                datalist.innerHTML = `<option value="${cliente.displayText}" data-id="${cliente.id}">${cliente.displayText}</option>`;
+                
+                console.log('Cliente restaurado desde sessionStorage:', {
+                    displayText: cliente.displayText,
+                    id: cliente.id,
+                    inputValue: inputBusqueda.value,
+                    hiddenValue: inputClienteId.value
+                });
+                
+                // Limpiar sessionStorage
+                sessionStorage.removeItem('clienteSeleccionado');
+            } else {
+                console.log('No hay cliente guardado, limpiando campos...');
+                // Solo limpiar si no hay cliente guardado y no hay valores actuales
+                if (!inputBusqueda.value && !inputClienteId.value) {
+                    datalist.innerHTML = '';
+                    inputBusqueda.value = '';
+                    inputClienteId.value = '';
+                }
+            }
+            
             // --- PRODUCTOS ---
             fetch('index.php?action=obtenerProductos')
                 .then(r => r.json())
@@ -348,35 +564,157 @@ document.addEventListener('DOMContentLoaded', function() {
                     productosSeleccionados = [];
                     renderTablaProductos();
                     inputProducto.value = '';
+                    
+                    // Verificar nuevamente el cliente después de cargar productos
+                    if (inputClienteId.value) {
+                        console.log('Cliente mantenido después de cargar productos:', {
+                            inputValue: inputBusqueda.value,
+                            hiddenValue: inputClienteId.value
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error cargando productos:', error);
                 });
-        });
+        }, { once: false });
+        
+        modalVenta.addEventListener('shown.bs.modal', function(e) {
+            // Solo ejecutar una vez por apertura del modal
+            console.log('Modal mostrado completamente. Estado del cliente:', {
+                inputValue: inputBusqueda.value,
+                hiddenValue: inputClienteId.value,
+                datalistOptions: datalist.innerHTML.length > 0 ? 'Tiene opciones' : 'Sin opciones'
+            });
+            
+            // Si hay un valor en el input pero no en el campo oculto, intentar recuperarlo
+            if (inputBusqueda.value && !inputClienteId.value) {
+                const option = datalist.querySelector(`option[value="${inputBusqueda.value}"]`);
+                if (option) {
+                    const clienteId = option.getAttribute('data-id');
+                    if (clienteId) {
+                        inputClienteId.value = clienteId;
+                        console.log('Cliente ID recuperado del datalist:', clienteId);
+                    }
+                }
+            }
+        }, { once: false });
+        
+        modalVenta.addEventListener('hidden.bs.modal', function(e) {
+            console.log('Modal de venta cerrado');
+            modalAbierto = false; // Reset del flag al cerrar
+        }, { once: false });
     }
+
+    // Limpiar modal de nuevo cliente al cerrarlo
+    document.getElementById('modalNuevoCliente').addEventListener('hidden.bs.modal', function() {
+        console.log('Modal de nuevo cliente cerrado');
+        document.getElementById('formNuevoCliente').reset();
+        
+        // Verificar si se guardó un cliente en sessionStorage
+        const clienteGuardado = sessionStorage.getItem('clienteSeleccionado');
+        if (!clienteGuardado) {
+            // Solo reabrir si se canceló la creación (no hay cliente guardado)
+            console.log('Cliente no guardado, reabriendo modal de venta...');
+            setTimeout(() => {
+                abrirModalVenta();
+            }, 100);
+        } else {
+            console.log('Cliente guardado, el modal se reabrirá automáticamente');
+        }
+    });
+
+    let timeoutBusqueda; // Para el debounce de búsqueda
+
     inputBusqueda.addEventListener('input', function() {
         const query = this.value.trim();
+        
+        // Limpiar timeout anterior
+        clearTimeout(timeoutBusqueda);
+        
         if (query.length > 1) {
-            fetch(`index.php?action=buscarCliente&query=${encodeURIComponent(query)}`)
-                .then(r => r.json())
-                .then(data => {
-                    clientes = data.clientes || [];
-                    datalist.innerHTML = '';
-                    clientes.forEach(c => {
-                        datalist.innerHTML += `<option value="${c.nombre} (${c.identificacion})" data-id="${c.id}">${c.nombre} (${c.identificacion})</option>`;
+            // Agregar un pequeño delay para evitar muchas peticiones
+            timeoutBusqueda = setTimeout(() => {
+                fetch(`index.php?action=buscarCliente&query=${encodeURIComponent(query)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        clientes = data.clientes || [];
+                        datalist.innerHTML = '';
+                        
+                        if (clientes.length > 0) {
+                            // Si hay resultados, mostrarlos
+                            clientes.forEach(c => {
+                                datalist.innerHTML += `<option value="${c.nombre} (${c.identificacion})" data-id="${c.id}">${c.nombre} (${c.identificacion})</option>`;
+                            });
+                            console.log(`Encontrados ${clientes.length} clientes para: "${query}"`);
+                        } else {
+                            // Si no hay resultados, sugerir crear cliente
+                            console.log(`No se encontraron clientes para: "${query}". Mostrando opción de crear cliente.`);
+                            datalist.innerHTML = `<option value="➕ Crear nuevo cliente: ${query}" data-action="create">➕ Crear nuevo cliente: "${query}"</option>`;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error buscando clientes:', error);
+                        datalist.innerHTML = `<option value="➕ Crear nuevo cliente: ${query}" data-action="create">➕ Crear nuevo cliente: "${query}"</option>`;
                     });
-                });
+            }, 300); // Delay de 300ms
         } else {
             datalist.innerHTML = '';
         }
         inputClienteId.value = '';
     });
     inputBusqueda.addEventListener('change', function() {
-        const valor = this.value;
+        const valor = this.value.trim();
+        console.log('Cliente input changed:', valor);
+        
+        // Verificar si es la opción de crear nuevo cliente
+        if (valor.startsWith('➕ Crear nuevo cliente:')) {
+            const nombreSugerido = valor.replace('➕ Crear nuevo cliente: ', '');
+            console.log('Detectada opción de crear cliente para:', nombreSugerido);
+            
+            // Limpiar el input
+            this.value = '';
+            inputClienteId.value = '';
+            
+            // Abrir modal de nuevo cliente y prellenar el nombre
+            abrirModalNuevoClienteConNombre(nombreSugerido);
+            return;
+        }
+        
+        // Buscar en la lista de clientes cargados
         const cliente = clientes.find(c => `${c.nombre} (${c.identificacion})` === valor);
         if (cliente) {
             inputClienteId.value = cliente.id;
+            console.log('Cliente encontrado en lista local:', cliente);
         } else {
-            inputClienteId.value = '';
+            // Si no se encuentra en la lista local, buscar por ID en el datalist
+            const option = datalist.querySelector(`option[value="${valor}"]`);
+            if (option) {
+                const clienteId = option.getAttribute('data-id');
+                if (clienteId) {
+                    inputClienteId.value = clienteId;
+                    console.log('Cliente encontrado en datalist:', { valor, clienteId });
+                } else {
+                    inputClienteId.value = '';
+                    console.log('Opción encontrada pero sin data-id:', option);
+                }
+            } else {
+                inputClienteId.value = '';
+                console.log('Cliente no encontrado para valor:', valor);
+            }
         }
+        
+        console.log('Estado final después del change:', {
+            inputValue: inputBusqueda.value,
+            hiddenValue: inputClienteId.value
+        });
     });
+    
+    // Agregar listener adicional para sincronización en tiempo real
+    inputBusqueda.addEventListener('blur', function() {
+        // Trigger del evento change para asegurar sincronización
+        this.dispatchEvent(new Event('change'));
+    });
+
     // --- PRODUCTOS ---
     let productos = [];
     let productosSeleccionados = [];

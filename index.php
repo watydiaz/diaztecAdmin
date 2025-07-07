@@ -103,19 +103,7 @@ switch ($action) {
         break;
 
     case 'agregarCliente':
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $nombre = $_POST['nombre'] ?? '';
-            $identificacion = $_POST['identificacion'] ?? '';
-            $telefono = $_POST['telefono'] ?? '';
-            $email = $_POST['email'] ?? '';
-            $direccion = $_POST['direccion'] ?? '';
-
-            $resultado = $clienteController->agregarClienteDesdeModal();
-
-            header('Content-Type: application/json');
-            echo json_encode(['success' => $resultado]);
-            exit();
-        }
+        $clienteController->agregarClienteDesdeModal();
         break;
 
     case 'eliminarCliente':
