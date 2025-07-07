@@ -284,6 +284,35 @@ function cargarPagosCaja() {
                             <tbody></tbody>
                         </table>
                     </div>
+                    <!-- Total, pago y cambio -->
+                    <div class="mb-3 text-center">
+                        <div style="font-size:1.3rem; font-weight:bold; color:#198754; background:#e9fbe7; border-radius:8px; padding:8px 0; margin-bottom:10px;">
+                            Total a pagar: <span id="totalVentaProductos">$0</span>
+                        </div>
+                        <div class="row g-2 justify-content-center align-items-center">
+                            <div class="col-12 col-md-4">
+                                <label for="inputConCuantoPagan" class="form-label mb-1">¿Con cuánto pagan?</label>
+                                <input type="number" min="0" step="any" class="form-control text-center" id="inputConCuantoPagan" placeholder="¿Con cuánto pagan?">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label for="inputCambioVuelto" class="form-label mb-1">Cambio / Vueltas</label>
+                                <input type="text" class="form-control text-center bg-light fw-bold" id="inputCambioVuelto" placeholder="Cambio / Vueltas" readonly>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label for="inputTipoPago" class="form-label mb-1">Tipo de Pago</label>
+                                <select class="form-select text-center" id="inputTipoPago">
+                                    <option value="" selected disabled>Tipo Pago</option>
+                                    <option value="Efectivo">Efectivo</option>
+                                    <option value="Nequi">Nequi</option>
+                                    <option value="Daviplata">Daviplata</option>
+                                    <option value="Transferencia">Transferencia</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-primary px-4" id="btnGuardarVenta"><i class="bi bi-save me-2"></i>Guardar Venta</button>
+                        </div>
+                    </div>
                     <!-- Aquí irán los campos de productos y pago -->
                 </form>
             </div>
@@ -401,15 +430,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btnAgregarProducto) btnAgregarProducto.style.display = 'none';
     function renderTablaProductos() {
         const fragment = document.createDocumentFragment();
+        let total = 0;
         productosSeleccionados.forEach((p, idx) => {
+            total += p.precio * p.cantidad;
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${p.nombre}</td>
                 <td>$${p.precio.toLocaleString('es-CO')}</td>
                 <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-danger rounded-circle btn-restar d-inline-flex align-items-center justify-content-center" style="width:28px;height:28px;padding:0;font-size:1.1rem;" data-idx="${idx}" title="Restar">-</button>
-                    <span class="mx-1" style="min-width:24px;display:inline-block;font-size:1rem;">${p.cantidad}</span>
-                    <button type="button" class="btn btn-sm btn-success rounded-circle btn-sumar d-inline-flex align-items-center justify-content-center" style="width:28px;height:28px;padding:0;font-size:1.1rem;" data-idx="${idx}" title="Sumar">+</button>
+                    <button type="button" class="btn btn-sm btn-danger rounded-circle btn-restar d-inline-flex align-items-center justify-content-center" style="width:22px;height:22px;padding:0;font-size:0.88rem;" data-idx="${idx}" title="Restar">-</button>
+                    <span class="mx-1" style="min-width:20px;display:inline-block;font-size:0.95rem;">${p.cantidad}</span>
+                    <button type="button" class="btn btn-sm btn-success rounded-circle btn-sumar d-inline-flex align-items-center justify-content-center" style="width:22px;height:22px;padding:0;font-size:0.88rem;" data-idx="${idx}" title="Sumar">+</button>
                 </td>
                 <td>$${(p.precio * p.cantidad).toLocaleString('es-CO')}</td>
                 <td class="text-center">
@@ -424,6 +455,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         tablaProductos.innerHTML = '';
         tablaProductos.appendChild(fragment);
+        document.getElementById('totalVentaProductos').textContent = '$' + total.toLocaleString('es-CO');
+        calcularCambio();
         tablaProductos.querySelectorAll('.btn-restar').forEach(btn => {
             btn.onclick = function() {
                 const idx = parseInt(this.getAttribute('data-idx'));
@@ -448,6 +481,21 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         });
     }
+    // Calcular cambio/vueltas
+    function calcularCambio() {
+        const total = productosSeleccionados.reduce((s, p) => s + p.precio * p.cantidad, 0);
+        const pago = parseFloat(document.getElementById('inputConCuantoPagan').value) || 0;
+        let cambio = '';
+        if (pago > 0 && pago >= total) {
+            cambio = '$' + (pago - total).toLocaleString('es-CO');
+        } else if (pago > 0 && pago < total) {
+            cambio = 'Falta $' + (total - pago).toLocaleString('es-CO');
+        } else {
+            cambio = '';
+        }
+        document.getElementById('inputCambioVuelto').value = cambio;
+    }
+    document.getElementById('inputConCuantoPagan').addEventListener('input', calcularCambio);
 });
 </script>
 <?php
