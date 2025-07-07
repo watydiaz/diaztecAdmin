@@ -427,6 +427,52 @@ require_once 'header.php';
         </div>
     </div>
 
+    <!-- Modal para registrar venta de productos -->
+    <div class="modal fade" id="modalVentaProducto" tabindex="-1" aria-labelledby="modalVentaProductoLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalVentaProductoLabel">Registrar Venta de Producto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formVentaProducto" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="buscadorProducto" class="form-label">Producto</label>
+                            <input type="text" class="form-control" id="buscadorProducto" name="producto_nombre" placeholder="Buscar o crear producto..." autocomplete="off" required>
+                            <ul class="list-group mt-2" id="listaProductos" style="display: none;"></ul>
+                            <input type="hidden" id="producto_id" name="producto_id">
+                        </div>
+                        <div class="mb-3">
+                            <label for="cantidad" class="form-label">Cantidad</label>
+                            <input type="number" class="form-control" id="cantidad" name="cantidad" min="1" value="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="precio_venta" class="form-label">Precio de venta</label>
+                            <input type="number" class="form-control" id="precio_venta" name="precio_venta" min="0" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="imagen_producto" class="form-label">Imagen del producto</label>
+                            <input type="file" class="form-control" id="imagen_producto" name="imagen_producto" accept="image/*">
+                        </div>
+                        <div id="camposNuevoProducto" style="display:none;">
+                            <div class="mb-3">
+                                <label for="precio_compra" class="form-label">Precio de compra</label>
+                                <input type="number" class="form-control" id="precio_compra" name="precio_compra" min="0" step="0.01">
+                            </div>
+                            <div class="mb-3">
+                                <label for="stock" class="form-label">Stock inicial</label>
+                                <input type="number" class="form-control" id="stock" name="stock" min="0">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success">Registrar Venta</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Buscador de órdenes y clientes -->
     <div class="row mb-3">
         <div class="col-md-6 offset-md-3">

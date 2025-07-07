@@ -227,3 +227,26 @@ LEFT JOIN pagos p ON r.id = p.remision_id
 ORDER BY o.id;
 
 
+--creacion tabla de productos y ventas_productos
+
+CREATE TABLE productos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL UNIQUE,
+    imagen VARCHAR(255),
+    precio_compra DECIMAL(10,2) NOT NULL,
+    stock INT NOT NULL DEFAULT 0,
+    creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE ventas_productos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    producto_id INT NOT NULL,
+    cantidad INT NOT NULL,
+    precio_unitario DECIMAL(10,2) NOT NULL,
+    total DECIMAL(10,2) NOT NULL,
+    imagen VARCHAR(255),
+    fecha_venta DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (producto_id) REFERENCES productos(id)
+);
+
+ALTER TABLE productos ADD COLUMN precio_venta DECIMAL(10,2) NULL AFTER precio_compra;

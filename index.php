@@ -268,6 +268,21 @@ switch ($action) {
         exit();
         break;
 
+    case 'obtenerProductos':
+        require_once 'models/Conexion.php';
+        $db = Conexion::getConexion();
+        $productos = [];
+        $result = $db->query("SELECT id, nombre, precio_venta as precio FROM productos ORDER BY nombre ASC");
+        if ($result) {
+            while ($row = $result->fetch_assoc()) {
+                $productos[] = $row;
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode($productos);
+        exit();
+        break;
+
     default:
         // Redirigir al login si la acción no es válida
         header('Location: index.php?action=login');
