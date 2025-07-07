@@ -263,6 +263,27 @@ function cargarPagosCaja() {
                             <input type="email" class="form-control" id="nuevoClienteEmail" name="nuevo_cliente_email">
                         </div>
                     </div>
+                    <!-- Buscador de productos -->
+                    <div class="mb-3">
+                        <label for="productoBusqueda" class="form-label">Producto</label>
+                        <input type="text" class="form-control" id="productoBusqueda" list="productosList" placeholder="Buscar producto por nombre...">
+                        <datalist id="productosList"><!-- Opciones dinámicas JS --></datalist>
+                    </div>
+                    <!-- Tabla de productos seleccionados -->
+                    <div class="table-responsive mb-3">
+                        <table class="table table-bordered table-sm" id="tablaProductosSeleccionados" style="font-size:0.78rem;">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Precio</th>
+                                    <th>Cantidad</th>
+                                    <th>Subtotal</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                     <!-- Aquí irán los campos de productos y pago -->
                 </form>
             </div>
@@ -270,25 +291,37 @@ function cargarPagosCaja() {
     </div>
 </div>
 <script>
-document.getElementById('btnNuevoCliente').onclick = function() {
-    const fields = document.getElementById('nuevoClienteFields');
-    fields.style.display = fields.style.display === 'none' ? 'block' : 'none';
-};
-
 document.addEventListener('DOMContentLoaded', function() {
+    // --- CLIENTES ---
     const modalVenta = document.getElementById('modalPagoProducto');
     const inputBusqueda = document.getElementById('clienteBusqueda');
     const datalist = document.getElementById('clientesList');
     const inputClienteId = document.getElementById('clienteSeleccionadoId');
     let clientes = [];
+    document.getElementById('btnNuevoCliente').onclick = function() {
+        const fields = document.getElementById('nuevoClienteFields');
+        fields.style.display = fields.style.display === 'none' ? 'block' : 'none';
+    };
     if (modalVenta) {
         modalVenta.addEventListener('show.bs.modal', function() {
             datalist.innerHTML = '';
             inputBusqueda.value = '';
             inputClienteId.value = '';
+            // --- PRODUCTOS ---
+            fetch('index.php?action=obtenerProductos')
+                .then(r => r.json())
+                .then(data => {
+                    productos = data;
+                    datalistProductos.innerHTML = '';
+                    productos.forEach(p => {
+                        datalistProductos.innerHTML += `<option value="${p.nombre}" data-id="${p.id}" data-precio="${p.precio}">${p.nombre} ($${parseFloat(p.precio).toLocaleString('es-CO')})</option>`;
+                    });
+                    productosSeleccionados = [];
+                    renderTablaProductos();
+                    inputProducto.value = '';
+                });
         });
     }
-    // Búsqueda dinámica por nombre o identificación
     inputBusqueda.addEventListener('input', function() {
         const query = this.value.trim();
         if (query.length > 1) {
@@ -306,7 +339,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         inputClienteId.value = '';
     });
-    // Guardar el ID del cliente seleccionado
     inputBusqueda.addEventListener('change', function() {
         const valor = this.value;
         const cliente = clientes.find(c => `${c.nombre} (${c.identificacion})` === valor);
@@ -316,6 +348,106 @@ document.addEventListener('DOMContentLoaded', function() {
             inputClienteId.value = '';
         }
     });
+    // --- PRODUCTOS ---
+    let productos = [];
+    let productosSeleccionados = [];
+    const inputProducto = document.getElementById('productoBusqueda');
+    const datalistProductos = document.getElementById('productosList');
+    const tablaProductos = document.getElementById('tablaProductosSeleccionados').querySelector('tbody');
+    // Búsqueda dinámica de productos
+    let ignoreInputEvent = false;
+    inputProducto.addEventListener('input', function(e) {
+        if (ignoreInputEvent) return; // Evita doble ejecución
+        const query = this.value.trim().toLowerCase();
+        datalistProductos.innerHTML = '';
+        if (query.length > 1) {
+            productos.filter(p => p.nombre.toLowerCase().includes(query)).forEach(p => {
+                datalistProductos.innerHTML += `<option value="${p.nombre}" data-id="${p.id}" data-precio="${p.precio}">${p.nombre} ($${parseFloat(p.precio).toLocaleString('es-CO')})</option>`;
+            });
+        }
+        // Si el valor coincide exactamente con un producto, lo agrega de inmediato
+        const prod = productos.find(p => p.nombre.toLowerCase() === query);
+        if (prod) {
+            agregarProductoSeleccionado(prod);
+        }
+    });
+    inputProducto.addEventListener('change', function() {
+        const nombre = inputProducto.value.trim();
+        const prod = productos.find(p => p.nombre === nombre);
+        if (prod) {
+            agregarProductoSeleccionado(prod);
+        }
+    });
+    function agregarProductoSeleccionado(prod) {
+        const existente = productosSeleccionados.find(p => p.id === prod.id);
+        if (existente) {
+            existente.cantidad++;
+        } else {
+            productosSeleccionados.push({
+                id: prod.id,
+                nombre: prod.nombre,
+                precio: parseFloat(prod.precio),
+                cantidad: 1
+            });
+        }
+        renderTablaProductos();
+        // Evita que el input vuelva a disparar el evento input al limpiar
+        ignoreInputEvent = true;
+        inputProducto.value = '';
+        setTimeout(() => { ignoreInputEvent = false; }, 100);
+    }
+    // Eliminar el botón Agregar producto si existe
+    const btnAgregarProducto = document.getElementById('btnAgregarProducto');
+    if (btnAgregarProducto) btnAgregarProducto.style.display = 'none';
+    function renderTablaProductos() {
+        const fragment = document.createDocumentFragment();
+        productosSeleccionados.forEach((p, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${p.nombre}</td>
+                <td>$${p.precio.toLocaleString('es-CO')}</td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-danger rounded-circle btn-restar d-inline-flex align-items-center justify-content-center" style="width:28px;height:28px;padding:0;font-size:1.1rem;" data-idx="${idx}" title="Restar">-</button>
+                    <span class="mx-1" style="min-width:24px;display:inline-block;font-size:1rem;">${p.cantidad}</span>
+                    <button type="button" class="btn btn-sm btn-success rounded-circle btn-sumar d-inline-flex align-items-center justify-content-center" style="width:28px;height:28px;padding:0;font-size:1.1rem;" data-idx="${idx}" title="Sumar">+</button>
+                </td>
+                <td>$${(p.precio * p.cantidad).toLocaleString('es-CO')}</td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle btn-eliminar d-inline-flex align-items-center justify-content-center" style="width:28px;height:28px;padding:0;" data-idx="${idx}" title="Eliminar">
+                        <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-trash' viewBox='0 0 16 16'>
+                            <path d='M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5.5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6zm3 .5a.5.5 0 0 1 .5-.5.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6zm-7-1A1.5 1.5 0 0 1 5.5 4h5A1.5 1.5 0 0 1 12 5.5V6h1a.5.5 0 0 1 0 1h-1v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7H3a.5.5 0 0 1 0-1h1v-.5zM6 5a.5.5 0 0 0-.5.5V6h5v-.5A.5.5 0 0 0 10.5 5h-5z'/>
+                        </svg>
+                    </button>
+                </td>
+            `;
+            fragment.appendChild(tr);
+        });
+        tablaProductos.innerHTML = '';
+        tablaProductos.appendChild(fragment);
+        tablaProductos.querySelectorAll('.btn-restar').forEach(btn => {
+            btn.onclick = function() {
+                const idx = parseInt(this.getAttribute('data-idx'));
+                if (productosSeleccionados[idx].cantidad > 1) {
+                    productosSeleccionados[idx].cantidad--;
+                    renderTablaProductos();
+                }
+            };
+        });
+        tablaProductos.querySelectorAll('.btn-sumar').forEach(btn => {
+            btn.onclick = function() {
+                const idx = parseInt(this.getAttribute('data-idx'));
+                productosSeleccionados[idx].cantidad++;
+                renderTablaProductos();
+            };
+        });
+        tablaProductos.querySelectorAll('.btn-eliminar').forEach(btn => {
+            btn.onclick = function() {
+                const idx = parseInt(this.getAttribute('data-idx'));
+                productosSeleccionados.splice(idx, 1);
+                renderTablaProductos();
+            };
+        });
+    }
 });
 </script>
 <?php
