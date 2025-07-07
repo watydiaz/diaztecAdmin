@@ -2,102 +2,99 @@
 require_once 'header.php';
 ?>
 <div class="container-fluid">
-    <h3 class="mt-4 mb-3">Caja - Movimientos de Pagos</h3>
-    <p>Consulta y gestiona todos los pagos y abonos realizados tanto a órdenes de reparación como a productos vendidos.</p>
-    <div class="row mb-3">
-        <div class="col-md-4">
-            <input type="text" id="buscadorPagos" class="form-control" placeholder="Buscar por cliente, orden, producto, método, etc...">
+    <h3 class="mt-4 mb-3">Caja - Pagos Registrados</h3>
+    <div class="row">
+        <div class="col-md-6">
+            <h5>Pagos de Órdenes de Servicio</h5>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover" id="tablaCajaOrdenes">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha de Pago</th>
+                            <th>ID Orden</th>
+                            <th>Dinero Recibido</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyCajaPagosOrdenes">
+                        <!-- Pagos de órdenes -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-2">
+                <span id="totalCajaOrdenes" class="fw-bold"></span>
+            </div>
         </div>
-        <div class="col-md-3">
-            <select id="filtroTipo" class="form-select">
-                <option value="">Todos los tipos</option>
-                <option value="orden">Órdenes</option>
-                <option value="producto">Productos</option>
-            </select>
+        <div class="col-md-6 position-relative">
+            <h5>Pagos por Venta de Productos</h5>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover" id="tablaCajaProductos">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha de Pago</th>
+                            <th>ID Venta</th>
+                            <th>Dinero Recibido</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyCajaPagosProductos">
+                        <tr><td colspan="4" class="text-center">No hay pagos de productos registrados.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-2">
+                <span id="totalCajaProductos" class="fw-bold"></span>
+            </div>
+            <!-- Botón flotante para agregar pago de productos -->
+            <button id="btnFlotanteAgregarPagoProducto" type="button" class="btn btn-primary rounded-circle shadow" 
+                style="position: fixed; bottom: 40px; right: 40px; width: 60px; height: 60px; z-index: 1050; display: flex; align-items: center; justify-content: center; font-size: 2rem;" 
+                title="Agregar pago de producto"
+                onclick="abrirModalPagoProducto()">
+                <i class="bi bi-plus"></i>
+            </button>
         </div>
-        <div class="col-md-3">
-            <select id="filtroMetodo" class="form-select">
-                <option value="">Todos los métodos</option>
-                <option value="efectivo">Efectivo</option>
-                <option value="nequi">Nequi</option>
-                <option value="daviplata">Daviplata</option>
-            </select>
-        </div>
-        <div class="col-md-2">
-            <button class="btn btn-secondary w-100" onclick="limpiarFiltrosCaja()">Limpiar filtros</button>
-        </div>
-    </div>
-    <div class="table-responsive">
-        <table class="table table-striped table-hover" id="tablaCaja">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Fecha</th>
-                    <th>Tipo</th>
-                    <th>Referencia</th>
-                    <th>Cliente</th>
-                    <th>Método</th>
-                    <th>Monto</th>
-                    <th>Abono</th>
-                    <th>Saldo</th>
-                    <th>Descripción</th>
-                </tr>
-            </thead>
-            <tbody id="tbodyCajaPagos">
-                <!-- Aquí se cargarán los pagos vía JS -->
-            </tbody>
-        </table>
-    </div>
-    <div class="mt-3">
-        <span id="totalCaja" class="fw-bold"></span>
     </div>
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     cargarPagosCaja();
-    document.getElementById('buscadorPagos').addEventListener('input', cargarPagosCaja);
-    document.getElementById('filtroTipo').addEventListener('change', cargarPagosCaja);
-    document.getElementById('filtroMetodo').addEventListener('change', cargarPagosCaja);
 });
-function limpiarFiltrosCaja() {
-    document.getElementById('buscadorPagos').value = '';
-    document.getElementById('filtroTipo').value = '';
-    document.getElementById('filtroMetodo').value = '';
-    cargarPagosCaja();
-}
 function cargarPagosCaja() {
-    const q = document.getElementById('buscadorPagos').value.trim();
-    const tipo = document.getElementById('filtroTipo').value;
-    const metodo = document.getElementById('filtroMetodo').value;
-    fetch(`index.php?action=obtenerPagosCaja&q=${encodeURIComponent(q)}&tipo=${tipo}&metodo=${metodo}`)
+    fetch('index.php?action=obtenerPagosCaja')
         .then(r => r.json())
         .then(data => {
-            const tbody = document.getElementById('tbodyCajaPagos');
-            tbody.innerHTML = '';
-            let total = 0;
+            // Pagos de órdenes
+            const tbodyOrdenes = document.getElementById('tbodyCajaPagosOrdenes');
+            tbodyOrdenes.innerHTML = '';
+            let totalOrdenes = 0;
             if (Array.isArray(data) && data.length > 0) {
-                data.forEach((pago, idx) => {
-                    total += Number(pago.abono || pago.monto || 0);
-                    tbody.innerHTML += `
+                data.forEach((pago) => {
+                    totalOrdenes += Number(pago.dinero_recibido || 0);
+                    tbodyOrdenes.innerHTML += `
                         <tr>
-                            <td>${idx+1}</td>
+                            <td>${pago.id}</td>
                             <td>${pago.fecha_pago || ''}</td>
-                            <td>${pago.tipo == 'producto' ? 'Producto' : 'Orden'}</td>
-                            <td>${pago.tipo == 'producto' ? (pago.producto_nombre || '-') : ('Orden #' + pago.orden_id)}</td>
-                            <td>${pago.cliente_nombre || ''}</td>
-                            <td>${pago.metodo_pago ? pago.metodo_pago.charAt(0).toUpperCase() + pago.metodo_pago.slice(1) : ''}</td>
-                            <td>$${Number(pago.monto || pago.abono || 0).toLocaleString('es-CO')}</td>
-                            <td>$${Number(pago.abono || 0).toLocaleString('es-CO')}</td>
-                            <td>$${Number(pago.saldo || 0).toLocaleString('es-CO')}</td>
-                            <td>${pago.descripcion_repuestos || pago.descripcion || ''}</td>
+                            <td>${pago.orden_id || ''}</td>
+                            <td>$${Number(pago.dinero_recibido || 0).toLocaleString('es-CO')}</td>
                         </tr>`;
                 });
             } else {
-                tbody.innerHTML = '<tr><td colspan="10" class="text-center">No hay pagos registrados.</td></tr>';
+                tbodyOrdenes.innerHTML = '<tr><td colspan="4" class="text-center">No hay pagos registrados.</td></tr>';
             }
-            document.getElementById('totalCaja').textContent = 'Total en caja: $' + total.toLocaleString('es-CO');
+            document.getElementById('totalCajaOrdenes').textContent = 'Total en caja (órdenes): $' + totalOrdenes.toLocaleString('es-CO');
+
+            // Pagos de productos (placeholder, puedes conectar a tu backend cuando esté listo)
+            const tbodyProductos = document.getElementById('tbodyCajaPagosProductos');
+            tbodyProductos.innerHTML = '<tr><td colspan="4" class="text-center">No hay pagos de productos registrados.</td></tr>';
+            document.getElementById('totalCajaProductos').textContent = 'Total en caja (productos): $0';
         });
+}
+
+// Función placeholder para el modal de pago de productos
+function abrirModalPagoProducto() {
+    alert('Aquí se abrirá el formulario para registrar un pago de producto. (Próximamente)');
 }
 </script>
 <?php
 require_once 'footer.php';
+?>

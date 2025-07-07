@@ -104,7 +104,7 @@
             <a href="index.php?action=dashboard">Inicio</a>
             <a href="index.php?action=clientes">Clientes</a>
             <a href="index.php?action=ordenes">Órdenes de Trabajo</a>
-            <a href="index.php?action=remisiones">Remisiones</a>
+            <a href="index.php?action=caja">Caja</a>
         </div>
     </nav>
     <script>

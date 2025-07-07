@@ -237,6 +237,37 @@ switch ($action) {
         $dashboardController->obtenerPagosDashboard();
         break;
 
+    case 'caja':
+        // Mostrar la vista de caja con los pagos
+        require_once 'controllers/OrdenPagoController.php';
+        $ordenPagoController = new OrdenPagoController();
+        // La vista espera $pagos, así que lo obtenemos aquí
+        $db = (new Conexion())->getConexion();
+        $pagos = [];
+        $result = $db->query("SELECT id, fecha_pago, orden_id, dinero_recibido FROM orden_pagos ORDER BY fecha_pago DESC");
+        if ($result) {
+            while ($row = $result->fetch_assoc()) {
+                $pagos[] = $row;
+            }
+        }
+        include 'views/caja.php';
+        break;
+
+    case 'obtenerPagosCaja':
+        require_once 'models/Conexion.php';
+        $db = (new Conexion())->getConexion();
+        $pagos = [];
+        $result = $db->query("SELECT id, fecha_pago, orden_id, dinero_recibido FROM orden_pagos ORDER BY fecha_pago DESC");
+        if ($result) {
+            while ($row = $result->fetch_assoc()) {
+                $pagos[] = $row;
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode($pagos);
+        exit();
+        break;
+
     default:
         // Redirigir al login si la acción no es válida
         header('Location: index.php?action=login');
