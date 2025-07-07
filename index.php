@@ -283,6 +283,21 @@ switch ($action) {
         exit();
         break;
 
+    case 'obtenerClientes':
+        require_once 'models/Conexion.php';
+        $db = Conexion::getConexion();
+        $clientes = [];
+        $result = $db->query("SELECT id, nombre, telefono, email FROM clientes ORDER BY nombre ASC");
+        if ($result) {
+            while ($row = $result->fetch_assoc()) {
+                $clientes[] = $row;
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode($clientes);
+        exit();
+        break;
+
     default:
         // Redirigir al login si la acción no es válida
         header('Location: index.php?action=login');

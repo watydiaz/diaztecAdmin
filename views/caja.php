@@ -241,11 +241,83 @@ function cargarPagosCaja() {
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <!-- Aquí irá el nuevo formulario -->
+                <form id="formVentaProducto">
+                    <div class="mb-3">
+                        <label for="clienteBusqueda" class="form-label">Cliente</label>
+                        <input type="text" class="form-control" id="clienteBusqueda" list="clientesList" placeholder="Buscar cliente por nombre o identificación...">
+                        <datalist id="clientesList"><!-- Opciones dinámicas JS --></datalist>
+                        <input type="hidden" id="clienteSeleccionadoId" name="cliente_id">
+                        <button type="button" class="btn btn-link p-0 mt-1" id="btnNuevoCliente">Agregar cliente manualmente</button>
+                    </div>
+                    <div id="nuevoClienteFields" style="display:none;">
+                        <div class="mb-2">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nuevoClienteNombre" name="nuevo_cliente_nombre">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" id="nuevoClienteTelefono" name="nuevo_cliente_telefono">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="nuevoClienteEmail" name="nuevo_cliente_email">
+                        </div>
+                    </div>
+                    <!-- Aquí irán los campos de productos y pago -->
+                </form>
             </div>
         </div>
     </div>
 </div>
+<script>
+document.getElementById('btnNuevoCliente').onclick = function() {
+    const fields = document.getElementById('nuevoClienteFields');
+    fields.style.display = fields.style.display === 'none' ? 'block' : 'none';
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    const modalVenta = document.getElementById('modalPagoProducto');
+    const inputBusqueda = document.getElementById('clienteBusqueda');
+    const datalist = document.getElementById('clientesList');
+    const inputClienteId = document.getElementById('clienteSeleccionadoId');
+    let clientes = [];
+    if (modalVenta) {
+        modalVenta.addEventListener('show.bs.modal', function() {
+            datalist.innerHTML = '';
+            inputBusqueda.value = '';
+            inputClienteId.value = '';
+        });
+    }
+    // Búsqueda dinámica por nombre o identificación
+    inputBusqueda.addEventListener('input', function() {
+        const query = this.value.trim();
+        if (query.length > 1) {
+            fetch(`index.php?action=buscarCliente&query=${encodeURIComponent(query)}`)
+                .then(r => r.json())
+                .then(data => {
+                    clientes = data.clientes || [];
+                    datalist.innerHTML = '';
+                    clientes.forEach(c => {
+                        datalist.innerHTML += `<option value="${c.nombre} (${c.identificacion})" data-id="${c.id}">${c.nombre} (${c.identificacion})</option>`;
+                    });
+                });
+        } else {
+            datalist.innerHTML = '';
+        }
+        inputClienteId.value = '';
+    });
+    // Guardar el ID del cliente seleccionado
+    inputBusqueda.addEventListener('change', function() {
+        const valor = this.value;
+        const cliente = clientes.find(c => `${c.nombre} (${c.identificacion})` === valor);
+        if (cliente) {
+            inputClienteId.value = cliente.id;
+        } else {
+            inputClienteId.value = '';
+        }
+    });
+});
+</script>
 <?php
 require_once 'footer.php';
 ?>

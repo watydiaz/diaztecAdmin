@@ -45,7 +45,7 @@ class ClienteModel {
 
     public function buscarClientesPorNombreOIdentificacion($query) {
         $query = "%" . $this->conexion->real_escape_string($query) . "%";
-        $sql = "SELECT * FROM clientes WHERE nombre LIKE ? OR identificacion LIKE ?";
+        $sql = "SELECT * FROM clientes WHERE UPPER(nombre) LIKE UPPER(?) OR UPPER(identificacion) LIKE UPPER(?)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bind_param('ss', $query, $query);
         $stmt->execute();
