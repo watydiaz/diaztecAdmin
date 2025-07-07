@@ -300,6 +300,8 @@ switch ($action) {
             $result = $stmt->get_result();
             
             while ($row = $result->fetch_assoc()) {
+                // Asegurar que el precio_venta esté disponible
+                $row['precio_venta'] = $row['precio_venta'] ?: 0;
                 $productos[] = $row;
             }
             $stmt->close();
@@ -363,6 +365,84 @@ switch ($action) {
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'message' => 'Error al agregar el producto: ' . $db->error]);
         }
+        exit();
+        break;
+
+    case 'registrarVentaProductos':
+        require_once 'models/Conexion.php';
+        $db = Conexion::getConexion();
+        
+        // Obtener datos JSON del request
+        $input = file_get_contents('php://input');
+        $data = json_decode($input, true);
+        
+        if (!$data || !isset($data['productos']) || !isset($data['total'])) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Datos de venta inválidos']);
+            exit();
+        }
+        
+        $productos = $data['productos'];
+        $total = floatval($data['total']);
+        
+        if (empty($productos)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'No se proporcionaron productos']);
+            exit();
+        }
+        
+        // Iniciar transacción
+        $db->begin_transaction();
+        
+        try {
+            $ventasRegistradas = [];
+            
+            // Insertar cada producto como una venta individual según la estructura existente
+            $stmt = $db->prepare("INSERT INTO ventas_productos (producto_id, cantidad, precio_unitario, total) VALUES (?, ?, ?, ?)");
+            
+            foreach ($productos as $producto) {
+                $producto_id = intval($producto['id']);
+                $cantidad = intval($producto['cantidad']);
+                $precio = floatval($producto['precio']);
+                $subtotal = floatval($producto['subtotal']);
+                
+                $stmt->bind_param('iidd', $producto_id, $cantidad, $precio, $subtotal);
+                
+                if (!$stmt->execute()) {
+                    throw new Exception('Error al registrar la venta del producto: ' . $stmt->error);
+                }
+                
+                $ventasRegistradas[] = $db->insert_id;
+                
+                // Actualizar stock del producto
+                $stmtStock = $db->prepare("UPDATE productos SET stock = stock - ? WHERE id = ?");
+                $stmtStock->bind_param('ii', $cantidad, $producto_id);
+                
+                if (!$stmtStock->execute()) {
+                    throw new Exception('Error al actualizar stock del producto: ' . $stmtStock->error);
+                }
+                $stmtStock->close();
+            }
+            
+            $stmt->close();
+            
+            // Commit de la transacción
+            $db->commit();
+            
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Venta registrada exitosamente',
+                'ventas_ids' => $ventasRegistradas
+            ]);
+            
+        } catch (Exception $e) {
+            // Rollback en caso de error
+            $db->rollback();
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+        
         exit();
         break;
 

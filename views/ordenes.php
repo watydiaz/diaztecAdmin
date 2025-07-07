@@ -429,45 +429,71 @@ require_once 'header.php';
 
     <!-- Modal para registrar venta de productos -->
     <div class="modal fade" id="modalVentaProducto" tabindex="-1" aria-labelledby="modalVentaProductoLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalVentaProductoLabel">Registrar Venta de Producto</h5>
+                    <h5 class="modal-title" id="modalVentaProductoLabel">Registrar Venta de Productos</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="formVentaProducto" enctype="multipart/form-data">
-                        <div class="mb-3">
-                            <label for="buscadorProducto" class="form-label">Producto</label>
-                            <input type="text" class="form-control" id="buscadorProducto" name="producto_nombre" placeholder="Buscar o crear producto..." autocomplete="off" required>
+                    <!-- Formulario para buscar y agregar productos -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="buscadorProducto" class="form-label">Buscar Producto</label>
+                            <input type="text" class="form-control" id="buscadorProducto" placeholder="Buscar o crear producto..." autocomplete="off">
                             <ul class="list-group mt-2" id="listaProductos" style="display: none;"></ul>
-                            <input type="hidden" id="producto_id" name="producto_id">
+                            <input type="hidden" id="producto_id">
                         </div>
-                        <div class="mb-3">
+                        <div class="col-md-3">
                             <label for="cantidad" class="form-label">Cantidad</label>
-                            <input type="number" class="form-control" id="cantidad" name="cantidad" min="1" value="1" required>
+                            <input type="number" class="form-control" id="cantidad" min="1" value="1">
                         </div>
-                        <div class="mb-3">
-                            <label for="precio_venta" class="form-label">Precio de venta</label>
-                            <input type="number" class="form-control" id="precio_venta" name="precio_venta" min="0" step="0.01" required>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="button" class="btn btn-primary" id="btnAgregarProducto">Agregar</button>
                         </div>
-                        <div class="mb-3">
-                            <label for="imagen_producto" class="form-label">Imagen del producto</label>
-                            <input type="file" class="form-control" id="imagen_producto" name="imagen_producto" accept="image/*">
+                    </div>
+
+                    <!-- Tabla de productos seleccionados -->
+                    <div class="mb-3">
+                        <h6>Productos Seleccionados:</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm" id="tablaProductosVenta">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                        <th>Precio Unit.</th>
+                                        <th>Subtotal</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyProductosVenta">
+                                    <!-- Los productos se agregan dinámicamente aquí -->
+                                </tbody>
+                            </table>
                         </div>
-                        <div id="camposNuevoProducto" style="display:none;">
-                            <div class="mb-3">
-                                <label for="precio_compra" class="form-label">Precio de compra</label>
-                                <input type="number" class="form-control" id="precio_compra" name="precio_compra" min="0" step="0.01">
+                    </div>
+
+                    <!-- Total de la venta -->
+                    <div class="row">
+                        <div class="col-md-6 offset-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Total de la Venta: $<span id="totalVenta">0</span></h5>
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label for="stock" class="form-label">Stock inicial</label>
-                                <input type="number" class="form-control" id="stock" name="stock" min="0">
-                            </div>
                         </div>
-                        <button type="submit" class="btn btn-success">Registrar Venta</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+
+                    <!-- Formulario final para enviar la venta -->
+                    <form id="formVentaProducto" style="display:none;">
+                        <input type="hidden" id="productosVentaData" name="productos_venta">
+                        <input type="hidden" id="totalVentaData" name="total_venta">
                     </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" id="btnFinalizarVenta">Finalizar Venta</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
@@ -1424,12 +1450,13 @@ require_once 'header.php';
                             .then(r => r.json())
                             .then(data => {
                                 productos = data.productos || [];
-                                listaProductos.innerHTML = '';
-                                listaProductos.style.display = 'none';
+                                const listaActiva = window.listaProductosActiva || listaProductos;
+                                listaActiva.innerHTML = '';
+                                listaActiva.style.display = 'none';
                                 
                                 if (productos.length > 0) {
                                     // Si hay resultados, mostrarlos
-                                    listaProductos.style.display = 'block';
+                                    listaActiva.style.display = 'block';
                                     productos.forEach(p => {
                                         const li = document.createElement('li');
                                         li.className = 'list-group-item list-group-item-action';
@@ -1437,36 +1464,38 @@ require_once 'header.php';
                                         li.dataset.id = p.id;
                                         li.dataset.nombre = p.nombre;
                                         li.dataset.precio = p.precio_venta || 0;
-                                        listaProductos.appendChild(li);
+                                        listaActiva.appendChild(li);
                                     });
                                     console.log(`Encontrados ${productos.length} productos para: "${query}"`);
                                 } else {
                                     // Si no hay resultados, sugerir crear producto
                                     console.log(`No se encontraron productos para: "${query}". Mostrando opción de crear producto.`);
-                                    listaProductos.style.display = 'block';
+                                    listaActiva.style.display = 'block';
                                     const li = document.createElement('li');
                                     li.className = 'list-group-item list-group-item-action text-primary';
                                     li.innerHTML = `<i class="bi bi-plus-circle me-2"></i>Crear nuevo producto: "${query}"`;
                                     li.dataset.action = 'create';
                                     li.dataset.nombre = query;
-                                    listaProductos.appendChild(li);
+                                    listaActiva.appendChild(li);
                                 }
                             })
                             .catch(error => {
                                 console.error('Error buscando productos:', error);
-                                listaProductos.innerHTML = '';
-                                listaProductos.style.display = 'block';
+                                const listaActiva = window.listaProductosActiva || listaProductos;
+                                listaActiva.innerHTML = '';
+                                listaActiva.style.display = 'block';
                                 const li = document.createElement('li');
                                 li.className = 'list-group-item list-group-item-action text-primary';
                                 li.innerHTML = `<i class="bi bi-plus-circle me-2"></i>Crear nuevo producto: "${query}"`;
                                 li.dataset.action = 'create';
                                 li.dataset.nombre = query;
-                                listaProductos.appendChild(li);
+                                listaActiva.appendChild(li);
                             });
                     }, 300); // Delay de 300ms
                 } else {
-                    listaProductos.innerHTML = '';
-                    listaProductos.style.display = 'none';
+                    const listaActiva = window.listaProductosActiva || listaProductos;
+                    listaActiva.innerHTML = '';
+                    listaActiva.style.display = 'none';
                 }
                 inputProductoId.value = '';
             });
@@ -1495,12 +1524,6 @@ require_once 'header.php';
                     inputBuscadorProducto.value = selectedItem.dataset.nombre;
                     inputProductoId.value = selectedItem.dataset.id;
                     
-                    // Prellenar el precio de venta
-                    const precioVentaInput = document.getElementById('precio_venta');
-                    if (precioVentaInput && selectedItem.dataset.precio) {
-                        precioVentaInput.value = selectedItem.dataset.precio;
-                    }
-                    
                     listaProductos.style.display = 'none';
                     
                     console.log('Producto seleccionado:', {
@@ -1513,8 +1536,9 @@ require_once 'header.php';
 
             // Ocultar lista al hacer clic fuera
             document.addEventListener('click', function(event) {
-                if (!inputBuscadorProducto.contains(event.target) && !listaProductos.contains(event.target)) {
-                    listaProductos.style.display = 'none';
+                const listaActiva = window.listaProductosActiva || listaProductos;
+                if (!inputBuscadorProducto.contains(event.target) && !listaActiva.contains(event.target)) {
+                    listaActiva.style.display = 'none';
                 }
             });
         }
@@ -1610,6 +1634,271 @@ require_once 'header.php';
                 }
             });
         }
+    });
+
+    // --- FUNCIONALIDAD DE VENTA DE PRODUCTOS CON DETALLE ---
+    let productosSeleccionados = [];
+    let totalVenta = 0;
+
+    // Función para agregar un producto al detalle de la venta
+    function agregarProductoSeleccionado(producto) {
+        console.log('Agregando producto al detalle:', producto);
+        
+        // Validar que el producto tenga los datos necesarios
+        if (!producto.id || !producto.nombre) {
+            console.error('Producto inválido:', producto);
+            alert('Error: datos del producto incompletos');
+            return;
+        }
+
+        // Obtener precio y cantidad
+        const precio = parseFloat(producto.precio_venta || producto.precio || 0);
+        const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
+        
+        console.log('Precio del producto:', precio, 'Cantidad:', cantidad);
+        
+        if (precio <= 0) {
+            alert('El precio del producto debe ser mayor a 0');
+            return;
+        }
+
+        // Verificar si el producto ya está en la lista
+        const productoExistente = productosSeleccionados.find(p => p.id === producto.id);
+        if (productoExistente) {
+            // Actualizar cantidad
+            productoExistente.cantidad += cantidad;
+            productoExistente.subtotal = productoExistente.cantidad * productoExistente.precio;
+        } else {
+            // Agregar nuevo producto
+            productosSeleccionados.push({
+                id: producto.id,
+                nombre: producto.nombre,
+                precio: precio,
+                cantidad: cantidad,
+                subtotal: precio * cantidad
+            });
+        }
+
+        // Actualizar la tabla y el total
+        renderTablaProductos();
+        calcularTotal();
+        
+        // Limpiar campos
+        document.getElementById('buscadorProducto').value = '';
+        document.getElementById('producto_id').value = '';
+        document.getElementById('cantidad').value = '1';
+        
+        console.log('Productos seleccionados actualizados:', productosSeleccionados);
+    }
+
+    // Función para renderizar la tabla de productos
+    function renderTablaProductos() {
+        const tbody = document.getElementById('tbodyProductosVenta');
+        tbody.innerHTML = '';
+
+        productosSeleccionados.forEach((producto, index) => {
+            // Validar datos del producto antes de renderizar
+            const precio = parseFloat(producto.precio) || 0;
+            const cantidad = parseInt(producto.cantidad) || 0;
+            const subtotal = parseFloat(producto.subtotal) || (precio * cantidad);
+            
+            console.log(`Renderizando producto ${index}:`, {
+                nombre: producto.nombre,
+                precio: precio,
+                cantidad: cantidad,
+                subtotal: subtotal
+            });
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${producto.nombre}</td>
+                <td>${cantidad}</td>
+                <td>$${precio.toLocaleString('es-CO')}</td>
+                <td>$${subtotal.toLocaleString('es-CO')}</td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="eliminarProducto(${index})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Función para calcular el total
+    function calcularTotal() {
+        totalVenta = productosSeleccionados.reduce((total, producto) => {
+            const subtotal = parseFloat(producto.subtotal) || 0;
+            return total + subtotal;
+        }, 0);
+        
+        console.log('Total calculado:', totalVenta);
+        document.getElementById('totalVenta').textContent = totalVenta.toLocaleString('es-CO');
+    }
+
+    // Función para eliminar un producto
+    window.eliminarProducto = function(index) {
+        productosSeleccionados.splice(index, 1);
+        renderTablaProductos();
+        calcularTotal();
+    }
+
+    // Event listener para el botón "Agregar" producto
+    document.getElementById('btnAgregarProducto')?.addEventListener('click', function() {
+        const productoId = document.getElementById('producto_id').value;
+        const productoNombre = document.getElementById('buscadorProducto').value.trim();
+        
+        if (!productoId && !productoNombre) {
+            alert('Por favor selecciona un producto');
+            return;
+        }
+
+        if (productoId) {
+            // Producto existente seleccionado
+            const producto = productos.find(p => p.id == productoId);
+            if (producto) {
+                agregarProductoSeleccionado(producto);
+            } else {
+                alert('Producto no encontrado');
+            }
+        } else {
+            // Crear nuevo producto
+            alert('Para crear un producto nuevo, selecciona la opción "Crear nuevo producto" de la lista de búsqueda');
+        }
+    });
+
+        // Event listener para finalizar venta
+    document.getElementById('btnFinalizarVenta')?.addEventListener('click', function() {
+        if (productosSeleccionados.length === 0) {
+            alert('Agrega al menos un producto a la venta');
+            return;
+        }
+
+        // Preparar datos para enviar
+        const datosVenta = {
+            productos: productosSeleccionados,
+            total: totalVenta
+        };
+
+        // Enviar la venta
+        fetch('index.php?action=registrarVentaProductos', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(datosVenta)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Venta registrada exitosamente');
+                
+                // Limpiar y cerrar modal
+                productosSeleccionados = [];
+                totalVenta = 0;
+                renderTablaProductos();
+                calcularTotal();
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('modalVentaProducto'));
+                modal.hide();
+            } else {
+                alert('Error al registrar la venta: ' + (data.message || 'Error desconocido'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al conectar con el servidor');
+        });
+    });
+
+    // Función modificada para manejar nuevo producto creado
+    const btnGuardarOriginal = document.getElementById('btnGuardarNuevoProducto');
+    if (btnGuardarOriginal) {
+        // Clonar el botón para remover event listeners existentes
+        const btnGuardarNuevo = btnGuardarOriginal.cloneNode(true);
+        btnGuardarOriginal.parentNode.replaceChild(btnGuardarNuevo, btnGuardarOriginal);
+        
+        btnGuardarNuevo.addEventListener('click', function() {
+            const form = document.getElementById('formNuevoProducto');
+            const formData = new FormData(form);
+            const btn = this;
+            
+            // Validaciones básicas
+            const nombre = formData.get('nombre').trim();
+            const precio_venta = parseFloat(formData.get('precio_venta')) || 0;
+            
+            if (!nombre) {
+                alert('Por favor completa el nombre del producto');
+                return;
+            }
+            
+            if (precio_venta <= 0) {
+                alert('Por favor ingresa un precio de venta válido');
+                return;
+            }
+            
+            // Deshabilitar botón mientras se procesa
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Guardando...';
+            
+            // Enviar datos al servidor
+            fetch('index.php?action=agregarProducto', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Respuesta completa del servidor:', data);
+                
+                if (data.success) {
+                    // Producto creado exitosamente
+                    const nuevoProducto = data.producto;
+                    
+                    console.log('Objeto nuevoProducto creado:', nuevoProducto);
+                    
+                    // Agregar automáticamente el nuevo producto al detalle
+                    if (document.getElementById('modalVentaProducto').classList.contains('show')) {
+                        // Si estamos en el modal de venta, agregar al detalle
+                        agregarProductoSeleccionado(nuevoProducto);
+                    } else {
+                        // Si no, solo seleccionar el producto para otros usos
+                        inputBuscadorProducto.value = nuevoProducto.nombre;
+                        inputProductoId.value = nuevoProducto.id;
+                    }
+                    
+                    // Cerrar modal
+                    const modalNuevoProducto = bootstrap.Modal.getInstance(document.getElementById('modalNuevoProducto'));
+                    modalNuevoProducto.hide();
+                    
+                    // Limpiar formulario
+                    form.reset();
+                    
+                    alert('Producto creado y agregado exitosamente');
+                } else {
+                    alert('Error al crear producto: ' + (data.message || 'Error desconocido'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al conectar con el servidor');
+            })
+            .finally(() => {
+                // Restaurar botón
+                btn.disabled = false;
+                btn.innerHTML = 'Crear Producto';
+            });
+        });
+    }
+
+    // Limpiar modal al abrirlo
+    document.getElementById('modalVentaProducto')?.addEventListener('show.bs.modal', function() {
+        productosSeleccionados = [];
+        totalVenta = 0;
+        renderTablaProductos();
+        calcularTotal();
+        document.getElementById('buscadorProducto').value = '';
+        document.getElementById('producto_id').value = '';
+        document.getElementById('cantidad').value = '1';
     });
 
     </script>

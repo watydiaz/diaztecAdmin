@@ -828,6 +828,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const valor = this.value.trim();
         console.log('Producto input changed:', valor);
         
+        // Si el input está vacío, no hacer nada
+        if (!valor) {
+            return;
+        }
+        
         // Verificar si es la opción de crear nuevo producto
         if (valor.startsWith('➕ Crear nuevo producto:')) {
             const nombreSugerido = valor.replace('➕ Crear nuevo producto: ', '');
@@ -841,25 +846,41 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Buscar en la lista de productos cargados o en el datalist
+        // Buscar en la lista de productos cargados
         const prod = productos.find(p => p.nombre === valor);
         if (prod) {
-            agregarProductoSeleccionado(prod);
-        } else {
-            // Buscar por ID en el datalist
-            const option = datalistProductos.querySelector(`option[value="${valor}"]`);
-            if (option) {
-                const productoId = option.getAttribute('data-id');
-                const precio = option.getAttribute('data-precio');
-                if (productoId && precio) {
-                    agregarProductoSeleccionado({
-                        id: productoId,
-                        nombre: valor,
-                        precio: parseFloat(precio)
-                    });
-                }
+            console.log('Producto encontrado en lista local:', prod);
+            agregarProductoSeleccionado({
+                id: prod.id,
+                nombre: prod.nombre,
+                precio_venta: prod.precio_venta || prod.precio,
+                precio: prod.precio_venta || prod.precio
+            });
+            return;
+        }
+        
+        // Buscar por ID en el datalist
+        const option = datalistProductos.querySelector(`option[value="${valor}"]`);
+        if (option) {
+            const productoId = option.getAttribute('data-id');
+            const precio = option.getAttribute('data-precio');
+            console.log('Producto encontrado en datalist:', { id: productoId, nombre: valor, precio: precio });
+            if (productoId && precio) {
+                agregarProductoSeleccionado({
+                    id: productoId,
+                    nombre: valor,
+                    precio_venta: precio,
+                    precio: precio
+                });
+                return;
             }
         }
+        
+        console.log('Producto no encontrado:', valor);
+        
+        // Si no se encuentra el producto y no es una opción de crear, limpiar el input
+        console.log('Producto no encontrado:', valor);
+        this.value = '';
     });
 
     // Manejar guardado de nuevo producto
@@ -904,35 +925,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Agregar a la lista de productos
                 productos.push(nuevoProducto);
                 
-                // Actualizar el datalist inmediatamente con el nuevo producto
-                datalistProductos.innerHTML = `<option value="${nuevoProducto.nombre}" data-id="${nuevoProducto.id}" data-precio="${nuevoProducto.precio_venta}">${nuevoProducto.nombre} ($${parseFloat(nuevoProducto.precio_venta).toLocaleString('es-CO')} - Stock: ${nuevoProducto.stock})</option>`;
-                
-                // Agregar automáticamente el producto a la venta
-                agregarProductoSeleccionado({
-                    id: nuevoProducto.id,
-                    nombre: nuevoProducto.nombre,
-                    precio: parseFloat(nuevoProducto.precio_venta)
-                });
-                
-                console.log('Producto creado y agregado a la venta:', {
-                    nombre: nuevoProducto.nombre,
-                    id: nuevoProducto.id,
-                    precio_venta: nuevoProducto.precio_venta
-                });
-                
-                // Cerrar modal
+                // Cerrar modal primero
                 const modalNuevoProducto = bootstrap.Modal.getInstance(document.getElementById('modalNuevoProducto'));
                 modalNuevoProducto.hide();
                 
                 // Limpiar formulario
                 form.reset();
                 
-                // Reabrir el modal de venta después de crear el producto
+                // Agregar automáticamente el producto a la venta después de cerrar el modal
                 setTimeout(() => {
+                    agregarProductoSeleccionado({
+                        id: nuevoProducto.id,
+                        nombre: nuevoProducto.nombre,
+                        precio_venta: parseFloat(nuevoProducto.precio_venta),
+                        precio: parseFloat(nuevoProducto.precio_venta)
+                    });
+                    
+                    console.log('Producto creado y agregado a la venta:', {
+                        nombre: nuevoProducto.nombre,
+                        id: nuevoProducto.id,
+                        precio_venta: nuevoProducto.precio_venta
+                    });
+                    
+                    // Reabrir el modal de venta después de agregar el producto
                     abrirModalVenta();
-                }, 300);
+                    
+                    alert('Producto creado y agregado a la venta exitosamente');
+                }, 200);
                 
-                alert('Producto creado y agregado a la venta exitosamente');
             } else {
                 alert('Error al crear producto: ' + (data.message || 'Error desconocido'));
             }
@@ -953,23 +973,50 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Modal de nuevo producto cerrado');
         document.getElementById('formNuevoProducto').reset();
         
-        // Reabrir el modal de venta
-        setTimeout(() => {
-            abrirModalVenta();
-        }, 100);
+        // Solo reabrir el modal de venta si no se guardó un producto
+        // Si se guardó un producto, ya se manejó en el success del guardado
+        const modalVentaAbierto = document.getElementById('modalPagoProducto').classList.contains('show');
+        if (!modalVentaAbierto) {
+            setTimeout(() => {
+                abrirModalVenta();
+            }, 100);
+        }
     });
 
     function agregarProductoSeleccionado(prod) {
-        const existente = productosSeleccionados.find(p => p.id === prod.id);
+        console.log('Agregando producto:', prod);
+        
+        // Obtener el precio correcto, manejando diferentes propiedades posibles
+        let precio = 0;
+        if (prod.precio_venta) {
+            precio = parseFloat(prod.precio_venta);
+        } else if (prod.precio) {
+            precio = parseFloat(prod.precio);
+        } else {
+            console.warn('Producto sin precio válido:', prod);
+            alert('Error: El producto no tiene un precio válido');
+            return;
+        }
+        
+        if (isNaN(precio) || precio <= 0) {
+            console.warn('Precio inválido:', precio, 'para producto:', prod);
+            alert('Error: El precio del producto no es válido');
+            return;
+        }
+        
+        const existente = productosSeleccionados.find(p => p.id == prod.id);
         if (existente) {
             existente.cantidad++;
+            console.log('Cantidad incrementada para:', existente.nombre, 'Nueva cantidad:', existente.cantidad);
         } else {
-            productosSeleccionados.push({
+            const nuevoProducto = {
                 id: prod.id,
                 nombre: prod.nombre,
-                precio: parseFloat(prod.precio),
+                precio: precio,
                 cantidad: 1
-            });
+            };
+            productosSeleccionados.push(nuevoProducto);
+            console.log('Producto agregado a la lista:', nuevoProducto);
         }
         renderTablaProductos();
         // Evita que el input vuelva a disparar el evento input al limpiar
@@ -981,18 +1028,32 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderTablaProductos() {
         const fragment = document.createDocumentFragment();
         let total = 0;
+        
+        console.log('Renderizando tabla de productos:', productosSeleccionados);
+        
         productosSeleccionados.forEach((p, idx) => {
-            total += p.precio * p.cantidad;
+            // Validar que el precio sea un número válido
+            const precio = parseFloat(p.precio);
+            const cantidad = parseInt(p.cantidad);
+            
+            if (isNaN(precio) || isNaN(cantidad)) {
+                console.error('Producto con datos inválidos:', p);
+                return;
+            }
+            
+            const subtotal = precio * cantidad;
+            total += subtotal;
+            
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${p.nombre}</td>
-                <td>$${p.precio.toLocaleString('es-CO')}</td>
+                <td>$${precio.toLocaleString('es-CO')}</td>
                 <td class="text-center">
                     <button type="button" class="btn btn-sm btn-danger rounded-circle btn-restar d-inline-flex align-items-center justify-content-center" style="width:22px;height:22px;padding:0;font-size:0.88rem;" data-idx="${idx}" title="Restar">-</button>
-                    <span class="mx-1" style="min-width:20px;display:inline-block;font-size:0.95rem;">${p.cantidad}</span>
+                    <span class="mx-1" style="min-width:20px;display:inline-block;font-size:0.95rem;">${cantidad}</span>
                     <button type="button" class="btn btn-sm btn-success rounded-circle btn-sumar d-inline-flex align-items-center justify-content-center" style="width:22px;height:22px;padding:0;font-size:0.88rem;" data-idx="${idx}" title="Sumar">+</button>
                 </td>
-                <td>$${(p.precio * p.cantidad).toLocaleString('es-CO')}</td>
+                <td>$${subtotal.toLocaleString('es-CO')}</td>
                 <td class="text-center">
                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle btn-eliminar d-inline-flex align-items-center justify-content-center" style="width:28px;height:28px;padding:0;" data-idx="${idx}" title="Eliminar">
                         <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-trash' viewBox='0 0 16 16'>
@@ -1003,8 +1064,11 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             fragment.appendChild(tr);
         });
+        
         tablaProductos.innerHTML = '';
         tablaProductos.appendChild(fragment);
+        
+        console.log('Total calculado:', total);
         document.getElementById('totalVentaProductos').textContent = '$' + total.toLocaleString('es-CO');
         calcularCambio();
         tablaProductos.querySelectorAll('.btn-restar').forEach(btn => {
