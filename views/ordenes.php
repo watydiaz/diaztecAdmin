@@ -374,56 +374,50 @@ require_once 'header.php';
                 </div>
                 <div class="modal-body">
                     <form id="formPagosOrden">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="pagoOrdenId" class="form-label">ID Orden</label>
-                                    <input type="text" class="form-control" id="pagoOrdenId" name="pagoOrdenId" readonly>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="costoTotal" class="form-label">Costo total</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <input type="text" class="form-control" id="costoTotal" name="costoTotal" inputmode="numeric" pattern="[0-9.]*" autocomplete="off">
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="abono" class="form-label">Dinero recibido</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <input type="text" class="form-control" id="abono" name="abono" inputmode="numeric" pattern="[0-9.]*" autocomplete="off">
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="saldo" class="form-label">Saldo</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <input type="text" class="form-control" id="saldo" name="saldo" readonly>
-                                    </div>
-                                </div>
+                        <div class="mb-3">
+                            <label for="pagoOrdenId" class="form-label">ID Orden</label>
+                            <input type="text" class="form-control" id="pagoOrdenId" name="pagoOrdenId" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="costoTotal" class="form-label">Costo total</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="text" class="form-control" id="costoTotal" name="costoTotal" inputmode="numeric" pattern="[0-9.]*" autocomplete="off">
                             </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="valorRepuestos" class="form-label">Valor repuestos</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <input type="text" class="form-control" id="valorRepuestos" name="valorRepuestos" inputmode="numeric" pattern="[0-9.]*" autocomplete="off" value="0">
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="descripcionRepuestos" class="form-label">Descripción repuestos</label>
-                                    <textarea class="form-control" id="descripcionRepuestos" name="descripcionRepuestos"></textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="metodo_pago" class="form-label">Método de pago</label>
-                                    <select class="form-select" id="metodo_pago" name="metodo_pago" required>
-                                        <option value="">Seleccione...</option>
-                                        <option value="efectivo">Efectivo</option>
-                                        <option value="nequi">Nequi</option>
-                                        <option value="daviplata">Daviplata</option>
-                                    </select>
-                                </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="abono" class="form-label">Dinero recibido</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="text" class="form-control" id="abono" name="abono" inputmode="numeric" pattern="[0-9.]*" autocomplete="off">
                             </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="saldo" class="form-label">Saldo</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="text" class="form-control" id="saldo" name="saldo" readonly value="0">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="valorRepuestos" class="form-label">Valor repuestos</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="text" class="form-control" id="valorRepuestos" name="valorRepuestos" inputmode="numeric" pattern="[0-9.]*" autocomplete="off" value="0">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="descripcionRepuestos" class="form-label">Descripción repuestos</label>
+                            <textarea class="form-control" id="descripcionRepuestos" name="descripcionRepuestos"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="metodo_pago" class="form-label">Método de pago</label>
+                            <select class="form-select" id="metodo_pago" name="metodo_pago" required>
+                                <option value="">Seleccione...</option>
+                                <option value="efectivo">Efectivo</option>
+                                <option value="nequi">Nequi</option>
+                                <option value="daviplata">Daviplata</option>
+                            </select>
                         </div>
                         <button type="submit" class="btn btn-success">Registrar Pago</button>
                         <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
