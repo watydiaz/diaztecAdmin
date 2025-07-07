@@ -251,8 +251,9 @@ function cargarPagosCaja() {
                     <!-- Buscador de productos -->
                     <div class="mb-3">
                         <label for="productoBusqueda" class="form-label">Producto</label>
-                        <input type="text" class="form-control" id="productoBusqueda" list="productosList" placeholder="Buscar producto por nombre...">
+                        <input type="text" class="form-control" id="productoBusqueda" list="productosList" placeholder="Buscar producto por nombre... (si no existe, se creará automáticamente)">
                         <datalist id="productosList"><!-- Opciones dinámicas JS --></datalist>
+                        <small class="form-text text-muted">Escribe el nombre del producto. Si no existe, aparecerá la opción de crearlo automáticamente.</small>
                     </div>
                     <!-- Tabla de productos seleccionados -->
                     <div class="table-responsive mb-3">
@@ -344,6 +345,46 @@ function cargarPagosCaja() {
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" id="btnGuardarNuevoCliente">Guardar Cliente</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para crear nuevo producto -->
+<div class="modal fade" id="modalNuevoProducto" tabindex="-1" aria-labelledby="modalNuevoProductoLabel" aria-hidden="true" data-bs-focus="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalNuevoProductoLabel">Crear Nuevo Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info alert-sm mb-3">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <small>Después de crear el producto, regresarás automáticamente al registro de venta con el producto listo para agregar.</small>
+                </div>
+                <form id="formNuevoProducto">
+                    <div class="mb-3">
+                        <label for="nuevoProductoNombre" class="form-label">Nombre del producto *</label>
+                        <input type="text" class="form-control" id="nuevoProductoNombre" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nuevoProductoPrecioCompra" class="form-label">Precio de compra</label>
+                        <input type="number" class="form-control" id="nuevoProductoPrecioCompra" name="precio_compra" min="0" step="0.01" value="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="nuevoProductoPrecioVenta" class="form-label">Precio de venta *</label>
+                        <input type="number" class="form-control" id="nuevoProductoPrecioVenta" name="precio_venta" min="0" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nuevoProductoStock" class="form-label">Stock inicial</label>
+                        <input type="number" class="form-control" id="nuevoProductoStock" name="stock" min="0" value="1">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnGuardarNuevoProducto">Guardar Producto</button>
             </div>
         </div>
     </div>
@@ -553,29 +594,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // --- PRODUCTOS ---
-            fetch('index.php?action=obtenerProductos')
-                .then(r => r.json())
-                .then(data => {
-                    productos = data;
-                    datalistProductos.innerHTML = '';
-                    productos.forEach(p => {
-                        datalistProductos.innerHTML += `<option value="${p.nombre}" data-id="${p.id}" data-precio="${p.precio}">${p.nombre} ($${parseFloat(p.precio).toLocaleString('es-CO')})</option>`;
-                    });
-                    productosSeleccionados = [];
-                    renderTablaProductos();
-                    inputProducto.value = '';
-                    
-                    // Verificar nuevamente el cliente después de cargar productos
-                    if (inputClienteId.value) {
-                        console.log('Cliente mantenido después de cargar productos:', {
-                            inputValue: inputBusqueda.value,
-                            hiddenValue: inputClienteId.value
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error cargando productos:', error);
+            // Limpiar productos y tabla al abrir el modal
+            productos = [];
+            productosSeleccionados = [];
+            datalistProductos.innerHTML = '';
+            renderTablaProductos();
+            inputProducto.value = '';
+            
+            // Verificar nuevamente el cliente después de limpiar productos
+            if (inputClienteId.value) {
+                console.log('Cliente mantenido después de limpiar productos:', {
+                    inputValue: inputBusqueda.value,
+                    hiddenValue: inputClienteId.value
                 });
+            }
         }, { once: false });
         
         modalVenta.addEventListener('shown.bs.modal', function(e) {
@@ -721,30 +753,212 @@ document.addEventListener('DOMContentLoaded', function() {
     const inputProducto = document.getElementById('productoBusqueda');
     const datalistProductos = document.getElementById('productosList');
     const tablaProductos = document.getElementById('tablaProductosSeleccionados').querySelector('tbody');
-    // Búsqueda dinámica de productos
+    let timeoutBusquedaProducto;
     let ignoreInputEvent = false;
+
+    // Función para abrir el modal de nuevo producto con nombre prellenado
+    function abrirModalNuevoProductoConNombre(nombreSugerido = '') {
+        console.log('Abriendo modal de nuevo producto con nombre sugerido:', nombreSugerido);
+        
+        // Cerrar el modal de venta temporalmente
+        const modalVentaInstance = bootstrap.Modal.getInstance(document.getElementById('modalPagoProducto'));
+        if (modalVentaInstance) {
+            modalVentaInstance.hide();
+        }
+        
+        // Esperar a que se cierre completamente antes de abrir el nuevo
+        setTimeout(() => {
+            const modalNuevoProducto = new bootstrap.Modal(document.getElementById('modalNuevoProducto'), {
+                focus: false,
+                backdrop: 'static'
+            });
+            modalNuevoProducto.show();
+            
+            // Prellenar el campo nombre si se proporciona
+            if (nombreSugerido) {
+                setTimeout(() => {
+                    document.getElementById('nuevoProductoNombre').value = nombreSugerido;
+                    // Poner el foco en el campo de precio de venta para continuar el flujo
+                    document.getElementById('nuevoProductoPrecioVenta').focus();
+                }, 100);
+            }
+        }, 300);
+    }
+
+    // Búsqueda dinámica de productos con debounce
     inputProducto.addEventListener('input', function(e) {
         if (ignoreInputEvent) return; // Evita doble ejecución
-        const query = this.value.trim().toLowerCase();
-        datalistProductos.innerHTML = '';
+        const query = this.value.trim();
+        
+        // Limpiar timeout anterior
+        clearTimeout(timeoutBusquedaProducto);
+        
         if (query.length > 1) {
-            productos.filter(p => p.nombre.toLowerCase().includes(query)).forEach(p => {
-                datalistProductos.innerHTML += `<option value="${p.nombre}" data-id="${p.id}" data-precio="${p.precio}">${p.nombre} ($${parseFloat(p.precio).toLocaleString('es-CO')})</option>`;
-            });
-        }
-        // Si el valor coincide exactamente con un producto, lo agrega de inmediato
-        const prod = productos.find(p => p.nombre.toLowerCase() === query);
-        if (prod) {
-            agregarProductoSeleccionado(prod);
+            // Agregar un pequeño delay para evitar muchas peticiones
+            timeoutBusquedaProducto = setTimeout(() => {
+                fetch(`index.php?action=buscarProducto&query=${encodeURIComponent(query)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        productos = data.productos || [];
+                        datalistProductos.innerHTML = '';
+                        
+                        if (productos.length > 0) {
+                            // Si hay resultados, mostrarlos
+                            productos.forEach(p => {
+                                datalistProductos.innerHTML += `<option value="${p.nombre}" data-id="${p.id}" data-precio="${p.precio_venta || p.precio}">${p.nombre} ($${parseFloat(p.precio_venta || p.precio).toLocaleString('es-CO')} - Stock: ${p.stock || 0})</option>`;
+                            });
+                            console.log(`Encontrados ${productos.length} productos para: "${query}"`);
+                        } else {
+                            // Si no hay resultados, sugerir crear producto
+                            console.log(`No se encontraron productos para: "${query}". Mostrando opción de crear producto.`);
+                            datalistProductos.innerHTML = `<option value="➕ Crear nuevo producto: ${query}" data-action="create">➕ Crear nuevo producto: "${query}"</option>`;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error buscando productos:', error);
+                        datalistProductos.innerHTML = `<option value="➕ Crear nuevo producto: ${query}" data-action="create">➕ Crear nuevo producto: "${query}"</option>`;
+                    });
+            }, 300); // Delay de 300ms
+        } else {
+            datalistProductos.innerHTML = '';
         }
     });
+
     inputProducto.addEventListener('change', function() {
-        const nombre = inputProducto.value.trim();
-        const prod = productos.find(p => p.nombre === nombre);
+        const valor = this.value.trim();
+        console.log('Producto input changed:', valor);
+        
+        // Verificar si es la opción de crear nuevo producto
+        if (valor.startsWith('➕ Crear nuevo producto:')) {
+            const nombreSugerido = valor.replace('➕ Crear nuevo producto: ', '');
+            console.log('Detectada opción de crear producto para:', nombreSugerido);
+            
+            // Limpiar el input
+            this.value = '';
+            
+            // Abrir modal de nuevo producto y prellenar el nombre
+            abrirModalNuevoProductoConNombre(nombreSugerido);
+            return;
+        }
+        
+        // Buscar en la lista de productos cargados o en el datalist
+        const prod = productos.find(p => p.nombre === valor);
         if (prod) {
             agregarProductoSeleccionado(prod);
+        } else {
+            // Buscar por ID en el datalist
+            const option = datalistProductos.querySelector(`option[value="${valor}"]`);
+            if (option) {
+                const productoId = option.getAttribute('data-id');
+                const precio = option.getAttribute('data-precio');
+                if (productoId && precio) {
+                    agregarProductoSeleccionado({
+                        id: productoId,
+                        nombre: valor,
+                        precio: parseFloat(precio)
+                    });
+                }
+            }
         }
     });
+
+    // Manejar guardado de nuevo producto
+    document.getElementById('btnGuardarNuevoProducto').addEventListener('click', function() {
+        const form = document.getElementById('formNuevoProducto');
+        const formData = new FormData(form);
+        const btn = this;
+        
+        // Validaciones básicas
+        const nombre = formData.get('nombre').trim();
+        const precio_venta = parseFloat(formData.get('precio_venta')) || 0;
+        
+        if (!nombre) {
+            alert('Por favor completa el nombre del producto');
+            return;
+        }
+        
+        if (precio_venta <= 0) {
+            alert('Por favor ingresa un precio de venta válido');
+            return;
+        }
+        
+        // Deshabilitar botón mientras se procesa
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Guardando...';
+        
+        // Enviar datos al servidor
+        fetch('index.php?action=agregarProducto', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Respuesta completa del servidor:', data);
+            
+            if (data.success) {
+                // Producto creado exitosamente
+                const nuevoProducto = data.producto;
+                
+                console.log('Objeto nuevoProducto creado:', nuevoProducto);
+                
+                // Agregar a la lista de productos
+                productos.push(nuevoProducto);
+                
+                // Actualizar el datalist inmediatamente con el nuevo producto
+                datalistProductos.innerHTML = `<option value="${nuevoProducto.nombre}" data-id="${nuevoProducto.id}" data-precio="${nuevoProducto.precio_venta}">${nuevoProducto.nombre} ($${parseFloat(nuevoProducto.precio_venta).toLocaleString('es-CO')} - Stock: ${nuevoProducto.stock})</option>`;
+                
+                // Agregar automáticamente el producto a la venta
+                agregarProductoSeleccionado({
+                    id: nuevoProducto.id,
+                    nombre: nuevoProducto.nombre,
+                    precio: parseFloat(nuevoProducto.precio_venta)
+                });
+                
+                console.log('Producto creado y agregado a la venta:', {
+                    nombre: nuevoProducto.nombre,
+                    id: nuevoProducto.id,
+                    precio_venta: nuevoProducto.precio_venta
+                });
+                
+                // Cerrar modal
+                const modalNuevoProducto = bootstrap.Modal.getInstance(document.getElementById('modalNuevoProducto'));
+                modalNuevoProducto.hide();
+                
+                // Limpiar formulario
+                form.reset();
+                
+                // Reabrir el modal de venta después de crear el producto
+                setTimeout(() => {
+                    abrirModalVenta();
+                }, 300);
+                
+                alert('Producto creado y agregado a la venta exitosamente');
+            } else {
+                alert('Error al crear producto: ' + (data.message || 'Error desconocido'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al conectar con el servidor');
+        })
+        .finally(() => {
+            // Restaurar botón
+            btn.disabled = false;
+            btn.innerHTML = 'Guardar Producto';
+        });
+    });
+
+    // Limpiar modal de nuevo producto al cerrarlo
+    document.getElementById('modalNuevoProducto').addEventListener('hidden.bs.modal', function() {
+        console.log('Modal de nuevo producto cerrado');
+        document.getElementById('formNuevoProducto').reset();
+        
+        // Reabrir el modal de venta
+        setTimeout(() => {
+            abrirModalVenta();
+        }, 100);
+    });
+
     function agregarProductoSeleccionado(prod) {
         const existente = productosSeleccionados.find(p => p.id === prod.id);
         if (existente) {
@@ -763,9 +977,7 @@ document.addEventListener('DOMContentLoaded', function() {
         inputProducto.value = '';
         setTimeout(() => { ignoreInputEvent = false; }, 100);
     }
-    // Eliminar el botón Agregar producto si existe
-    const btnAgregarProducto = document.getElementById('btnAgregarProducto');
-    if (btnAgregarProducto) btnAgregarProducto.style.display = 'none';
+
     function renderTablaProductos() {
         const fragment = document.createDocumentFragment();
         let total = 0;
@@ -819,6 +1031,7 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         });
     }
+
     // Calcular cambio/vueltas
     function calcularCambio() {
         const total = productosSeleccionados.reduce((s, p) => s + p.precio * p.cantidad, 0);

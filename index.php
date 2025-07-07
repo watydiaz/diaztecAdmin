@@ -286,6 +286,86 @@ switch ($action) {
         exit();
         break;
 
+    case 'buscarProducto':
+        require_once 'models/Conexion.php';
+        $db = Conexion::getConexion();
+        $query = isset($_GET['query']) ? $_GET['query'] : '';
+        $productos = [];
+        
+        if (!empty($query)) {
+            $stmt = $db->prepare("SELECT id, nombre, precio_venta, stock FROM productos WHERE nombre LIKE ? ORDER BY nombre ASC LIMIT 10");
+            $searchTerm = '%' . $query . '%';
+            $stmt->bind_param('s', $searchTerm);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            while ($row = $result->fetch_assoc()) {
+                $productos[] = $row;
+            }
+            $stmt->close();
+        }
+        
+        header('Content-Type: application/json');
+        echo json_encode(['productos' => $productos]);
+        exit();
+        break;
+
+    case 'agregarProducto':
+        require_once 'models/Conexion.php';
+        $db = Conexion::getConexion();
+        
+        $nombre = isset($_POST['nombre']) ? trim($_POST['nombre']) : '';
+        $precio_compra = isset($_POST['precio_compra']) ? floatval($_POST['precio_compra']) : 0;
+        $precio_venta = isset($_POST['precio_venta']) ? floatval($_POST['precio_venta']) : 0;
+        $stock = isset($_POST['stock']) ? intval($_POST['stock']) : 0;
+        
+        if (empty($nombre)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'El nombre del producto es obligatorio']);
+            exit();
+        }
+        
+        // Verificar si el producto ya existe
+        $stmt = $db->prepare("SELECT id FROM productos WHERE nombre = ?");
+        $stmt->bind_param('s', $nombre);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows > 0) {
+            $stmt->close();
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Ya existe un producto con ese nombre']);
+            exit();
+        }
+        $stmt->close();
+        
+        // Insertar nuevo producto
+        $stmt = $db->prepare("INSERT INTO productos (nombre, precio_compra, precio_venta, stock) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param('sddi', $nombre, $precio_compra, $precio_venta, $stock);
+        
+        if ($stmt->execute()) {
+            $producto_id = $db->insert_id;
+            $stmt->close();
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Producto agregado exitosamente',
+                'producto_id' => $producto_id,
+                'producto' => [
+                    'id' => $producto_id,
+                    'nombre' => $nombre,
+                    'precio_venta' => $precio_venta,
+                    'stock' => $stock
+                ]
+            ]);
+        } else {
+            $stmt->close();
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Error al agregar el producto: ' . $db->error]);
+        }
+        exit();
+        break;
+
     default:
         // Redirigir al login si la acción no es válida
         header('Location: index.php?action=login');

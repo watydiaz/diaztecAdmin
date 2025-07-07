@@ -473,6 +473,40 @@ require_once 'header.php';
         </div>
     </div>
 
+    <!-- Modal para crear nuevo producto -->
+    <div class="modal fade" id="modalNuevoProducto" tabindex="-1" aria-labelledby="modalNuevoProductoLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalNuevoProductoLabel">Crear Nuevo Producto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formNuevoProducto">
+                        <div class="mb-3">
+                            <label for="nuevoProductoNombre" class="form-label">Nombre del producto *</label>
+                            <input type="text" class="form-control" id="nuevoProductoNombre" name="nombre" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nuevoProductoPrecioCompra" class="form-label">Precio de compra</label>
+                            <input type="number" class="form-control" id="nuevoProductoPrecioCompra" name="precio_compra" min="0" step="0.01" value="0">
+                        </div>
+                        <div class="mb-3">
+                            <label for="nuevoProductoPrecioVenta" class="form-label">Precio de venta *</label>
+                            <input type="number" class="form-control" id="nuevoProductoPrecioVenta" name="precio_venta" min="0" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nuevoProductoStock" class="form-label">Stock inicial</label>
+                            <input type="number" class="form-control" id="nuevoProductoStock" name="stock" min="0" value="0">
+                        </div>
+                        <button type="button" class="btn btn-primary" id="btnGuardarNuevoProducto">Crear Producto</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Buscador de órdenes y clientes -->
     <div class="row mb-3">
         <div class="col-md-6 offset-md-3">
@@ -1345,6 +1379,239 @@ require_once 'header.php';
                 });
         }
     }
+
+    // --- LÓGICA DE BÚSQUEDA Y CREACIÓN AUTOMÁTICA DE PRODUCTOS ---
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- PRODUCTOS ---
+        const inputBuscadorProducto = document.getElementById('buscadorProducto');
+        const listaProductos = document.getElementById('listaProductos');
+        const inputProductoId = document.getElementById('producto_id');
+        let productos = [];
+        let timeoutBusquedaProducto;
+
+        // Función para abrir el modal de nuevo producto con nombre prellenado
+        function abrirModalNuevoProductoConNombre(nombreSugerido = '') {
+            console.log('Abriendo modal de nuevo producto con nombre sugerido:', nombreSugerido);
+            
+            const modalNuevoProducto = new bootstrap.Modal(document.getElementById('modalNuevoProducto'), {
+                focus: false,
+                backdrop: 'static'
+            });
+            modalNuevoProducto.show();
+            
+            // Prellenar el campo nombre si se proporciona
+            if (nombreSugerido) {
+                setTimeout(() => {
+                    document.getElementById('nuevoProductoNombre').value = nombreSugerido;
+                    // Poner el foco en el campo de precio de venta para continuar el flujo
+                    document.getElementById('nuevoProductoPrecioVenta').focus();
+                }, 100);
+            }
+        }
+
+        // Búsqueda de productos con debounce
+        if (inputBuscadorProducto) {
+            inputBuscadorProducto.addEventListener('input', function() {
+                const query = this.value.trim();
+                
+                // Limpiar timeout anterior
+                clearTimeout(timeoutBusquedaProducto);
+                
+                if (query.length > 1) {
+                    // Agregar un pequeño delay para evitar muchas peticiones
+                    timeoutBusquedaProducto = setTimeout(() => {
+                        fetch(`index.php?action=buscarProducto&query=${encodeURIComponent(query)}`)
+                            .then(r => r.json())
+                            .then(data => {
+                                productos = data.productos || [];
+                                listaProductos.innerHTML = '';
+                                listaProductos.style.display = 'none';
+                                
+                                if (productos.length > 0) {
+                                    // Si hay resultados, mostrarlos
+                                    listaProductos.style.display = 'block';
+                                    productos.forEach(p => {
+                                        const li = document.createElement('li');
+                                        li.className = 'list-group-item list-group-item-action';
+                                        li.textContent = `${p.nombre} - $${parseFloat(p.precio_venta || 0).toLocaleString('es-CO')} (Stock: ${p.stock || 0})`;
+                                        li.dataset.id = p.id;
+                                        li.dataset.nombre = p.nombre;
+                                        li.dataset.precio = p.precio_venta || 0;
+                                        listaProductos.appendChild(li);
+                                    });
+                                    console.log(`Encontrados ${productos.length} productos para: "${query}"`);
+                                } else {
+                                    // Si no hay resultados, sugerir crear producto
+                                    console.log(`No se encontraron productos para: "${query}". Mostrando opción de crear producto.`);
+                                    listaProductos.style.display = 'block';
+                                    const li = document.createElement('li');
+                                    li.className = 'list-group-item list-group-item-action text-primary';
+                                    li.innerHTML = `<i class="bi bi-plus-circle me-2"></i>Crear nuevo producto: "${query}"`;
+                                    li.dataset.action = 'create';
+                                    li.dataset.nombre = query;
+                                    listaProductos.appendChild(li);
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error buscando productos:', error);
+                                listaProductos.innerHTML = '';
+                                listaProductos.style.display = 'block';
+                                const li = document.createElement('li');
+                                li.className = 'list-group-item list-group-item-action text-primary';
+                                li.innerHTML = `<i class="bi bi-plus-circle me-2"></i>Crear nuevo producto: "${query}"`;
+                                li.dataset.action = 'create';
+                                li.dataset.nombre = query;
+                                listaProductos.appendChild(li);
+                            });
+                    }, 300); // Delay de 300ms
+                } else {
+                    listaProductos.innerHTML = '';
+                    listaProductos.style.display = 'none';
+                }
+                inputProductoId.value = '';
+            });
+
+            // Manejo de selección de productos
+            listaProductos.addEventListener('click', function(event) {
+                if (event.target.tagName === 'LI') {
+                    const selectedItem = event.target;
+                    
+                    // Verificar si es la opción de crear nuevo producto
+                    if (selectedItem.dataset.action === 'create') {
+                        const nombreSugerido = selectedItem.dataset.nombre;
+                        console.log('Detectada opción de crear producto para:', nombreSugerido);
+                        
+                        // Limpiar lista y input
+                        listaProductos.style.display = 'none';
+                        inputBuscadorProducto.value = '';
+                        inputProductoId.value = '';
+                        
+                        // Abrir modal de nuevo producto y prellenar el nombre
+                        abrirModalNuevoProductoConNombre(nombreSugerido);
+                        return;
+                    }
+                    
+                    // Seleccionar producto existente
+                    inputBuscadorProducto.value = selectedItem.dataset.nombre;
+                    inputProductoId.value = selectedItem.dataset.id;
+                    
+                    // Prellenar el precio de venta
+                    const precioVentaInput = document.getElementById('precio_venta');
+                    if (precioVentaInput && selectedItem.dataset.precio) {
+                        precioVentaInput.value = selectedItem.dataset.precio;
+                    }
+                    
+                    listaProductos.style.display = 'none';
+                    
+                    console.log('Producto seleccionado:', {
+                        id: selectedItem.dataset.id,
+                        nombre: selectedItem.dataset.nombre,
+                        precio: selectedItem.dataset.precio
+                    });
+                }
+            });
+
+            // Ocultar lista al hacer clic fuera
+            document.addEventListener('click', function(event) {
+                if (!inputBuscadorProducto.contains(event.target) && !listaProductos.contains(event.target)) {
+                    listaProductos.style.display = 'none';
+                }
+            });
+        }
+
+        // Manejar guardado de nuevo producto
+        document.getElementById('btnGuardarNuevoProducto')?.addEventListener('click', function() {
+            const form = document.getElementById('formNuevoProducto');
+            const formData = new FormData(form);
+            const btn = this;
+            
+            // Validaciones básicas
+            const nombre = formData.get('nombre').trim();
+            const precio_venta = parseFloat(formData.get('precio_venta')) || 0;
+            
+            if (!nombre) {
+                alert('Por favor completa el nombre del producto');
+                return;
+            }
+            
+            if (precio_venta <= 0) {
+                alert('Por favor ingresa un precio de venta válido');
+                return;
+            }
+            
+            // Deshabilitar botón mientras se procesa
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Guardando...';
+            
+            // Enviar datos al servidor
+            fetch('index.php?action=agregarProducto', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Respuesta completa del servidor:', data);
+                
+                if (data.success) {
+                    // Producto creado exitosamente
+                    const nuevoProducto = data.producto;
+                    
+                    console.log('Objeto nuevoProducto creado:', nuevoProducto);
+                    
+                    // Seleccionar automáticamente el nuevo producto
+                    inputBuscadorProducto.value = nuevoProducto.nombre;
+                    inputProductoId.value = nuevoProducto.id;
+                    
+                    // Prellenar el precio de venta
+                    const precioVentaInput = document.getElementById('precio_venta');
+                    if (precioVentaInput) {
+                        precioVentaInput.value = nuevoProducto.precio_venta;
+                    }
+                    
+                    console.log('Producto creado y seleccionado:', {
+                        nombre: nuevoProducto.nombre,
+                        id: nuevoProducto.id,
+                        precio_venta: nuevoProducto.precio_venta,
+                        inputValue: inputBuscadorProducto.value,
+                        hiddenValue: inputProductoId.value
+                    });
+                    
+                    // Cerrar modal
+                    const modalNuevoProducto = bootstrap.Modal.getInstance(document.getElementById('modalNuevoProducto'));
+                    modalNuevoProducto.hide();
+                    
+                    // Limpiar formulario
+                    form.reset();
+                    
+                    alert('Producto creado exitosamente');
+                } else {
+                    alert('Error al crear producto: ' + (data.message || 'Error desconocido'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al conectar con el servidor');
+            })
+            .finally(() => {
+                // Restaurar botón
+                btn.disabled = false;
+                btn.innerHTML = 'Crear Producto';
+            });
+        });
+
+        // Alternativa para el botón si no existe con el ID específico
+        const formNuevoProducto = document.getElementById('formNuevoProducto');
+        if (formNuevoProducto) {
+            formNuevoProducto.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const btnGuardar = document.querySelector('#modalNuevoProducto button[type="submit"]');
+                if (btnGuardar) {
+                    btnGuardar.click();
+                }
+            });
+        }
+    });
+
     </script>
 </div>
 
