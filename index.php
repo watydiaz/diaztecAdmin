@@ -1006,6 +1006,146 @@ switch ($action) {
         exit();
         break;
 
+    case 'obtenerVentasSemana':
+        require_once 'models/Conexion.php';
+        
+        try {
+            $db = Conexion::getConexion();
+            $ventas = [];
+            
+            // Obtener ventas de los últimos 7 días
+            $query = "SELECT 
+                        DATE(fecha_pago) as fecha,
+                        SUM(dinero_recibido) as total
+                      FROM pagos_productos 
+                      WHERE fecha_pago >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+                      GROUP BY DATE(fecha_pago)
+                      ORDER BY fecha";
+            
+            $result = $db->query($query);
+            if ($result) {
+                while ($row = $result->fetch_assoc()) {
+                    $ventas[] = $row;
+                }
+            }
+            
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'ventas' => $ventas
+            ]);
+            
+        } catch (Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al obtener ventas: ' . $e->getMessage(),
+                'ventas' => []
+            ]);
+        }
+        exit();
+        break;
+
+    case 'obtenerProductividad':
+        require_once 'models/Conexion.php';
+        
+        try {
+            $db = Conexion::getConexion();
+            $ordenesHoy = 0;
+            $tiempoPromedio = '0d';
+            
+            // Órdenes creadas hoy
+            $check_ordenes = $db->query("SHOW TABLES LIKE 'ordenes_reparacion'");
+            if ($check_ordenes && $check_ordenes->num_rows > 0) {
+                $result = $db->query("SELECT COUNT(*) as total FROM ordenes_reparacion WHERE DATE(fecha_ingreso) = CURDATE()");
+                if ($result) {
+                    $row = $result->fetch_assoc();
+                    $ordenesHoy = $row['total'];
+                }
+                
+                // Tiempo promedio de reparación (órdenes entregadas)
+                $result = $db->query("SELECT AVG(DATEDIFF(fecha_entrega_estimada, fecha_ingreso)) as promedio 
+                                     FROM ordenes_reparacion 
+                                     WHERE estado = 'entregado' 
+                                     AND fecha_entrega_estimada IS NOT NULL 
+                                     AND fecha_ingreso IS NOT NULL");
+                if ($result) {
+                    $row = $result->fetch_assoc();
+                    $dias = round($row['promedio'] ?? 0);
+                    $tiempoPromedio = $dias . 'd';
+                }
+            }
+            
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'ordenesHoy' => $ordenesHoy,
+                'tiempoPromedio' => $tiempoPromedio
+            ]);
+            
+        } catch (Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al obtener productividad: ' . $e->getMessage(),
+                'ordenesHoy' => 0,
+                'tiempoPromedio' => '0d'
+            ]);
+        }
+        exit();
+        break;
+
+    case 'obtenerTopProductos':
+        require_once 'models/Conexion.php';
+        
+        try {
+            $db = Conexion::getConexion();
+            $productos = [];
+            
+            // Top productos más vendidos
+            $check_ventas = $db->query("SHOW TABLES LIKE 'detalle_ventas'");
+            $check_productos = $db->query("SHOW TABLES LIKE 'productos'");
+            
+            if ($check_ventas && $check_ventas->num_rows > 0 && 
+                $check_productos && $check_productos->num_rows > 0) {
+                
+                $query = "SELECT 
+                            p.nombre,
+                            SUM(dv.cantidad) as cantidad_vendida,
+                            SUM(dv.subtotal) as total_ventas
+                          FROM detalle_ventas dv
+                          INNER JOIN productos p ON dv.producto_id = p.id
+                          INNER JOIN ventas v ON dv.venta_id = v.id
+                          WHERE v.fecha_venta >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+                          GROUP BY p.id, p.nombre
+                          ORDER BY cantidad_vendida DESC, total_ventas DESC
+                          LIMIT 5";
+                
+                $result = $db->query($query);
+                if ($result) {
+                    while ($row = $result->fetch_assoc()) {
+                        $productos[] = $row;
+                    }
+                }
+            }
+            
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'productos' => $productos
+            ]);
+            
+        } catch (Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al obtener productos: ' . $e->getMessage(),
+                'productos' => []
+            ]);
+        }
+        exit();
+        break;
+
     default:
         // Redirigir al login si la acción no es válida
         header('Location: index.php?action=login');
