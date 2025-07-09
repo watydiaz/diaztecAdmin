@@ -54,11 +54,12 @@ require_once 'header.php';
                 <table class="table table-striped table-hover" id="tablaCajaProductos">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Fecha de Pago</th>
-                            <th>ID Venta</th>
-                            <th>Dinero Recibido</th>
-                            <th>Método de Pago</th>
+                            <th>Factura</th>
+                            <th>Cliente</th>
+                            <th>Fecha</th>
+                            <th>Total</th>
+                            <th>Método</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="tbodyCajaPagosProductos">
@@ -105,32 +106,52 @@ function getFechaAyer() {
 function filtrarPorFechas() {
     const fechaInicio = document.getElementById('fechaInicio').value;
     const fechaFin = document.getElementById('fechaFin').value;
-    // Filtrar tabla de órdenes
+    
+    // Filtrar tabla de órdenes (fecha en índice 1)
     document.querySelectorAll('#tablaCajaOrdenes tbody tr').forEach(tr => {
-        const fecha = tr.children[1]?.textContent.trim();
-        if (!fechaInicio || !fechaFin) {
+        const fechaTexto = tr.children[1]?.textContent.trim();
+        if (!fechaInicio || !fechaFin || !fechaTexto) {
             tr.style.display = '';
             return;
         }
-        if (fecha >= fechaInicio && fecha <= fechaFin) {
-            tr.style.display = '';
+        
+        // Extraer solo la fecha (formato YYYY-MM-DD) del texto de fecha
+        const fechaMatch = fechaTexto.match(/(\d{4}-\d{2}-\d{2})/);
+        if (fechaMatch) {
+            const fecha = fechaMatch[1];
+            if (fecha >= fechaInicio && fecha <= fechaFin) {
+                tr.style.display = '';
+            } else {
+                tr.style.display = 'none';
+            }
         } else {
-            tr.style.display = 'none';
+            tr.style.display = '';
         }
     });
-    // Filtrar tabla de productos
+    
+    // Filtrar tabla de productos (fecha en índice 2)
     document.querySelectorAll('#tablaCajaProductos tbody tr').forEach(tr => {
-        const fecha = tr.children[1]?.textContent.trim();
-        if (!fechaInicio || !fechaFin) {
+        const fechaTexto = tr.children[2]?.textContent.trim();
+        if (!fechaInicio || !fechaFin || !fechaTexto) {
             tr.style.display = '';
             return;
         }
-        if (fecha >= fechaInicio && fecha <= fechaFin) {
-            tr.style.display = '';
+        
+        // Extraer solo la fecha (formato YYYY-MM-DD) del texto de fecha formateado
+        const fechaMatch = fechaTexto.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+        if (fechaMatch) {
+            // Convertir de DD/MM/YYYY a YYYY-MM-DD para comparar
+            const fecha = `${fechaMatch[3]}-${fechaMatch[2]}-${fechaMatch[1]}`;
+            if (fecha >= fechaInicio && fecha <= fechaFin) {
+                tr.style.display = '';
+            } else {
+                tr.style.display = 'none';
+            }
         } else {
-            tr.style.display = 'none';
+            tr.style.display = '';
         }
     });
+    
     actualizarVentaTotal();
 }
 function actualizarVentaTotal() {
@@ -142,9 +163,10 @@ function actualizarVentaTotal() {
             total += parseInt(val, 10) || 0;
         }
     });
-    // Sumar visibles de productos
+    // Sumar visibles de productos (columna 3 = Total)
     document.querySelectorAll('#tablaCajaProductos tbody tr').forEach(tr => {
         if (tr.style.display !== 'none') {
+            // En la nueva estructura, el total está en la columna índice 3
             const val = tr.children[3]?.textContent.replace(/[^\d]/g, '') || '0';
             total += parseInt(val, 10) || 0;
         }
@@ -181,12 +203,15 @@ function cargarPagosCaja() {
     fetch('index.php?action=obtenerPagosCaja')
         .then(r => r.json())
         .then(data => {
+            console.log('Datos recibidos:', data); // Debug
+            
             // Pagos de órdenes
             const tbodyOrdenes = document.getElementById('tbodyCajaPagosOrdenes');
             tbodyOrdenes.innerHTML = '';
             let totalOrdenes = 0;
-            if (Array.isArray(data) && data.length > 0) {
-                data.forEach((pago) => {
+            
+            if (data.pagos_ordenes && Array.isArray(data.pagos_ordenes) && data.pagos_ordenes.length > 0) {
+                data.pagos_ordenes.forEach((pago) => {
                     totalOrdenes += Number(pago.dinero_recibido || 0);
                     tbodyOrdenes.innerHTML += `
                         <tr>
@@ -197,30 +222,73 @@ function cargarPagosCaja() {
                         </tr>`;
                 });
             } else {
-                tbodyOrdenes.innerHTML = '<tr><td colspan="4" class="text-center">No hay pagos registrados.</td></tr>';
+                tbodyOrdenes.innerHTML = '<tr><td colspan="4" class="text-center">No hay pagos de órdenes registrados.</td></tr>';
             }
             document.getElementById('totalCajaOrdenes').textContent = 'Total en caja (órdenes): $' + totalOrdenes.toLocaleString('es-CO');
 
-            // Pagos de productos (ahora con método de pago)
+            // Pagos de productos (ventas) - con información completa
             const tbodyProductos = document.getElementById('tbodyCajaPagosProductos');
             tbodyProductos.innerHTML = '';
             let totalProductos = 0;
-            if (Array.isArray(data.pagos_productos) && data.pagos_productos.length > 0) {
+            
+            if (data.pagos_productos && Array.isArray(data.pagos_productos) && data.pagos_productos.length > 0) {
                 data.pagos_productos.forEach((pago) => {
-                    totalProductos += Number(pago.dinero_recibido || 0);
+                    totalProductos += Number(pago.total || 0);
                     tbodyProductos.innerHTML += `
                         <tr>
-                            <td>${pago.id}</td>
-                            <td>${pago.fecha_pago || ''}</td>
-                            <td>${pago.venta_id || ''}</td>
-                            <td>$${Number(pago.dinero_recibido || 0).toLocaleString('es-CO')}</td>
-                            <td>${(pago.metodo_pago || '').charAt(0).toUpperCase() + (pago.metodo_pago || '').slice(1)}</td>
+                            <td><strong>${pago.numero_factura || ''}</strong></td>
+                            <td>${pago.cliente_nombre || ''}<br><small class="text-muted">${pago.cliente_identificacion || ''}</small></td>
+                            <td>${formatearFecha(pago.fecha_pago || '')}</td>
+                            <td><strong>$${Number(pago.total || 0).toLocaleString('es-CO')}</strong></td>
+                            <td><span class="badge bg-primary">${(pago.metodo_pago || '').charAt(0).toUpperCase() + (pago.metodo_pago || '').slice(1)}</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-info" onclick="verDetalleFactura(${pago.venta_id})" title="Ver detalle de factura">
+                                    <i class="bi bi-eye"></i> Ver
+                                </button>
+                            </td>
                         </tr>`;
                 });
             } else {
-                tbodyProductos.innerHTML = '<tr><td colspan="5" class="text-center">No hay pagos de productos registrados.</td></tr>';
+                tbodyProductos.innerHTML = '<tr><td colspan="6" class="text-center">No hay pagos de productos registrados.</td></tr>';
             }
             document.getElementById('totalCajaProductos').textContent = 'Total en caja (productos): $' + totalProductos.toLocaleString('es-CO');
+            
+            // Actualizar total general
+            const totalGeneral = totalOrdenes + totalProductos;
+            document.getElementById('ventaTotal').textContent = '$' + totalGeneral.toLocaleString('es-CO');
+        })
+        .catch(error => {
+            console.error('Error al cargar pagos:', error);
+        });
+}
+
+// Función auxiliar para formatear fecha
+function formatearFecha(fechaStr) {
+    if (!fechaStr) return '';
+    const fecha = new Date(fechaStr);
+    return fecha.toLocaleDateString('es-CO', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+// Función para ver el detalle de una factura
+function verDetalleFactura(ventaId) {
+    fetch(`index.php?action=obtenerDetalleFactura&venta_id=${ventaId}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                mostrarModalDetalleFactura(data.venta, data.detalles);
+            } else {
+                alert('Error al cargar el detalle de la factura: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error al cargar detalle de factura:', error);
+            alert('Error al cargar el detalle de la factura');
         });
 }
 </script>
@@ -1380,6 +1448,105 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<!-- Modal para mostrar detalle de factura -->
+<div class="modal fade" id="modalDetalleFactura" tabindex="-1" aria-labelledby="modalDetalleFacturaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalDetalleFacturaLabel">Detalle de Factura</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="contenidoDetalleFactura">
+                    <!-- Contenido dinámico -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="imprimirFactura()">
+                    <i class="bi bi-printer"></i> Imprimir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Función para mostrar el modal de detalle de factura
+function mostrarModalDetalleFactura(venta, detalles) {
+    const contenido = document.getElementById('contenidoDetalleFactura');
+    
+    let detallesHtml = '';
+    let totalFactura = 0;
+    
+    detalles.forEach(detalle => {
+        totalFactura += parseFloat(detalle.subtotal);
+        detallesHtml += `
+            <tr>
+                <td>${detalle.producto_nombre}</td>
+                <td class="text-center">${detalle.cantidad}</td>
+                <td class="text-end">$${Number(detalle.precio_unitario).toLocaleString('es-CO')}</td>
+                <td class="text-end"><strong>$${Number(detalle.subtotal).toLocaleString('es-CO')}</strong></td>
+            </tr>
+        `;
+    });
+    
+    contenido.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="fw-bold text-primary">Información de la Venta</h6>
+                <p><strong>Factura:</strong> ${venta.numero_factura}</p>
+                <p><strong>Fecha:</strong> ${formatearFecha(venta.fecha_venta)}</p>
+                <p><strong>Método de Pago:</strong> <span class="badge bg-primary">${venta.metodo_pago.charAt(0).toUpperCase() + venta.metodo_pago.slice(1)}</span></p>
+                <p><strong>Vendedor:</strong> ${venta.usuario_nombre || 'N/A'}</p>
+            </div>
+            <div class="col-md-6">
+                <h6 class="fw-bold text-success">Información del Cliente</h6>
+                <p><strong>Nombre:</strong> ${venta.cliente_nombre}</p>
+                <p><strong>Identificación:</strong> ${venta.cliente_identificacion}</p>
+                <p><strong>Teléfono:</strong> ${venta.cliente_telefono || 'N/A'}</p>
+                <p><strong>Email:</strong> ${venta.cliente_email || 'N/A'}</p>
+            </div>
+        </div>
+        
+        <hr class="my-3">
+        
+        <h6 class="fw-bold text-info">Productos Vendidos</h6>
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>Producto</th>
+                        <th class="text-center">Cantidad</th>
+                        <th class="text-end">Precio Unit.</th>
+                        <th class="text-end">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${detallesHtml}
+                </tbody>
+                <tfoot>
+                    <tr class="table-success">
+                        <th colspan="3" class="text-end">TOTAL:</th>
+                        <th class="text-end">$${Number(venta.total).toLocaleString('es-CO')}</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    `;
+    
+    // Mostrar el modal
+    const modal = new bootstrap.Modal(document.getElementById('modalDetalleFactura'));
+    modal.show();
+}
+
+// Función para imprimir factura (por implementar)
+function imprimirFactura() {
+    window.print();
+}
+</script>
+
 <?php
 require_once 'footer.php';
 ?>

@@ -244,6 +244,8 @@ switch ($action) {
     case 'obtenerPagosCaja':
         require_once 'models/Conexion.php';
         $db = (new Conexion())->getConexion();
+        
+        // Pagos de órdenes de servicio
         $pagos = [];
         $result = $db->query("SELECT id, fecha_pago, orden_id, dinero_recibido FROM orden_pagos ORDER BY fecha_pago DESC");
         if ($result) {
@@ -251,8 +253,38 @@ switch ($action) {
                 $pagos[] = $row;
             }
         }
+        
+        // Pagos de productos (ventas)
+        $pagos_productos = [];
+        $query = "SELECT 
+                    pp.id,
+                    pp.venta_id,
+                    pp.dinero_recibido as total,
+                    pp.metodo_pago,
+                    pp.fecha_pago,
+                    v.numero_factura,
+                    v.total as total_venta,
+                    c.nombre as cliente_nombre,
+                    c.identificacion as cliente_identificacion,
+                    u.nombre as usuario_nombre
+                  FROM pagos_productos pp
+                  INNER JOIN ventas v ON pp.venta_id = v.id
+                  INNER JOIN clientes c ON v.cliente_id = c.id
+                  LEFT JOIN usuarios u ON pp.usuario_id = u.id
+                  ORDER BY pp.fecha_pago DESC";
+        
+        $result_productos = $db->query($query);
+        if ($result_productos) {
+            while ($row = $result_productos->fetch_assoc()) {
+                $pagos_productos[] = $row;
+            }
+        }
+        
         header('Content-Type: application/json');
-        echo json_encode($pagos);
+        echo json_encode([
+            'pagos_ordenes' => $pagos,
+            'pagos_productos' => $pagos_productos
+        ]);
         exit();
         break;
 
@@ -446,6 +478,78 @@ switch ($action) {
         exit();
         break;
 
+    case 'obtenerDetalleFactura':
+        require_once 'models/Conexion.php';
+        $db = Conexion::getConexion();
+        $venta_id = isset($_GET['venta_id']) ? intval($_GET['venta_id']) : 0;
+        
+        if (!$venta_id) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'ID de venta no proporcionado']);
+            exit();
+        }
+        
+        // Obtener información de la venta
+        $query_venta = "SELECT 
+                            v.id,
+                            v.numero_factura,
+                            v.total,
+                            v.metodo_pago,
+                            v.fecha_venta,
+                            c.nombre as cliente_nombre,
+                            c.identificacion as cliente_identificacion,
+                            c.telefono as cliente_telefono,
+                            c.email as cliente_email,
+                            u.nombre as usuario_nombre
+                        FROM ventas v
+                        INNER JOIN clientes c ON v.cliente_id = c.id
+                        LEFT JOIN usuarios u ON v.usuario_id = u.id
+                        WHERE v.id = ?";
+        
+        $stmt = $db->prepare($query_venta);
+        $stmt->bind_param('i', $venta_id);
+        $stmt->execute();
+        $venta = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        
+        if (!$venta) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Venta no encontrada']);
+            exit();
+        }
+        
+        // Obtener detalles de productos
+        $query_detalles = "SELECT 
+                              dv.producto_id,
+                              dv.cantidad,
+                              dv.precio_unitario,
+                              dv.subtotal,
+                              p.nombre as producto_nombre
+                           FROM detalle_ventas dv
+                           INNER JOIN productos p ON dv.producto_id = p.id
+                           WHERE dv.venta_id = ?
+                           ORDER BY p.nombre ASC";
+        
+        $stmt_detalles = $db->prepare($query_detalles);
+        $stmt_detalles->bind_param('i', $venta_id);
+        $stmt_detalles->execute();
+        $result_detalles = $stmt_detalles->get_result();
+        
+        $detalles = [];
+        while ($row = $result_detalles->fetch_assoc()) {
+            $detalles[] = $row;
+        }
+        $stmt_detalles->close();
+        
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true,
+            'venta' => $venta,
+            'detalles' => $detalles
+        ]);
+        exit();
+        break;
+
     case 'registrarVentaCompleta':
         require_once 'models/Conexion.php';
         session_start();
@@ -520,8 +624,10 @@ switch ($action) {
             $stmt_detalle->close();
             
             // 3. Registrar el pago en pagos_productos para el módulo de caja
+            // Nota: En pagos_productos guardamos el TOTAL de la venta, no el dinero recibido
+            // El dinero_recibido se usa solo para calcular cambio en el frontend
             $stmt_pago = $db->prepare("INSERT INTO pagos_productos (venta_id, dinero_recibido, metodo_pago, fecha_pago, usuario_id) VALUES (?, ?, ?, NOW(), ?)");
-            $stmt_pago->bind_param('idsi', $venta_id, $dinero_recibido, $metodo_pago, $usuario_id);
+            $stmt_pago->bind_param('idsi', $venta_id, $total, $metodo_pago, $usuario_id);
             
             if (!$stmt_pago->execute()) {
                 throw new Exception('Error al registrar el pago: ' . $stmt_pago->error);
