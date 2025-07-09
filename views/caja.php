@@ -1591,14 +1591,14 @@ function mostrarModalDetalleFactura(venta, detalles) {
         <!-- Encabezado con logo y datos de empresa -->
         <div class="row mb-4">
             <div class="col-md-3 text-center">
-                <img src="assets/img/logo192x192.png" alt="Logo Empresa" class="img-fluid" style="max-height: 80px;">
+                <img src="https://diaztecnologia.com/img/logo.png" alt="Logo Empresa" class="img-fluid" style="max-height: 80px;">
             </div>
             <div class="col-md-9">
                 <h4 class="fw-bold text-primary mb-1">DIAZTEC - Reparaciones y Tecnología</h4>
-                <p class="mb-1"><strong>NIT:</strong> 123456789-0</p>
-                <p class="mb-1"><strong>Dirección:</strong> Calle 123 #45-67, Ciudad</p>
-                <p class="mb-1"><strong>Teléfono:</strong> +57 300 123 4567</p>
-                <p class="mb-0"><strong>Email:</strong> contacto@diaztec.com</p>
+                <p class="mb-1"><strong>NIT:</strong> 1073679337</p>
+                <p class="mb-1"><strong>Dirección:</strong> Transversal 12a 41b 31, Barrio Ocales Soacha</p>
+                <p class="mb-1"><strong>Celular:</strong> 3202975605 - 3203200992</p>
+                <p class="mb-0"><strong>Email:</strong> karol.jesusdiaz@gmail.com</p>
             </div>
         </div>
         
@@ -1685,14 +1685,14 @@ function mostrarModalDetalleOrden(orden, pagos) {
         <!-- Encabezado con logo y datos de empresa -->
         <div class="row mb-4">
             <div class="col-md-3 text-center">
-                <img src="assets/img/logo192x192.png" alt="Logo Empresa" class="img-fluid" style="max-height: 80px;">
+                <img src="https://diaztecnologia.com/img/logo.png" alt="Logo Empresa" class="img-fluid" style="max-height: 80px;">
             </div>
             <div class="col-md-9">
                 <h4 class="fw-bold text-primary mb-1">DIAZTEC - Reparaciones y Tecnología</h4>
-                <p class="mb-1"><strong>NIT:</strong> 123456789-0</p>
-                <p class="mb-1"><strong>Dirección:</strong> Calle 123 #45-67, Ciudad</p>
-                <p class="mb-1"><strong>Teléfono:</strong> +57 300 123 4567</p>
-                <p class="mb-0"><strong>Email:</strong> contacto@diaztec.com</p>
+                <p class="mb-1"><strong>NIT:</strong> 1073679337</p>
+                <p class="mb-1"><strong>Dirección:</strong> Transversal 12a 41b 31, Barrio Ocales Soacha</p>
+                <p class="mb-1"><strong>Celular:</strong> 3202975605 - 3203200992</p>
+                <p class="mb-0"><strong>Email:</strong> karol.jesusdiaz@gmail.com</p>
             </div>
         </div>
         
@@ -1812,7 +1812,9 @@ function enviarFacturaWhatsApp() {
     
     mensaje += `💰 *TOTAL: $${Number(venta.total).toLocaleString('es-CO')}*\n\n`;
     mensaje += `¡Gracias por su compra! 🙏\n`;
-    mensaje += `📞 DIAZTEC - +57 300 123 4567`;
+    mensaje += `📞 DIAZTEC - 3202975605 - 3203200992\n`;
+    mensaje += `📧 karol.jesusdiaz@gmail.com\n`;
+    mensaje += `📍 Transversal 12a 41b 31, Barrio Ocales Soacha`;
     
     const telefono = venta.cliente_telefono || '';
     if (telefono) {
@@ -1844,7 +1846,9 @@ function enviarFacturaEmail() {
     cuerpo += `\nTOTAL: $${Number(venta.total).toLocaleString('es-CO')}\n\n`;
     cuerpo += `Gracias por su confianza.\n\n`;
     cuerpo += `Atentamente,\nDIAZTEC - Reparaciones y Tecnología\n`;
-    cuerpo += `Teléfono: +57 300 123 4567\nEmail: contacto@diaztec.com`;
+    cuerpo += `NIT: 1073679337\n`;
+    cuerpo += `Dirección: Transversal 12a 41b 31, Barrio Ocales Soacha\n`;
+    cuerpo += `Celular: 3202975605 - 3203200992\nEmail: karol.jesusdiaz@gmail.com`;
     
     const email = venta.cliente_email || '';
     if (email) {
@@ -1882,7 +1886,9 @@ function enviarOrdenWhatsApp() {
     mensaje += `💰 *COSTO TOTAL:* $${Number(orden.costo_total).toLocaleString('es-CO')}\n`;
     mensaje += `💳 *PAGADO:* $${totalPagado.toLocaleString('es-CO')}\n`;
     mensaje += `💸 *SALDO:* $${Math.abs(saldoPendiente).toLocaleString('es-CO')}\n\n`;
-    mensaje += `📞 DIAZTEC - +57 300 123 4567`;
+    mensaje += `📞 DIAZTEC - 3202975605 - 3203200992\n`;
+    mensaje += `📧 karol.jesusdiaz@gmail.com\n`;
+    mensaje += `📍 Transversal 12a 41b 31, Barrio Ocales Soacha`;
     
     const telefono = orden.cliente_telefono || '';
     if (telefono) {
@@ -1920,7 +1926,9 @@ function enviarOrdenEmail() {
     cuerpo += `SALDO PENDIENTE: $${Math.abs(saldoPendiente).toLocaleString('es-CO')}\n\n`;
     cuerpo += `Gracias por confiar en nosotros.\n\n`;
     cuerpo += `Atentamente,\nDIAZTEC - Reparaciones y Tecnología\n`;
-    cuerpo += `Teléfono: +57 300 123 4567\nEmail: contacto@diaztec.com`;
+    cuerpo += `NIT: 1073679337\n`;
+    cuerpo += `Dirección: Transversal 12a 41b 31, Barrio Ocales Soacha\n`;
+    cuerpo += `Celular: 3202975605 - 3203200992\nEmail: karol.jesusdiaz@gmail.com`;
     
     const email = orden.cliente_email || '';
     if (email) {
