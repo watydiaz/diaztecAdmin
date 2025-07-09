@@ -237,6 +237,56 @@ switch ($action) {
         $dashboardController->obtenerPagosDashboard();
         break;
 
+    case 'obtenerSaldosPendientes':
+        require_once 'models/Conexion.php';
+        
+        try {
+            $db = Conexion::getConexion();
+            $saldosPendientes = 0;
+            
+            // Verificar si las tablas existen
+            $check_orden_pagos = $db->query("SHOW TABLES LIKE 'orden_pagos'");
+            
+            if ($check_orden_pagos && $check_orden_pagos->num_rows > 0) {
+                // Consulta para obtener órdenes con saldo pendiente
+                $query = "SELECT 
+                            orden_id,
+                            MAX(costo_total) as costo_total,
+                            SUM(dinero_recibido) as total_pagado
+                          FROM orden_pagos 
+                          GROUP BY orden_id
+                          HAVING MAX(costo_total) > SUM(dinero_recibido)";
+                
+                $result = $db->query($query);
+                if ($result) {
+                    while ($row = $result->fetch_assoc()) {
+                        $costo_total = floatval($row['costo_total']);
+                        $total_pagado = floatval($row['total_pagado']);
+                        $saldo = $costo_total - $total_pagado;
+                        if ($saldo > 0) {
+                            $saldosPendientes += $saldo;
+                        }
+                    }
+                }
+            }
+            
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'saldosPendientes' => $saldosPendientes
+            ]);
+            
+        } catch (Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al obtener saldos pendientes: ' . $e->getMessage(),
+                'saldosPendientes' => 0
+            ]);
+        }
+        exit();
+        break;
+
     case 'caja':
         // Mostrar la vista de caja con los pagos
         require_once 'controllers/OrdenPagoController.php';

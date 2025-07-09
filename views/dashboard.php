@@ -87,6 +87,16 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Card para saldos pendientes -->
+                    <div class="col-md-3">
+                        <div class="card text-white bg-danger mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Saldos Pendientes</h5>
+                                <p class="card-text" id="saldosPendientes">$0.00</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -136,6 +146,27 @@
                 .catch(error => {
                     document.getElementById('pagosDiarios').textContent = 'Error';
                     document.getElementById('pagosMensuales').textContent = 'Error';
+                });
+
+            // Cargar saldos pendientes
+            fetch('index.php?action=obtenerSaldosPendientes')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        function formatMilesSinDecimales(num) {
+                            return parseInt(num).toLocaleString('es-CO');
+                        }
+                        let saldosPendientes = parseInt(data.saldosPendientes) || 0;
+                        document.getElementById('saldosPendientes').textContent = `$${formatMilesSinDecimales(saldosPendientes)}`;
+                        document.getElementById('saldosPendientes').style.fontWeight = '';
+                        document.getElementById('saldosPendientes').style.fontSize = '';
+                    } else {
+                        document.getElementById('saldosPendientes').textContent = 'Error';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('saldosPendientes').textContent = 'Error';
+                    console.error('Error al obtener saldos pendientes:', error);
                 });
         });
     </script>
