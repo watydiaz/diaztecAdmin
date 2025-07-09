@@ -446,6 +446,111 @@ switch ($action) {
         exit();
         break;
 
+    case 'registrarVentaCompleta':
+        require_once 'models/Conexion.php';
+        session_start();
+        $db = Conexion::getConexion();
+        
+        // Obtener datos del POST
+        $cliente_id = isset($_POST['cliente_id']) ? intval($_POST['cliente_id']) : null;
+        $productos = isset($_POST['productos']) ? json_decode($_POST['productos'], true) : [];
+        $total = isset($_POST['total']) ? floatval($_POST['total']) : 0;
+        $metodo_pago = isset($_POST['metodo_pago']) ? $_POST['metodo_pago'] : '';
+        $dinero_recibido = isset($_POST['dinero_recibido']) ? floatval($_POST['dinero_recibido']) : 0;
+        $cambio = isset($_POST['cambio']) ? floatval($_POST['cambio']) : 0;
+        $usuario_id = isset($_SESSION['usuario_id']) ? $_SESSION['usuario_id'] : 1; // Default admin
+        
+        // Validaciones
+        if (!$cliente_id || empty($productos) || $total <= 0 || empty($metodo_pago) || $dinero_recibido <= 0) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Datos de venta incompletos']);
+            exit();
+        }
+        
+        // Iniciar transacción
+        $db->begin_transaction();
+        
+        try {
+            // 1. Insertar la venta principal
+            $numero_factura = 'FAC-' . str_pad(($db->query("SELECT COUNT(*) as total FROM ventas")->fetch_assoc()['total'] + 1), 3, '0', STR_PAD_LEFT);
+            $stmt = $db->prepare("INSERT INTO ventas (cliente_id, usuario_id, numero_factura, total, metodo_pago, fecha_venta) VALUES (?, ?, ?, ?, ?, NOW())");
+            $stmt->bind_param('iisds', $cliente_id, $usuario_id, $numero_factura, $total, $metodo_pago);
+            
+            if (!$stmt->execute()) {
+                throw new Exception('Error al registrar la venta: ' . $stmt->error);
+            }
+            
+            $venta_id = $db->insert_id;
+            $stmt->close();
+            
+            // 2. Insertar los detalles de la venta
+            $stmt_detalle = $db->prepare("INSERT INTO detalle_ventas (venta_id, producto_id, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)");
+            
+            foreach ($productos as $producto) {
+                $producto_id = intval($producto['id']);
+                $cantidad = intval($producto['cantidad']);
+                $precio_unitario = floatval($producto['precio']);
+                $subtotal = $precio_unitario * $cantidad;
+                
+                $stmt_detalle->bind_param('iiidd', $venta_id, $producto_id, $cantidad, $precio_unitario, $subtotal);
+                
+                if (!$stmt_detalle->execute()) {
+                    throw new Exception('Error al registrar detalle de venta: ' . $stmt_detalle->error);
+                }
+                
+                // Verificar stock disponible
+                $stmt_stock_check = $db->prepare("SELECT stock FROM productos WHERE id = ?");
+                $stmt_stock_check->bind_param('i', $producto_id);
+                $stmt_stock_check->execute();
+                $stock_result = $stmt_stock_check->get_result()->fetch_assoc();
+                $stock_actual = $stock_result ? $stock_result['stock'] : 0;
+                $stmt_stock_check->close();
+                
+                if ($stock_actual < $cantidad) {
+                    throw new Exception('Stock insuficiente para el producto ID: ' . $producto_id . '. Stock disponible: ' . $stock_actual);
+                }
+                
+                // Actualizar stock (ya se hace automáticamente por el trigger, pero por seguridad)
+                $stmt_stock = $db->prepare("UPDATE productos SET stock = stock - ? WHERE id = ?");
+                $stmt_stock->bind_param('ii', $cantidad, $producto_id);
+                $stmt_stock->execute();
+                $stmt_stock->close();
+            }
+            
+            $stmt_detalle->close();
+            
+            // 3. Registrar el pago en pagos_productos para el módulo de caja
+            $stmt_pago = $db->prepare("INSERT INTO pagos_productos (venta_id, dinero_recibido, metodo_pago, fecha_pago, usuario_id) VALUES (?, ?, ?, NOW(), ?)");
+            $stmt_pago->bind_param('idsi', $venta_id, $dinero_recibido, $metodo_pago, $usuario_id);
+            
+            if (!$stmt_pago->execute()) {
+                throw new Exception('Error al registrar el pago: ' . $stmt_pago->error);
+            }
+            $stmt_pago->close();
+            
+            // Commit de la transacción
+            $db->commit();
+            
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Venta registrada exitosamente',
+                'venta_id' => $venta_id,
+                'numero_factura' => $numero_factura,
+                'total' => $total,
+                'cambio' => $cambio
+            ]);
+            
+        } catch (Exception $e) {
+            // Rollback en caso de error
+            $db->rollback();
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+        
+        exit();
+        break;
+
     default:
         // Redirigir al login si la acción no es válida
         header('Location: index.php?action=login');

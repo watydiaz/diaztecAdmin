@@ -392,12 +392,53 @@ function cargarPagosCaja() {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // --- CLIENTES ---
+    // Verificar que todos los elementos existen antes de continuar
     const modalVenta = document.getElementById('modalPagoProducto');
     const inputBusqueda = document.getElementById('clienteBusqueda');
     const datalist = document.getElementById('clientesList');
     const inputClienteId = document.getElementById('clienteSeleccionadoId');
+    
+    if (!modalVenta || !inputBusqueda || !datalist || !inputClienteId) {
+        console.error('Error: No se encontraron todos los elementos necesarios:', {
+            modalVenta: !!modalVenta,
+            inputBusqueda: !!inputBusqueda,
+            datalist: !!datalist,
+            inputClienteId: !!inputClienteId
+        });
+        return;
+    }
+    
+    console.log('Todos los elementos encontrados correctamente');
+    
+    // --- CLIENTES ---
     let clientes = [];
+
+    // Función helper para obtener información del cliente seleccionado
+    function obtenerClienteSeleccionado() {
+        const clienteId = inputClienteId.value;
+        if (!clienteId) return null;
+        
+        const cliente = clientes.find(c => c.id == clienteId);
+        return cliente;
+    }
+
+    // Función helper para validar selección de cliente
+    function validarClienteSeleccionado() {
+        const clienteId = inputClienteId.value;
+        const cliente = obtenerClienteSeleccionado();
+        const isValid = !!cliente && !!clienteId;
+        
+        console.log('Validación de cliente detallada:', {
+            clienteIdInput: clienteId,
+            clienteBusquedaInput: inputBusqueda.value,
+            clienteEncontrado: cliente,
+            listaClientesCompleta: clientes,
+            esValido: isValid,
+            razonInvalida: !clienteId ? 'No hay ID de cliente' : !cliente ? 'Cliente no encontrado en lista' : 'Válido'
+        });
+        
+        return isValid;
+    }
 
     // Función para abrir el modal de venta de forma controlada
     function abrirModalVenta() {
@@ -660,15 +701,73 @@ document.addEventListener('DOMContentLoaded', function() {
     inputBusqueda.addEventListener('input', function() {
         const query = this.value.trim();
         
+        console.log('Input event disparado con query:', query);
+        
         // Limpiar timeout anterior
         clearTimeout(timeoutBusqueda);
+        
+        // Verificar primero si se seleccionó una opción del datalist
+        const opcionSeleccionada = datalist.querySelector(`option[value="${query}"]`);
+        if (opcionSeleccionada) {
+            const clienteId = opcionSeleccionada.getAttribute('data-id');
+            if (clienteId) {
+                console.log('Opción seleccionada del datalist detectada:', { query, clienteId });
+                inputClienteId.value = clienteId;
+                
+                // Agregar el cliente a la lista local si no está
+                if (!clientes.find(c => c.id == clienteId)) {
+                    const match = query.match(/^(.+) \((.+)\)$/);
+                    if (match) {
+                        const nuevoCliente = {
+                            id: clienteId,
+                            nombre: match[1],
+                            identificacion: match[2]
+                        };
+                        clientes.push(nuevoCliente);
+                        console.log('Cliente agregado a lista local desde datalist:', nuevoCliente);
+                    }
+                }
+                
+                // No continuar con la búsqueda, ya se seleccionó un cliente
+                return;
+            }
+        }
+        
+        // Si hay un cliente ya seleccionado, verificar si el query actual coincide
+        if (inputClienteId.value) {
+            const clienteActual = clientes.find(c => c.id == inputClienteId.value);
+            if (clienteActual) {
+                const formatoCompleto = `${clienteActual.nombre} (${clienteActual.identificacion})`;
+                const nombreSolo = clienteActual.nombre;
+                
+                console.log('Verificando coincidencia:', {
+                    query: query,
+                    formatoCompleto: formatoCompleto,
+                    nombreSolo: nombreSolo,
+                    clienteActual: clienteActual
+                });
+                
+                // Si el query actual es una subcadena del nombre o coincide exactamente, mantener la selección
+                if (formatoCompleto === query || nombreSolo === query || 
+                    (nombreSolo.toLowerCase().includes(query.toLowerCase()) && query.length > 2)) {
+                    console.log('Manteniendo selección de cliente durante input:', clienteActual);
+                    // No limpiar la selección, pero continuar con la búsqueda para mostrar opciones
+                } else if (query.length > 1) {
+                    // Solo limpiar si realmente está escribiendo algo diferente
+                    console.log('Query no coincide con cliente actual, limpiando selección');
+                    inputClienteId.value = '';
+                }
+            }
+        }
         
         if (query.length > 1) {
             // Agregar un pequeño delay para evitar muchas peticiones
             timeoutBusqueda = setTimeout(() => {
+                console.log('Buscando clientes para:', query);
                 fetch(`index.php?action=buscarCliente&query=${encodeURIComponent(query)}`)
                     .then(r => r.json())
                     .then(data => {
+                        console.log('Respuesta de búsqueda de clientes:', data);
                         clientes = data.clientes || [];
                         datalist.innerHTML = '';
                         
@@ -692,11 +791,20 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             datalist.innerHTML = '';
         }
-        inputClienteId.value = '';
+        // No limpiar automáticamente el cliente seleccionado aquí
     });
     inputBusqueda.addEventListener('change', function() {
         const valor = this.value.trim();
         console.log('Cliente input changed:', valor);
+        console.log('Lista de clientes disponible:', clientes);
+        console.log('Cliente ID actual:', inputClienteId.value);
+        
+        // Si el campo está vacío, limpiar el ID del cliente
+        if (!valor) {
+            inputClienteId.value = '';
+            console.log('Campo vacío, cliente ID limpiado');
+            return;
+        }
         
         // Verificar si es la opción de crear nuevo cliente
         if (valor.startsWith('➕ Crear nuevo cliente:')) {
@@ -712,24 +820,69 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Buscar en la lista de clientes cargados
-        const cliente = clientes.find(c => `${c.nombre} (${c.identificacion})` === valor);
+        // Si ya hay un cliente seleccionado, verificar si el valor actual coincide
+        if (inputClienteId.value) {
+            const clienteActual = clientes.find(c => c.id == inputClienteId.value);
+            if (clienteActual) {
+                const formatoCompleto = `${clienteActual.nombre} (${clienteActual.identificacion})`;
+                const nombreSolo = clienteActual.nombre;
+                
+                console.log('Verificando cliente actual:', {
+                    clienteActual: clienteActual,
+                    formatoCompleto: formatoCompleto,
+                    nombreSolo: nombreSolo,
+                    valorInput: valor
+                });
+                
+                // Si el valor actual coincide con el formato completo o el nombre solo del cliente seleccionado, mantener la selección
+                if (valor === formatoCompleto || valor === nombreSolo) {
+                    console.log('Manteniendo cliente seleccionado:', clienteActual);
+                    return; // No hacer nada más, mantener la selección actual
+                }
+            }
+        }
+        
+        // Buscar en la lista de clientes cargados (tanto por formato completo como por nombre solo)
+        let cliente = clientes.find(c => `${c.nombre} (${c.identificacion})` === valor);
+        if (!cliente) {
+            cliente = clientes.find(c => c.nombre === valor);
+        }
+        
+        console.log('Resultado de búsqueda en lista local:', cliente);
+        
         if (cliente) {
             inputClienteId.value = cliente.id;
             console.log('Cliente encontrado en lista local:', cliente);
         } else {
             // Si no se encuentra en la lista local, buscar por ID en el datalist
             const option = datalist.querySelector(`option[value="${valor}"]`);
+            console.log('Buscando en datalist para valor:', valor, 'Encontrado:', option);
+            
             if (option) {
                 const clienteId = option.getAttribute('data-id');
                 if (clienteId) {
                     inputClienteId.value = clienteId;
                     console.log('Cliente encontrado en datalist:', { valor, clienteId });
+                    
+                    // Agregar el cliente a la lista local si no está
+                    if (!clientes.find(c => c.id == clienteId)) {
+                        // Extraer nombre e identificación del valor
+                        const match = valor.match(/^(.+) \((.+)\)$/);
+                        if (match) {
+                            const nuevoCliente = {
+                                id: clienteId,
+                                nombre: match[1],
+                                identificacion: match[2]
+                            };
+                            clientes.push(nuevoCliente);
+                            console.log('Cliente agregado a lista local:', nuevoCliente);
+                        }
+                    }
                 } else {
-                    inputClienteId.value = '';
                     console.log('Opción encontrada pero sin data-id:', option);
                 }
             } else {
+                // No se encontró coincidencia, limpiar selección
                 inputClienteId.value = '';
                 console.log('Cliente no encontrado para valor:', valor);
             }
@@ -1111,6 +1264,120 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('inputCambioVuelto').value = cambio;
     }
     document.getElementById('inputConCuantoPagan').addEventListener('input', calcularCambio);
+    
+    // Evento para guardar venta
+    document.getElementById('btnGuardarVenta').addEventListener('click', function() {
+        const btn = this;
+        
+        // Debug: mostrar estado actual
+        console.log('Debug - Estado al intentar guardar venta:', {
+            clienteInputValue: inputBusqueda.value,
+            clienteIdValue: inputClienteId.value,
+            productosSeleccionados: productosSeleccionados.length
+        });
+        
+        // Validaciones usando función helper
+        if (!validarClienteSeleccionado()) {
+            const cliente = obtenerClienteSeleccionado();
+            if (!cliente) {
+                alert('Por favor selecciona un cliente válido. Cliente actual: ' + (inputBusqueda.value || 'ninguno'));
+            }
+            inputBusqueda.focus(); // Enfocar el campo de cliente para que el usuario pueda corregir
+            return;
+        }
+        
+        if (productosSeleccionados.length === 0) {
+            alert('Por favor agrega al menos un producto');
+            return;
+        }
+        
+        const total = productosSeleccionados.reduce((s, p) => s + p.precio * p.cantidad, 0);
+        const dineroRecibido = parseFloat(document.getElementById('inputConCuantoPagan').value) || 0;
+        const tipoPago = document.getElementById('inputTipoPago').value;
+        
+        if (dineroRecibido <= 0) {
+            alert('Por favor ingresa el dinero recibido');
+            return;
+        }
+        
+        if (!tipoPago) {
+            alert('Por favor selecciona el tipo de pago');
+            return;
+        }
+        
+        if (dineroRecibido < total) {
+            alert('El dinero recibido no puede ser menor al total');
+            return;
+        }
+        
+        const cambio = dineroRecibido - total;
+        
+        // Deshabilitar botón mientras se procesa
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Procesando...';
+        
+        // Preparar datos para enviar
+        const clienteSeleccionado = obtenerClienteSeleccionado();
+        const formData = new FormData();
+        formData.append('cliente_id', inputClienteId.value);
+        formData.append('productos', JSON.stringify(productosSeleccionados));
+        formData.append('total', total);
+        formData.append('metodo_pago', tipoPago.toLowerCase());
+        formData.append('dinero_recibido', dineroRecibido);
+        formData.append('cambio', cambio);
+        
+        console.log('Enviando datos al servidor:', {
+            cliente_id: inputClienteId.value,
+            cliente_info: clienteSeleccionado,
+            productos_count: productosSeleccionados.length,
+            total: total,
+            metodo_pago: tipoPago.toLowerCase()
+        });
+        
+        // Enviar al servidor
+        fetch('index.php?action=registrarVentaCompleta', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Respuesta del servidor:', data);
+            
+            if (data.success) {
+                alert('¡Venta registrada exitosamente!\n\nFactura: ' + data.numero_factura + '\nTotal: $' + total.toLocaleString('es-CO') + '\nCambio: $' + cambio.toLocaleString('es-CO'));
+                
+                // Cerrar modal
+                const modalInstance = bootstrap.Modal.getInstance(document.getElementById('modalPagoProducto'));
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+                
+                // Limpiar formulario
+                inputBusqueda.value = '';
+                inputClienteId.value = '';
+                productosSeleccionados = [];
+                renderTablaProductos();
+                document.getElementById('inputConCuantoPagan').value = '';
+                document.getElementById('inputCambioVuelto').value = '';
+                document.getElementById('inputTipoPago').value = '';
+                
+                // Recargar datos de caja
+                cargarPagosCaja();
+                
+            } else {
+                alert('Error al registrar la venta: ' + (data.message || 'Error desconocido'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al conectar con el servidor');
+        })
+        .finally(() => {
+            // Restaurar botón
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-save me-2"></i>Guardar Venta';
+        });
+    });
 });
 </script>
 <?php
