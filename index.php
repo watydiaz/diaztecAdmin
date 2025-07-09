@@ -707,40 +707,35 @@ switch ($action) {
                 exit();
             }
             
-            // Consulta adaptativa según las tablas disponibles
-            $orden = null;
+            // Primero obtener la orden básica
+            $query_orden = "SELECT 
+                                o.id,
+                                CONCAT('ORD-', o.id) as numero_orden,
+                                COALESCE(o.falla_reportada, 'Sin descripción') as descripcion_problema,
+                                COALESCE(o.diagnostico, 'Pendiente') as solucion,
+                                o.fecha_ingreso,
+                                o.fecha_entrega_estimada as fecha_entrega,
+                                COALESCE(o.estado, 'pendiente') as estado,
+                                COALESCE(c.nombre, 'Cliente no encontrado') as cliente_nombre,
+                                COALESCE(c.identificacion, 'N/A') as cliente_identificacion,
+                                COALESCE(c.telefono, '') as cliente_telefono,
+                                COALESCE(c.email, '') as cliente_email,
+                                COALESCE(c.direccion, '') as cliente_direccion,
+                                CONCAT(COALESCE(o.marca, ''), ' ', COALESCE(o.modelo, '')) as equipo_nombre,
+                                COALESCE(o.marca, '') as equipo_marca,
+                                COALESCE(o.modelo, '') as equipo_modelo,
+                                COALESCE(o.imei_serial, '') as equipo_serial
+                            FROM ordenes_reparacion o" . 
+                            ($tables_exist['clientes'] ? " LEFT JOIN clientes c ON o.cliente_id = c.id" : "") . 
+                            " WHERE o.id = ?";
             
-            if ($tables_exist['clientes']) {
-                // Consulta completa con clientes
+            if (!$tables_exist['clientes']) {
+                // Si no hay tabla de clientes, usar valores por defecto
                 $query_orden = "SELECT 
                                     o.id,
                                     CONCAT('ORD-', o.id) as numero_orden,
                                     COALESCE(o.falla_reportada, 'Sin descripción') as descripcion_problema,
                                     COALESCE(o.diagnostico, 'Pendiente') as solucion,
-                                    0 as costo_total,
-                                    o.fecha_ingreso,
-                                    o.fecha_entrega_estimada as fecha_entrega,
-                                    COALESCE(o.estado, 'pendiente') as estado,
-                                    COALESCE(c.nombre, 'Cliente no encontrado') as cliente_nombre,
-                                    COALESCE(c.identificacion, 'N/A') as cliente_identificacion,
-                                    COALESCE(c.telefono, '') as cliente_telefono,
-                                    COALESCE(c.email, '') as cliente_email,
-                                    COALESCE(c.direccion, '') as cliente_direccion,
-                                    CONCAT(COALESCE(o.marca, ''), ' ', COALESCE(o.modelo, '')) as equipo_nombre,
-                                    COALESCE(o.marca, '') as equipo_marca,
-                                    COALESCE(o.modelo, '') as equipo_modelo,
-                                    COALESCE(o.imei_serial, '') as equipo_serial
-                                FROM ordenes_reparacion o
-                                LEFT JOIN clientes c ON o.cliente_id = c.id
-                                WHERE o.id = ?";
-            } else {
-                // Solo tabla de órdenes
-                $query_orden = "SELECT 
-                                    o.id,
-                                    CONCAT('ORD-', o.id) as numero_orden,
-                                    COALESCE(o.falla_reportada, 'Sin descripción') as descripcion_problema,
-                                    COALESCE(o.diagnostico, 'Pendiente') as solucion,
-                                    0 as costo_total,
                                     o.fecha_ingreso,
                                     o.fecha_entrega_estimada as fecha_entrega,
                                     COALESCE(o.estado, 'pendiente') as estado,
@@ -771,6 +766,31 @@ switch ($action) {
                 exit();
             }
             
+            // Obtener el costo total correcto de la tabla orden_pagos
+            $costo_total = 0;
+            if ($tables_exist['orden_pagos']) {
+                try {
+                    $query_costo = "SELECT COALESCE(MAX(costo_total), 0) as costo_total 
+                                   FROM orden_pagos 
+                                   WHERE orden_id = ?";
+                    $stmt_costo = $db->prepare($query_costo);
+                    if ($stmt_costo) {
+                        $stmt_costo->bind_param('i', $orden_id);
+                        $stmt_costo->execute();
+                        $result_costo = $stmt_costo->get_result();
+                        if ($row_costo = $result_costo->fetch_assoc()) {
+                            $costo_total = floatval($row_costo['costo_total']);
+                        }
+                        $stmt_costo->close();
+                    }
+                } catch (Exception $e) {
+                    $costo_total = 0;
+                }
+            }
+            
+            // Agregar el costo total a la orden
+            $orden['costo_total'] = $costo_total;
+            
             // Obtener historial de pagos de la orden
             $pagos = [];
             if ($tables_exist['orden_pagos']) {
@@ -778,6 +798,7 @@ switch ($action) {
                     $query_pagos = "SELECT 
                                         id,
                                         COALESCE(dinero_recibido, 0) as dinero_recibido,
+                                        COALESCE(costo_total, 0) as costo_total,
                                         fecha_pago,
                                         COALESCE(metodo_pago, 'efectivo') as metodo_pago
                                     FROM orden_pagos
