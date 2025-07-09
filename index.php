@@ -1,8 +1,20 @@
 <?php
 
-// Activo la visualización de errores para depurar problemas
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+// Solo mostrar errores si no es una petición AJAX
+$is_ajax = isset($_GET['action']) && in_array($_GET['action'], ['obtenerPagosCaja', 'obtenerDetalleFactura', 'obtenerDetalleOrden', 'registrarVentaCompleta']);
+
+if (!$is_ajax) {
+    // Activo la visualización de errores para depurar problemas
+    ini_set('display_errors', 1);
+    error_reporting(E_ALL);
+} else {
+    // Para peticiones AJAX, desactivar errores en pantalla
+    ini_set('display_errors', 0);
+    error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
+}
+
+// Iniciar buffer de salida
+ob_start();
 
 // Archivo principal para manejar el enrutamiento
 
@@ -242,49 +254,163 @@ switch ($action) {
         break;
 
     case 'obtenerPagosCaja':
-        require_once 'models/Conexion.php';
-        $db = (new Conexion())->getConexion();
+        // Desactivar el buffer de salida y errores de display para evitar HTML extra
+        ob_clean();
+        error_reporting(0);
+        ini_set('display_errors', 0);
         
-        // Pagos de órdenes de servicio
-        $pagos = [];
-        $result = $db->query("SELECT id, fecha_pago, orden_id, dinero_recibido FROM orden_pagos ORDER BY fecha_pago DESC");
-        if ($result) {
-            while ($row = $result->fetch_assoc()) {
-                $pagos[] = $row;
+        try {
+            require_once 'models/Conexion.php';
+            $db = Conexion::getConexion();
+            
+            // Obtener parámetros de fecha (por defecto día actual)
+            $fecha_inicio = isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : date('Y-m-d');
+            $fecha_fin = isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : date('Y-m-d');
+            
+            // Validar formato de fechas
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_inicio) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_fin)) {
+                $fecha_inicio = date('Y-m-d');
+                $fecha_fin = date('Y-m-d');
             }
-        }
-        
-        // Pagos de productos (ventas)
-        $pagos_productos = [];
-        $query = "SELECT 
-                    pp.id,
-                    pp.venta_id,
-                    pp.dinero_recibido as total,
-                    pp.metodo_pago,
-                    pp.fecha_pago,
-                    v.numero_factura,
-                    v.total as total_venta,
-                    c.nombre as cliente_nombre,
-                    c.identificacion as cliente_identificacion,
-                    u.nombre as usuario_nombre
-                  FROM pagos_productos pp
-                  INNER JOIN ventas v ON pp.venta_id = v.id
-                  INNER JOIN clientes c ON v.cliente_id = c.id
-                  LEFT JOIN usuarios u ON pp.usuario_id = u.id
-                  ORDER BY pp.fecha_pago DESC";
-        
-        $result_productos = $db->query($query);
-        if ($result_productos) {
-            while ($row = $result_productos->fetch_assoc()) {
-                $pagos_productos[] = $row;
+            
+            // Inicializar arrays
+            $pagos = [];
+            $pagos_productos = [];
+            
+            // Pagos de productos (ventas) con filtro de fecha - Consulta más simple
+            try {
+                $query = "SELECT 
+                            pp.id,
+                            pp.venta_id,
+                            pp.dinero_recibido as total,
+                            COALESCE(pp.metodo_pago, 'efectivo') as metodo_pago,
+                            pp.fecha_pago,
+                            COALESCE(v.numero_factura, CONCAT('FAC-', pp.venta_id)) as numero_factura,
+                            v.total as total_venta,
+                            COALESCE(c.nombre, 'Cliente') as cliente_nombre,
+                            COALESCE(c.identificacion, 'N/A') as cliente_identificacion,
+                            COALESCE(u.nombre, 'Sistema') as usuario_nombre
+                          FROM pagos_productos pp
+                          INNER JOIN ventas v ON pp.venta_id = v.id
+                          INNER JOIN clientes c ON v.cliente_id = c.id
+                          LEFT JOIN usuarios u ON pp.usuario_id = u.id
+                          WHERE DATE(pp.fecha_pago) BETWEEN ? AND ?
+                          ORDER BY pp.fecha_pago DESC";
+                
+                $stmt_productos = $db->prepare($query);
+                if ($stmt_productos) {
+                    $stmt_productos->bind_param('ss', $fecha_inicio, $fecha_fin);
+                    $stmt_productos->execute();
+                    $result_productos = $stmt_productos->get_result();
+                    
+                    if ($result_productos) {
+                        while ($row = $result_productos->fetch_assoc()) {
+                            $pagos_productos[] = $row;
+                        }
+                    }
+                    $stmt_productos->close();
+                }
+            } catch (Exception $e) {
+                // Agregar error a los datos para debug
+                $pagos_productos = [];
             }
+            
+            // Pagos de órdenes - consulta con datos reales del cliente
+            try {
+                // Verificar si las tablas de órdenes existen
+                $check_orden = $db->query("SHOW TABLES LIKE 'orden_pagos'");
+                $check_ordenes_reparacion = $db->query("SHOW TABLES LIKE 'ordenes_reparacion'");
+                $check_clientes = $db->query("SHOW TABLES LIKE 'clientes'");
+                
+                if ($check_orden && $check_orden->num_rows > 0) {
+                    if ($check_ordenes_reparacion && $check_ordenes_reparacion->num_rows > 0 && 
+                        $check_clientes && $check_clientes->num_rows > 0) {
+                        // Consulta completa con cliente y orden
+                        $query_ordenes = "SELECT 
+                                            op.id,
+                                            op.fecha_pago,
+                                            op.orden_id,
+                                            op.dinero_recibido,
+                                            op.metodo_pago,
+                                            CONCAT('ORD-', op.orden_id) as numero_orden,
+                                            COALESCE(c.nombre, 'Cliente no encontrado') as cliente_nombre,
+                                            COALESCE(c.identificacion, 'N/A') as cliente_identificacion,
+                                            COALESCE(c.telefono, '') as cliente_telefono,
+                                            COALESCE(c.email, '') as cliente_email,
+                                            CONCAT(COALESCE(o.marca, ''), ' ', COALESCE(o.modelo, '')) as equipo_info
+                                          FROM orden_pagos op
+                                          LEFT JOIN ordenes_reparacion o ON op.orden_id = o.id
+                                          LEFT JOIN clientes c ON o.cliente_id = c.id
+                                          WHERE DATE(op.fecha_pago) BETWEEN ? AND ? 
+                                          ORDER BY op.fecha_pago DESC";
+                    } else {
+                        // Consulta básica sin información de cliente
+                        $query_ordenes = "SELECT 
+                                            op.id,
+                                            op.fecha_pago,
+                                            op.orden_id,
+                                            op.dinero_recibido,
+                                            op.metodo_pago,
+                                            CONCAT('ORD-', op.orden_id) as numero_orden,
+                                            'Cliente de Orden' as cliente_nombre,
+                                            'N/A' as cliente_identificacion,
+                                            '' as cliente_telefono,
+                                            '' as cliente_email,
+                                            'Equipo no disponible' as equipo_info
+                                          FROM orden_pagos op
+                                          WHERE DATE(op.fecha_pago) BETWEEN ? AND ? 
+                                          ORDER BY op.fecha_pago DESC";
+                    }
+                    
+                    $stmt = $db->prepare($query_ordenes);
+                    if ($stmt) {
+                        $stmt->bind_param('ss', $fecha_inicio, $fecha_fin);
+                        $stmt->execute();
+                        $result = $stmt->get_result();
+                        
+                        if ($result) {
+                            while ($row = $result->fetch_assoc()) {
+                                $pagos[] = $row;
+                            }
+                        }
+                        $stmt->close();
+                    }
+                }
+            } catch (Exception $e) {
+                // Si no hay tabla de órdenes, continuar con array vacío
+                $pagos = [];
+            }
+            
+            // Respuesta JSON limpia
+            header('Content-Type: application/json; charset=utf-8');
+            $response = [
+                'success' => true,
+                'pagos_ordenes' => $pagos,
+                'pagos_productos' => $pagos_productos,
+                'fecha_inicio' => $fecha_inicio,
+                'fecha_fin' => $fecha_fin,
+                'debug' => [
+                    'total_ordenes' => count($pagos),
+                    'total_productos' => count($pagos_productos),
+                    'fecha_servidor' => date('Y-m-d H:i:s')
+                ]
+            ];
+            
+            echo json_encode($response);
+            
+        } catch (Exception $e) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'pagos_ordenes' => [],
+                'pagos_productos' => [],
+                'debug' => [
+                    'error_file' => $e->getFile(),
+                    'error_line' => $e->getLine()
+                ]
+            ]);
         }
-        
-        header('Content-Type: application/json');
-        echo json_encode([
-            'pagos_ordenes' => $pagos,
-            'pagos_productos' => $pagos_productos
-        ]);
         exit();
         break;
 
@@ -547,6 +673,158 @@ switch ($action) {
             'venta' => $venta,
             'detalles' => $detalles
         ]);
+        exit();
+        break;
+
+    case 'obtenerDetalleOrden':
+        // Desactivar errores para esta petición AJAX
+        ob_clean();
+        error_reporting(0);
+        ini_set('display_errors', 0);
+        
+        try {
+            require_once 'models/Conexion.php';
+            $db = Conexion::getConexion();
+            $orden_id = isset($_GET['orden_id']) ? intval($_GET['orden_id']) : 0;
+            
+            if (!$orden_id) {
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['success' => false, 'message' => 'ID de orden no proporcionado']);
+                exit();
+            }
+            
+            // Verificar qué tablas existen
+            $tables_exist = [];
+            $check_tables = ['ordenes_reparacion', 'clientes', 'orden_pagos'];
+            foreach ($check_tables as $table) {
+                $result = $db->query("SHOW TABLES LIKE '$table'");
+                $tables_exist[$table] = ($result && $result->num_rows > 0);
+            }
+            
+            if (!$tables_exist['ordenes_reparacion']) {
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['success' => false, 'message' => 'Tabla de órdenes no encontrada']);
+                exit();
+            }
+            
+            // Consulta adaptativa según las tablas disponibles
+            $orden = null;
+            
+            if ($tables_exist['clientes']) {
+                // Consulta completa con clientes
+                $query_orden = "SELECT 
+                                    o.id,
+                                    CONCAT('ORD-', o.id) as numero_orden,
+                                    COALESCE(o.falla_reportada, 'Sin descripción') as descripcion_problema,
+                                    COALESCE(o.diagnostico, 'Pendiente') as solucion,
+                                    0 as costo_total,
+                                    o.fecha_ingreso,
+                                    o.fecha_entrega_estimada as fecha_entrega,
+                                    COALESCE(o.estado, 'pendiente') as estado,
+                                    COALESCE(c.nombre, 'Cliente no encontrado') as cliente_nombre,
+                                    COALESCE(c.identificacion, 'N/A') as cliente_identificacion,
+                                    COALESCE(c.telefono, '') as cliente_telefono,
+                                    COALESCE(c.email, '') as cliente_email,
+                                    COALESCE(c.direccion, '') as cliente_direccion,
+                                    CONCAT(COALESCE(o.marca, ''), ' ', COALESCE(o.modelo, '')) as equipo_nombre,
+                                    COALESCE(o.marca, '') as equipo_marca,
+                                    COALESCE(o.modelo, '') as equipo_modelo,
+                                    COALESCE(o.imei_serial, '') as equipo_serial
+                                FROM ordenes_reparacion o
+                                LEFT JOIN clientes c ON o.cliente_id = c.id
+                                WHERE o.id = ?";
+            } else {
+                // Solo tabla de órdenes
+                $query_orden = "SELECT 
+                                    o.id,
+                                    CONCAT('ORD-', o.id) as numero_orden,
+                                    COALESCE(o.falla_reportada, 'Sin descripción') as descripcion_problema,
+                                    COALESCE(o.diagnostico, 'Pendiente') as solucion,
+                                    0 as costo_total,
+                                    o.fecha_ingreso,
+                                    o.fecha_entrega_estimada as fecha_entrega,
+                                    COALESCE(o.estado, 'pendiente') as estado,
+                                    'Cliente no disponible' as cliente_nombre,
+                                    'N/A' as cliente_identificacion,
+                                    '' as cliente_telefono,
+                                    '' as cliente_email,
+                                    '' as cliente_direccion,
+                                    CONCAT(COALESCE(o.marca, ''), ' ', COALESCE(o.modelo, '')) as equipo_nombre,
+                                    COALESCE(o.marca, '') as equipo_marca,
+                                    COALESCE(o.modelo, '') as equipo_modelo,
+                                    COALESCE(o.imei_serial, '') as equipo_serial
+                                FROM ordenes_reparacion o
+                                WHERE o.id = ?";
+            }
+            
+            $stmt = $db->prepare($query_orden);
+            if ($stmt) {
+                $stmt->bind_param('i', $orden_id);
+                $stmt->execute();
+                $orden = $stmt->get_result()->fetch_assoc();
+                $stmt->close();
+            }
+            
+            if (!$orden) {
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['success' => false, 'message' => 'Orden no encontrada']);
+                exit();
+            }
+            
+            // Obtener historial de pagos de la orden
+            $pagos = [];
+            if ($tables_exist['orden_pagos']) {
+                try {
+                    $query_pagos = "SELECT 
+                                        id,
+                                        COALESCE(dinero_recibido, 0) as dinero_recibido,
+                                        fecha_pago,
+                                        COALESCE(metodo_pago, 'efectivo') as metodo_pago
+                                    FROM orden_pagos
+                                    WHERE orden_id = ?
+                                    ORDER BY fecha_pago DESC";
+                    
+                    $stmt_pagos = $db->prepare($query_pagos);
+                    if ($stmt_pagos) {
+                        $stmt_pagos->bind_param('i', $orden_id);
+                        $stmt_pagos->execute();
+                        $result_pagos = $stmt_pagos->get_result();
+                        
+                        while ($row = $result_pagos->fetch_assoc()) {
+                            $pagos[] = $row;
+                        }
+                        $stmt_pagos->close();
+                    }
+                } catch (Exception $e) {
+                    // Si hay error en pagos, continuar con array vacío
+                    $pagos = [];
+                }
+            }
+            
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'success' => true,
+                'orden' => $orden,
+                'pagos' => $pagos,
+                'debug' => [
+                    'orden_id' => $orden_id,
+                    'tables_exist' => $tables_exist,
+                    'total_pagos' => count($pagos)
+                ]
+            ]);
+            
+        } catch (Exception $e) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al obtener detalle de orden: ' . $e->getMessage(),
+                'debug' => [
+                    'error_file' => $e->getFile(),
+                    'error_line' => $e->getLine(),
+                    'orden_id' => isset($orden_id) ? $orden_id : 'no definido'
+                ]
+            ]);
+        }
         exit();
         break;
 

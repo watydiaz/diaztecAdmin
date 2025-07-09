@@ -33,10 +33,11 @@ require_once 'header.php';
                 <table class="table table-striped table-hover" id="tablaCajaOrdenes">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Fecha de Pago</th>
-                            <th>ID Orden</th>
-                            <th>Dinero Recibido</th>
+                            <th>Orden</th>
+                            <th>Cliente</th>
+                            <th>Fecha</th>
+                            <th>Total</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="tbodyCajaPagosOrdenes">
@@ -107,158 +108,187 @@ function filtrarPorFechas() {
     const fechaInicio = document.getElementById('fechaInicio').value;
     const fechaFin = document.getElementById('fechaFin').value;
     
-    // Filtrar tabla de órdenes (fecha en índice 1)
-    document.querySelectorAll('#tablaCajaOrdenes tbody tr').forEach(tr => {
-        const fechaTexto = tr.children[1]?.textContent.trim();
-        if (!fechaInicio || !fechaFin || !fechaTexto) {
-            tr.style.display = '';
-            return;
-        }
-        
-        // Extraer solo la fecha (formato YYYY-MM-DD) del texto de fecha
-        const fechaMatch = fechaTexto.match(/(\d{4}-\d{2}-\d{2})/);
-        if (fechaMatch) {
-            const fecha = fechaMatch[1];
-            if (fecha >= fechaInicio && fecha <= fechaFin) {
-                tr.style.display = '';
-            } else {
-                tr.style.display = 'none';
-            }
-        } else {
-            tr.style.display = '';
-        }
-    });
+    // Validar que ambas fechas estén presentes
+    if (!fechaInicio || !fechaFin) {
+        alert('Por favor selecciona tanto la fecha de inicio como la fecha fin');
+        return;
+    }
     
-    // Filtrar tabla de productos (fecha en índice 2)
-    document.querySelectorAll('#tablaCajaProductos tbody tr').forEach(tr => {
-        const fechaTexto = tr.children[2]?.textContent.trim();
-        if (!fechaInicio || !fechaFin || !fechaTexto) {
-            tr.style.display = '';
-            return;
-        }
-        
-        // Extraer solo la fecha (formato YYYY-MM-DD) del texto de fecha formateado
-        const fechaMatch = fechaTexto.match(/(\d{2})\/(\d{2})\/(\d{4})/);
-        if (fechaMatch) {
-            // Convertir de DD/MM/YYYY a YYYY-MM-DD para comparar
-            const fecha = `${fechaMatch[3]}-${fechaMatch[2]}-${fechaMatch[1]}`;
-            if (fecha >= fechaInicio && fecha <= fechaFin) {
-                tr.style.display = '';
-            } else {
-                tr.style.display = 'none';
-            }
-        } else {
-            tr.style.display = '';
-        }
-    });
+    // Validar que la fecha inicio no sea mayor que la fecha fin
+    if (fechaInicio > fechaFin) {
+        alert('La fecha de inicio no puede ser mayor que la fecha fin');
+        return;
+    }
     
-    actualizarVentaTotal();
+    // Recargar datos con el nuevo rango de fechas
+    cargarPagosCaja(fechaInicio, fechaFin);
 }
+// Función simplificada - ya no es necesaria porque los totales se calculan en cargarPagosCaja()
 function actualizarVentaTotal() {
-    let total = 0;
-    // Sumar visibles de órdenes
-    document.querySelectorAll('#tablaCajaOrdenes tbody tr').forEach(tr => {
-        if (tr.style.display !== 'none') {
-            const val = tr.children[3]?.textContent.replace(/[^\d]/g, '') || '0';
-            total += parseInt(val, 10) || 0;
-        }
-    });
-    // Sumar visibles de productos (columna 3 = Total)
-    document.querySelectorAll('#tablaCajaProductos tbody tr').forEach(tr => {
-        if (tr.style.display !== 'none') {
-            // En la nueva estructura, el total está en la columna índice 3
-            const val = tr.children[3]?.textContent.replace(/[^\d]/g, '') || '0';
-            total += parseInt(val, 10) || 0;
-        }
-    });
-    document.getElementById('ventaTotal').textContent = '$' + total.toLocaleString('es-CO');
+    // Esta función ya no es necesaria porque el filtro se hace en el servidor
+    // Los totales se calculan automáticamente en cargarPagosCaja()
+    console.log('actualizarVentaTotal() - Función obsoleta, totales calculados en servidor');
 }
 document.addEventListener('DOMContentLoaded', function() {
+    // Cargar datos del día actual por defecto
     cargarPagosCaja();
+    
     // Inicializar fechas por defecto a hoy
     const hoy = getFechaHoy();
     document.getElementById('fechaInicio').value = hoy;
     document.getElementById('fechaFin').value = hoy;
-    filtrarPorFechas();
+    
+    // Event listeners para los botones de fecha
     document.getElementById('btnHoy').onclick = function() {
         const hoy = getFechaHoy();
         document.getElementById('fechaInicio').value = hoy;
         document.getElementById('fechaFin').value = hoy;
-        filtrarPorFechas();
+        cargarPagosCaja(hoy, hoy);
     };
+    
     document.getElementById('btnAyer').onclick = function() {
         const ayer = getFechaAyer();
         document.getElementById('fechaInicio').value = ayer;
         document.getElementById('fechaFin').value = ayer;
-        filtrarPorFechas();
+        cargarPagosCaja(ayer, ayer);
     };
+    
     document.getElementById('btnFiltrarFechas').onclick = filtrarPorFechas;
     document.getElementById('fechaInicio').onchange = filtrarPorFechas;
     document.getElementById('fechaFin').onchange = filtrarPorFechas;
+    
     // Inicializar Bootstrap Select
     $('.selectpicker').selectpicker();
 });
 
-function cargarPagosCaja() {
-    fetch('index.php?action=obtenerPagosCaja')
-        .then(r => r.json())
-        .then(data => {
-            console.log('Datos recibidos:', data); // Debug
-            
-            // Pagos de órdenes
-            const tbodyOrdenes = document.getElementById('tbodyCajaPagosOrdenes');
-            tbodyOrdenes.innerHTML = '';
-            let totalOrdenes = 0;
-            
-            if (data.pagos_ordenes && Array.isArray(data.pagos_ordenes) && data.pagos_ordenes.length > 0) {
-                data.pagos_ordenes.forEach((pago) => {
-                    totalOrdenes += Number(pago.dinero_recibido || 0);
-                    tbodyOrdenes.innerHTML += `
-                        <tr>
-                            <td>${pago.id}</td>
-                            <td>${pago.fecha_pago || ''}</td>
-                            <td>${pago.orden_id || ''}</td>
-                            <td>$${Number(pago.dinero_recibido || 0).toLocaleString('es-CO')}</td>
-                        </tr>`;
-                });
-            } else {
-                tbodyOrdenes.innerHTML = '<tr><td colspan="4" class="text-center">No hay pagos de órdenes registrados.</td></tr>';
-            }
-            document.getElementById('totalCajaOrdenes').textContent = 'Total en caja (órdenes): $' + totalOrdenes.toLocaleString('es-CO');
+function cargarPagosCaja(fechaInicio = null, fechaFin = null) {
+    // Si no se proporcionan fechas, usar el día actual
+    if (!fechaInicio || !fechaFin) {
+        const hoy = getFechaHoy();
+        fechaInicio = hoy;
+        fechaFin = hoy;
+    }
+    
+    // Construir URL con parámetros de fecha
+    const url = `/diaztecAdmin/index.php?action=obtenerPagosCaja&fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}`;
+    
+    fetch(url)
+        .then(r => {
+            console.log('Respuesta del servidor:', r);
+            return r.text(); // Obtener como texto primero para ver qué está devolviendo
+        })
+        .then(text => {
+            console.log('Respuesta raw del servidor:', text);
+            try {
+                const data = JSON.parse(text);
+                console.log('Datos parseados correctamente:', data);
+                
+                // Verificar si hay error en la respuesta
+                if (data.success === false) {
+                    console.error('Error del servidor:', data.error);
+                    throw new Error(data.error || 'Error desconocido del servidor');
+                }
+                
+                // Pagos de órdenes
+                const tbodyOrdenes = document.getElementById('tbodyCajaPagosOrdenes');
+                tbodyOrdenes.innerHTML = '';
+                let totalOrdenes = 0;
+                
+                if (data.pagos_ordenes && Array.isArray(data.pagos_ordenes) && data.pagos_ordenes.length > 0) {
+                    data.pagos_ordenes.forEach((pago) => {
+                        totalOrdenes += Number(pago.dinero_recibido || 0);
+                        tbodyOrdenes.innerHTML += `
+                            <tr>
+                                <td><strong>${pago.numero_orden || `Orden #${pago.orden_id}`}</strong></td>
+                                <td>${pago.cliente_nombre || ''}<br><small class="text-muted">${pago.cliente_identificacion || ''}</small></td>
+                                <td>${formatearFecha(pago.fecha_pago || '')}</td>
+                                <td><strong>$${Number(pago.dinero_recibido || 0).toLocaleString('es-CO')}</strong></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-info" onclick="verDetalleOrden(${pago.orden_id})" title="Ver detalle de orden">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </button>
+                                </td>
+                            </tr>`;
+                    });
+                } else {
+                    tbodyOrdenes.innerHTML = '<tr><td colspan="5" class="text-center">No hay pagos de órdenes registrados en el período seleccionado.</td></tr>';
+                }
+                document.getElementById('totalCajaOrdenes').textContent = 'Total en caja (órdenes): $' + totalOrdenes.toLocaleString('es-CO');
 
-            // Pagos de productos (ventas) - con información completa
-            const tbodyProductos = document.getElementById('tbodyCajaPagosProductos');
-            tbodyProductos.innerHTML = '';
-            let totalProductos = 0;
-            
-            if (data.pagos_productos && Array.isArray(data.pagos_productos) && data.pagos_productos.length > 0) {
-                data.pagos_productos.forEach((pago) => {
-                    totalProductos += Number(pago.total || 0);
-                    tbodyProductos.innerHTML += `
-                        <tr>
-                            <td><strong>${pago.numero_factura || ''}</strong></td>
-                            <td>${pago.cliente_nombre || ''}<br><small class="text-muted">${pago.cliente_identificacion || ''}</small></td>
-                            <td>${formatearFecha(pago.fecha_pago || '')}</td>
-                            <td><strong>$${Number(pago.total || 0).toLocaleString('es-CO')}</strong></td>
-                            <td><span class="badge bg-primary">${(pago.metodo_pago || '').charAt(0).toUpperCase() + (pago.metodo_pago || '').slice(1)}</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-info" onclick="verDetalleFactura(${pago.venta_id})" title="Ver detalle de factura">
-                                    <i class="bi bi-eye"></i> Ver
-                                </button>
-                            </td>
-                        </tr>`;
-                });
-            } else {
-                tbodyProductos.innerHTML = '<tr><td colspan="6" class="text-center">No hay pagos de productos registrados.</td></tr>';
+                // Pagos de productos (ventas) - con información completa
+                const tbodyProductos = document.getElementById('tbodyCajaPagosProductos');
+                tbodyProductos.innerHTML = '';
+                let totalProductos = 0;
+                
+                if (data.pagos_productos && Array.isArray(data.pagos_productos) && data.pagos_productos.length > 0) {
+                    data.pagos_productos.forEach((pago) => {
+                        totalProductos += Number(pago.total || 0);
+                        tbodyProductos.innerHTML += `
+                            <tr>
+                                <td><strong>${pago.numero_factura || ''}</strong></td>
+                                <td>${pago.cliente_nombre || ''}<br><small class="text-muted">${pago.cliente_identificacion || ''}</small></td>
+                                <td>${formatearFecha(pago.fecha_pago || '')}</td>
+                                <td><strong>$${Number(pago.total || 0).toLocaleString('es-CO')}</strong></td>
+                                <td><span class="badge bg-primary">${(pago.metodo_pago || '').charAt(0).toUpperCase() + (pago.metodo_pago || '').slice(1)}</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-info" onclick="verDetalleFactura(${pago.venta_id})" title="Ver detalle de factura">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </button>
+                                </td>
+                            </tr>`;
+                    });
+                } else {
+                    tbodyProductos.innerHTML = '<tr><td colspan="6" class="text-center">No hay pagos de productos registrados en el período seleccionado.</td></tr>';
+                }
+                document.getElementById('totalCajaProductos').textContent = 'Total en caja (productos): $' + totalProductos.toLocaleString('es-CO');
+                
+                // Actualizar total general
+                const totalGeneral = totalOrdenes + totalProductos;
+                document.getElementById('ventaTotal').textContent = '$' + totalGeneral.toLocaleString('es-CO');
+                
+                // Mostrar información del período
+                const infoPeriodo = fechaInicio === fechaFin ? 
+                    `Mostrando ventas del ${formatearFechaSinHora(fechaInicio)}` : 
+                    `Mostrando ventas desde ${formatearFechaSinHora(fechaInicio)} hasta ${formatearFechaSinHora(fechaFin)}`;
+                
+                // Agregar información del período si no existe
+                let infoElement = document.getElementById('infoPeriodo');
+                if (!infoElement) {
+                    infoElement = document.createElement('div');
+                    infoElement.id = 'infoPeriodo';
+                    infoElement.className = 'alert alert-info text-center mb-3';
+                    document.querySelector('.container-fluid h3').insertAdjacentElement('afterend', infoElement);
+                }
+                infoElement.innerHTML = `<i class="bi bi-calendar3"></i> ${infoPeriodo}`;
+                
+                // Mostrar información de debug si está disponible
+                if (data.debug) {
+                    console.log('Debug info:', data.debug);
+                }
+                
+            } catch (parseError) {
+                console.error('Error al parsear JSON:', parseError);
+                console.error('Respuesta del servidor que no se pudo parsear:', text);
+                throw new Error('El servidor devolvió una respuesta inválida. Respuesta: ' + text.substring(0, 200) + '...');
             }
-            document.getElementById('totalCajaProductos').textContent = 'Total en caja (productos): $' + totalProductos.toLocaleString('es-CO');
-            
-            // Actualizar total general
-            const totalGeneral = totalOrdenes + totalProductos;
-            document.getElementById('ventaTotal').textContent = '$' + totalGeneral.toLocaleString('es-CO');
         })
         .catch(error => {
             console.error('Error al cargar pagos:', error);
+            
+            // Mostrar mensaje de error más informativo
+            const tbodyOrdenes = document.getElementById('tbodyCajaPagosOrdenes');
+            const tbodyProductos = document.getElementById('tbodyCajaPagosProductos');
+            
+            const mensajeError = `<tr><td colspan="5" class="text-center text-danger">
+                <i class="bi bi-exclamation-triangle"></i> Error al cargar datos: ${error.message}
+                <br><small>Revisa la consola para más detalles</small>
+            </td></tr>`;
+            
+            tbodyOrdenes.innerHTML = mensajeError;
+            tbodyProductos.innerHTML = mensajeError.replace('colspan="5"', 'colspan="6"');
+            
+            // Mostrar alerta
+            alert('Error al cargar los datos de caja. Revisa la consola del navegador para más información.');
         });
 }
 
@@ -275,9 +305,20 @@ function formatearFecha(fechaStr) {
     });
 }
 
+// Función auxiliar para formatear fecha sin hora
+function formatearFechaSinHora(fechaStr) {
+    if (!fechaStr) return '';
+    const fecha = new Date(fechaStr + 'T00:00:00'); // Agregar hora para evitar problemas de zona horaria
+    return fecha.toLocaleDateString('es-CO', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
 // Función para ver el detalle de una factura
 function verDetalleFactura(ventaId) {
-    fetch(`index.php?action=obtenerDetalleFactura&venta_id=${ventaId}`)
+    fetch(`/diaztecAdmin/index.php?action=obtenerDetalleFactura&venta_id=${ventaId}`)
         .then(r => r.json())
         .then(data => {
             if (data.success) {
@@ -289,6 +330,23 @@ function verDetalleFactura(ventaId) {
         .catch(error => {
             console.error('Error al cargar detalle de factura:', error);
             alert('Error al cargar el detalle de la factura');
+        });
+}
+
+// Función para ver el detalle de una orden
+function verDetalleOrden(ordenId) {
+    fetch(`/diaztecAdmin/index.php?action=obtenerDetalleOrden&orden_id=${ordenId}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                mostrarModalDetalleOrden(data.orden, data.pagos);
+            } else {
+                alert('Error al cargar el detalle de la orden: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error al cargar detalle de orden:', error);
+            alert('Error al cargar el detalle de la orden');
         });
 }
 </script>
@@ -573,7 +631,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Guardando...';
         
         // Enviar datos al servidor
-        fetch('index.php?action=agregarCliente', {
+        fetch('/diaztecAdmin/index.php?action=agregarCliente', {
             method: 'POST',
             body: formData
         })
@@ -832,7 +890,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Agregar un pequeño delay para evitar muchas peticiones
             timeoutBusqueda = setTimeout(() => {
                 console.log('Buscando clientes para:', query);
-                fetch(`index.php?action=buscarCliente&query=${encodeURIComponent(query)}`)
+                fetch(`/diaztecAdmin/index.php?action=buscarCliente&query=${encodeURIComponent(query)}`)
                     .then(r => r.json())
                     .then(data => {
                         console.log('Respuesta de búsqueda de clientes:', data);
@@ -1017,7 +1075,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (query.length > 1) {
             // Agregar un pequeño delay para evitar muchas peticiones
             timeoutBusquedaProducto = setTimeout(() => {
-                fetch(`index.php?action=buscarProducto&query=${encodeURIComponent(query)}`)
+                fetch(`/diaztecAdmin/index.php?action=buscarProducto&query=${encodeURIComponent(query)}`)
                     .then(r => r.json())
                     .then(data => {
                         productos = data.productos || [];
@@ -1129,7 +1187,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Guardando...';
         
         // Enviar datos al servidor
-        fetch('index.php?action=agregarProducto', {
+        fetch('/diaztecAdmin/index.php?action=agregarProducto', {
             method: 'POST',
             body: formData
         })
@@ -1403,7 +1461,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Enviar al servidor
-        fetch('index.php?action=registrarVentaCompleta', {
+        fetch('/diaztecAdmin/index.php?action=registrarVentaCompleta', {
             method: 'POST',
             body: formData
         })
@@ -1429,8 +1487,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('inputCambioVuelto').value = '';
                 document.getElementById('inputTipoPago').value = '';
                 
-                // Recargar datos de caja
-                cargarPagosCaja();
+                // Recargar datos de caja manteniendo el filtro actual
+                const fechaInicio = document.getElementById('fechaInicio').value;
+                const fechaFin = document.getElementById('fechaFin').value;
+                cargarPagosCaja(fechaInicio, fechaFin);
                 
             } else {
                 alert('Error al registrar la venta: ' + (data.message || 'Error desconocido'));
@@ -1464,7 +1524,42 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-success" onclick="enviarFacturaWhatsApp()">
+                    <i class="bi bi-whatsapp"></i> WhatsApp
+                </button>
+                <button type="button" class="btn btn-info" onclick="enviarFacturaEmail()">
+                    <i class="bi bi-envelope"></i> Email
+                </button>
                 <button type="button" class="btn btn-primary" onclick="imprimirFactura()">
+                    <i class="bi bi-printer"></i> Imprimir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para mostrar detalle de orden -->
+<div class="modal fade" id="modalDetalleOrden" tabindex="-1" aria-labelledby="modalDetalleOrdenLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalDetalleOrdenLabel">Detalle de Orden de Servicio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="contenidoDetalleOrden">
+                    <!-- Contenido dinámico -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-success" onclick="enviarOrdenWhatsApp()">
+                    <i class="bi bi-whatsapp"></i> WhatsApp
+                </button>
+                <button type="button" class="btn btn-info" onclick="enviarOrdenEmail()">
+                    <i class="bi bi-envelope"></i> Email
+                </button>
+                <button type="button" class="btn btn-primary" onclick="imprimirOrden()">
                     <i class="bi bi-printer"></i> Imprimir
                 </button>
             </div>
@@ -1493,6 +1588,22 @@ function mostrarModalDetalleFactura(venta, detalles) {
     });
     
     contenido.innerHTML = `
+        <!-- Encabezado con logo y datos de empresa -->
+        <div class="row mb-4">
+            <div class="col-md-3 text-center">
+                <img src="assets/img/logo192x192.png" alt="Logo Empresa" class="img-fluid" style="max-height: 80px;">
+            </div>
+            <div class="col-md-9">
+                <h4 class="fw-bold text-primary mb-1">DIAZTEC - Reparaciones y Tecnología</h4>
+                <p class="mb-1"><strong>NIT:</strong> 123456789-0</p>
+                <p class="mb-1"><strong>Dirección:</strong> Calle 123 #45-67, Ciudad</p>
+                <p class="mb-1"><strong>Teléfono:</strong> +57 300 123 4567</p>
+                <p class="mb-0"><strong>Email:</strong> contacto@diaztec.com</p>
+            </div>
+        </div>
+        
+        <hr class="my-3">
+        
         <div class="row">
             <div class="col-md-6">
                 <h6 class="fw-bold text-primary">Información de la Venta</h6>
@@ -1534,15 +1645,299 @@ function mostrarModalDetalleFactura(venta, detalles) {
                 </tfoot>
             </table>
         </div>
+        
+        <div class="mt-3 text-center">
+            <p class="text-muted small">¡Gracias por su compra! - DIAZTEC</p>
+        </div>
     `;
+    
+    // Guardar datos para funciones de envío
+    window.currentFactura = { venta, detalles };
     
     // Mostrar el modal
     const modal = new bootstrap.Modal(document.getElementById('modalDetalleFactura'));
     modal.show();
 }
 
-// Función para imprimir factura (por implementar)
+// Función para mostrar el modal de detalle de orden
+function mostrarModalDetalleOrden(orden, pagos) {
+    const contenido = document.getElementById('contenidoDetalleOrden');
+    
+    let pagosHtml = '';
+    let totalPagado = 0;
+    
+    pagos.forEach(pago => {
+        totalPagado += parseFloat(pago.dinero_recibido);
+        pagosHtml += `
+            <tr>
+                <td>${formatearFecha(pago.fecha_pago)}</td>
+                <td>$${Number(pago.dinero_recibido).toLocaleString('es-CO')}</td>
+                <td><span class="badge bg-info">${pago.metodo_pago || 'N/A'}</span></td>
+            </tr>
+        `;
+    });
+    
+    const saldoPendiente = parseFloat(orden.costo_total) - totalPagado;
+    const estadoBadge = orden.estado === 'entregado' ? 'bg-success' : 
+                       orden.estado === 'en_proceso' ? 'bg-warning' : 'bg-secondary';
+    
+    contenido.innerHTML = `
+        <!-- Encabezado con logo y datos de empresa -->
+        <div class="row mb-4">
+            <div class="col-md-3 text-center">
+                <img src="assets/img/logo192x192.png" alt="Logo Empresa" class="img-fluid" style="max-height: 80px;">
+            </div>
+            <div class="col-md-9">
+                <h4 class="fw-bold text-primary mb-1">DIAZTEC - Reparaciones y Tecnología</h4>
+                <p class="mb-1"><strong>NIT:</strong> 123456789-0</p>
+                <p class="mb-1"><strong>Dirección:</strong> Calle 123 #45-67, Ciudad</p>
+                <p class="mb-1"><strong>Teléfono:</strong> +57 300 123 4567</p>
+                <p class="mb-0"><strong>Email:</strong> contacto@diaztec.com</p>
+            </div>
+        </div>
+        
+        <hr class="my-3">
+        
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="fw-bold text-primary">Información de la Orden</h6>
+                <p><strong>Orden:</strong> ${orden.numero_orden}</p>
+                <p><strong>Fecha Ingreso:</strong> ${formatearFecha(orden.fecha_ingreso)}</p>
+                <p><strong>Fecha Entrega:</strong> ${orden.fecha_entrega ? formatearFecha(orden.fecha_entrega) : 'Pendiente'}</p>
+                <p><strong>Estado:</strong> <span class="badge ${estadoBadge}">${orden.estado.charAt(0).toUpperCase() + orden.estado.slice(1)}</span></p>
+            </div>
+            <div class="col-md-6">
+                <h6 class="fw-bold text-success">Información del Cliente</h6>
+                <p><strong>Nombre:</strong> ${orden.cliente_nombre}</p>
+                <p><strong>Identificación:</strong> ${orden.cliente_identificacion}</p>
+                <p><strong>Teléfono:</strong> ${orden.cliente_telefono || 'N/A'}</p>
+                <p><strong>Email:</strong> ${orden.cliente_email || 'N/A'}</p>
+                <p><strong>Dirección:</strong> ${orden.cliente_direccion || 'N/A'}</p>
+            </div>
+        </div>
+        
+        <hr class="my-3">
+        
+        <div class="row">
+            <div class="col-md-12">
+                <h6 class="fw-bold text-info">Equipo a Reparar</h6>
+                <p><strong>Equipo:</strong> ${orden.equipo_nombre || 'N/A'}</p>
+                <p><strong>Marca:</strong> ${orden.equipo_marca || 'N/A'}</p>
+                <p><strong>Modelo:</strong> ${orden.equipo_modelo || 'N/A'}</p>
+                <p><strong>Serial:</strong> ${orden.equipo_serial || 'N/A'}</p>
+            </div>
+        </div>
+        
+        <hr class="my-3">
+        
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="fw-bold text-warning">Problema Reportado</h6>
+                <p>${orden.descripcion_problema || 'N/A'}</p>
+            </div>
+            <div class="col-md-6">
+                <h6 class="fw-bold text-success">Solución Aplicada</h6>
+                <p>${orden.solucion || 'Pendiente'}</p>
+            </div>
+        </div>
+        
+        <hr class="my-3">
+        
+        <h6 class="fw-bold text-info">Historial de Pagos</h6>
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Monto</th>
+                        <th>Método</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${pagosHtml || '<tr><td colspan="3" class="text-center">No hay pagos registrados</td></tr>'}
+                </tbody>
+                <tfoot>
+                    <tr class="table-info">
+                        <th>Total Pagado:</th>
+                        <th>$${totalPagado.toLocaleString('es-CO')}</th>
+                        <th></th>
+                    </tr>
+                    <tr class="table-warning">
+                        <th>Costo Total:</th>
+                        <th>$${Number(orden.costo_total).toLocaleString('es-CO')}</th>
+                        <th></th>
+                    </tr>
+                    <tr class="${saldoPendiente > 0 ? 'table-danger' : 'table-success'}">
+                        <th>Saldo ${saldoPendiente > 0 ? 'Pendiente' : 'Completado'}:</th>
+                        <th>$${Math.abs(saldoPendiente).toLocaleString('es-CO')}</th>
+                        <th></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+        <div class="mt-3 text-center">
+            <p class="text-muted small">¡Gracias por confiar en nosotros! - DIAZTEC</p>
+        </div>
+    `;
+    
+    // Guardar datos para funciones de envío
+    window.currentOrden = { orden, pagos };
+    
+    // Mostrar el modal
+    const modal = new bootstrap.Modal(document.getElementById('modalDetalleOrden'));
+    modal.show();
+}
+
+// Funciones de envío para facturas
+function enviarFacturaWhatsApp() {
+    if (!window.currentFactura) {
+        alert('No hay datos de factura disponibles');
+        return;
+    }
+    
+    const { venta, detalles } = window.currentFactura;
+    let mensaje = `🧾 *FACTURA DIAZTEC* 🧾\n\n`;
+    mensaje += `📋 *Factura:* ${venta.numero_factura}\n`;
+    mensaje += `📅 *Fecha:* ${formatearFecha(venta.fecha_venta)}\n`;
+    mensaje += `👤 *Cliente:* ${venta.cliente_nombre}\n`;
+    mensaje += `🆔 *Identificación:* ${venta.cliente_identificacion}\n\n`;
+    mensaje += `📦 *PRODUCTOS:*\n`;
+    
+    detalles.forEach(detalle => {
+        mensaje += `• ${detalle.producto_nombre}\n`;
+        mensaje += `  Cantidad: ${detalle.cantidad} - Precio: $${Number(detalle.precio_unitario).toLocaleString('es-CO')}\n`;
+        mensaje += `  Subtotal: $${Number(detalle.subtotal).toLocaleString('es-CO')}\n\n`;
+    });
+    
+    mensaje += `💰 *TOTAL: $${Number(venta.total).toLocaleString('es-CO')}*\n\n`;
+    mensaje += `¡Gracias por su compra! 🙏\n`;
+    mensaje += `📞 DIAZTEC - +57 300 123 4567`;
+    
+    const telefono = venta.cliente_telefono || '';
+    if (telefono) {
+        const telefonoLimpio = telefono.replace(/\D/g, '');
+        const url = `https://wa.me/57${telefonoLimpio}?text=${encodeURIComponent(mensaje)}`;
+        window.open(url, '_blank');
+    } else {
+        alert('El cliente no tiene teléfono registrado');
+    }
+}
+
+function enviarFacturaEmail() {
+    if (!window.currentFactura) {
+        alert('No hay datos de factura disponibles');
+        return;
+    }
+    
+    const { venta, detalles } = window.currentFactura;
+    let cuerpo = `Estimado(a) ${venta.cliente_nombre},\n\n`;
+    cuerpo += `Adjunto encontrará el detalle de su compra:\n\n`;
+    cuerpo += `FACTURA: ${venta.numero_factura}\n`;
+    cuerpo += `FECHA: ${formatearFecha(venta.fecha_venta)}\n\n`;
+    cuerpo += `PRODUCTOS ADQUIRIDOS:\n`;
+    
+    detalles.forEach(detalle => {
+        cuerpo += `- ${detalle.producto_nombre} (${detalle.cantidad} x $${Number(detalle.precio_unitario).toLocaleString('es-CO')}) = $${Number(detalle.subtotal).toLocaleString('es-CO')}\n`;
+    });
+    
+    cuerpo += `\nTOTAL: $${Number(venta.total).toLocaleString('es-CO')}\n\n`;
+    cuerpo += `Gracias por su confianza.\n\n`;
+    cuerpo += `Atentamente,\nDIAZTEC - Reparaciones y Tecnología\n`;
+    cuerpo += `Teléfono: +57 300 123 4567\nEmail: contacto@diaztec.com`;
+    
+    const email = venta.cliente_email || '';
+    if (email) {
+        const asunto = `Factura ${venta.numero_factura} - DIAZTEC`;
+        const url = `mailto:${email}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+        window.location.href = url;
+    } else {
+        alert('El cliente no tiene email registrado');
+    }
+}
+
+// Funciones de envío para órdenes
+function enviarOrdenWhatsApp() {
+    if (!window.currentOrden) {
+        alert('No hay datos de orden disponibles');
+        return;
+    }
+    
+    const { orden, pagos } = window.currentOrden;
+    const totalPagado = pagos.reduce((sum, pago) => sum + parseFloat(pago.dinero_recibido), 0);
+    const saldoPendiente = parseFloat(orden.costo_total) - totalPagado;
+    
+    let mensaje = `🔧 *ORDEN DE SERVICIO DIAZTEC* 🔧\n\n`;
+    mensaje += `📋 *Orden:* ${orden.numero_orden}\n`;
+    mensaje += `📅 *Fecha Ingreso:* ${formatearFecha(orden.fecha_ingreso)}\n`;
+    mensaje += `👤 *Cliente:* ${orden.cliente_nombre}\n`;
+    mensaje += `🆔 *Identificación:* ${orden.cliente_identificacion}\n\n`;
+    mensaje += `💻 *EQUIPO:*\n`;
+    mensaje += `• ${orden.equipo_nombre || 'N/A'} - ${orden.equipo_marca || ''} ${orden.equipo_modelo || ''}\n`;
+    mensaje += `• Serial: ${orden.equipo_serial || 'N/A'}\n\n`;
+    mensaje += `⚠️ *PROBLEMA:* ${orden.descripcion_problema || 'N/A'}\n\n`;
+    if (orden.solucion && orden.solucion !== 'Pendiente') {
+        mensaje += `✅ *SOLUCIÓN:* ${orden.solucion}\n\n`;
+    }
+    mensaje += `💰 *COSTO TOTAL:* $${Number(orden.costo_total).toLocaleString('es-CO')}\n`;
+    mensaje += `💳 *PAGADO:* $${totalPagado.toLocaleString('es-CO')}\n`;
+    mensaje += `💸 *SALDO:* $${Math.abs(saldoPendiente).toLocaleString('es-CO')}\n\n`;
+    mensaje += `📞 DIAZTEC - +57 300 123 4567`;
+    
+    const telefono = orden.cliente_telefono || '';
+    if (telefono) {
+        const telefonoLimpio = telefono.replace(/\D/g, '');
+        const url = `https://wa.me/57${telefonoLimpio}?text=${encodeURIComponent(mensaje)}`;
+        window.open(url, '_blank');
+    } else {
+        alert('El cliente no tiene teléfono registrado');
+    }
+}
+
+function enviarOrdenEmail() {
+    if (!window.currentOrden) {
+        alert('No hay datos de orden disponibles');
+        return;
+    }
+    
+    const { orden, pagos } = window.currentOrden;
+    const totalPagado = pagos.reduce((sum, pago) => sum + parseFloat(pago.dinero_recibido), 0);
+    const saldoPendiente = parseFloat(orden.costo_total) - totalPagado;
+    
+    let cuerpo = `Estimado(a) ${orden.cliente_nombre},\n\n`;
+    cuerpo += `Le enviamos el detalle de su orden de servicio:\n\n`;
+    cuerpo += `ORDEN: ${orden.numero_orden}\n`;
+    cuerpo += `FECHA INGRESO: ${formatearFecha(orden.fecha_ingreso)}\n`;
+    cuerpo += `ESTADO: ${orden.estado.charAt(0).toUpperCase() + orden.estado.slice(1)}\n\n`;
+    cuerpo += `EQUIPO: ${orden.equipo_nombre || 'N/A'} - ${orden.equipo_marca || ''} ${orden.equipo_modelo || ''}\n`;
+    cuerpo += `SERIAL: ${orden.equipo_serial || 'N/A'}\n\n`;
+    cuerpo += `PROBLEMA REPORTADO: ${orden.descripcion_problema || 'N/A'}\n\n`;
+    if (orden.solucion && orden.solucion !== 'Pendiente') {
+        cuerpo += `SOLUCIÓN APLICADA: ${orden.solucion}\n\n`;
+    }
+    cuerpo += `COSTO TOTAL: $${Number(orden.costo_total).toLocaleString('es-CO')}\n`;
+    cuerpo += `TOTAL PAGADO: $${totalPagado.toLocaleString('es-CO')}\n`;
+    cuerpo += `SALDO PENDIENTE: $${Math.abs(saldoPendiente).toLocaleString('es-CO')}\n\n`;
+    cuerpo += `Gracias por confiar en nosotros.\n\n`;
+    cuerpo += `Atentamente,\nDIAZTEC - Reparaciones y Tecnología\n`;
+    cuerpo += `Teléfono: +57 300 123 4567\nEmail: contacto@diaztec.com`;
+    
+    const email = orden.cliente_email || '';
+    if (email) {
+        const asunto = `Orden de Servicio ${orden.numero_orden} - DIAZTEC`;
+        const url = `mailto:${email}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+        window.location.href = url;
+    } else {
+        alert('El cliente no tiene email registrado');
+    }
+}
+
+// Funciones de impresión
 function imprimirFactura() {
+    window.print();
+}
+
+function imprimirOrden() {
     window.print();
 }
 </script>
