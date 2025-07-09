@@ -105,6 +105,8 @@
             <a href="index.php?action=clientes">Clientes</a>
             <a href="index.php?action=ordenes">Órdenes de Trabajo</a>
             <a href="index.php?action=caja">Caja</a>
+            <a href="index.php?action=usuarios">Usuarios</a>
+            <a href="index.php?action=rolesGestion">Roles</a>
         </div>
     </nav>
     <script>

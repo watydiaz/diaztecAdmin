@@ -166,10 +166,15 @@ class UsuarioModel {
         return $resultado->fetch_assoc();
     }
 
-    // Método para obtener técnicos (consulta más robusta, solo IDs únicos y sin confiar en rol_id)
+    // Método para obtener técnicos
     public function obtenerTecnicos() {
-        $sql = "SELECT u.id, u.nombre, u.email FROM usuarios u WHERE u.activo = 1 AND EXISTS (SELECT 1 FROM roles r WHERE r.id = u.rol_id AND r.nombre LIKE '%tecnico%') GROUP BY u.id, u.nombre, u.email";
+        $sql = "SELECT u.id, u.nombre, u.email 
+                FROM usuarios u 
+                INNER JOIN roles r ON u.rol_id = r.id 
+                WHERE u.activo = 1 AND r.nombre LIKE '%tecnico%'
+                GROUP BY u.id, u.nombre, u.email";
         $resultado = $this->db->query($sql);
         return $resultado->fetch_all(MYSQLI_ASSOC);
     }
 }
+?>

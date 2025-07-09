@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - DIAZTEC</title>
+    <title>Dashboard - Diaztecnologia</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <!-- Chart.js para gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .dashboard-container {
-            background: linear-gradient(135deg, #2c3e50 0%, #4a6fa5 50%, #34495e 100%);
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 25%, #4a4a4a 50%, #6a6a6a 75%, #8a8a8a 100%);
             min-height: 100vh;
             padding: 20px 0;
         }
@@ -167,14 +167,14 @@
             padding-bottom: 10px;
         }
         .welcome-header {
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px);
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
             border-radius: 15px;
             padding: 30px;
             margin-bottom: 30px;
             text-align: center;
-            color: white;
-            border: 1px solid rgba(255,255,255,0.1);
+            color: #212529;
+            border: 2px solid #ced4da;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         }
         .stats-grid {
             display: grid;
@@ -191,7 +191,7 @@
         <div class="container">
             <!-- Header de bienvenida -->
             <div class="welcome-header">
-                <h1><i class="fas fa-tachometer-alt me-3"></i>Dashboard DIAZTEC</h1>
+                <h1><i class="fas fa-tachometer-alt me-3"></i>Dashboard Diaztecnologia</h1>
                 <p class="mb-0">Centro de Control y Métricas de Rendimiento</p>
                 <small id="fechaActual"></small>
             </div>

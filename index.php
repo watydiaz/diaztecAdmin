@@ -74,23 +74,113 @@ switch ($action) {
         include 'views/dashboard.php';
         break;
 
-    case 'roles':
-        $rolController->mostrarRoles();
+    // === MÓDULO DE USUARIOS ===
+    case 'usuarios':
+        require_once 'controllers/UsuarioController.php';
+        $usuarioController = new UsuarioController();
+        $usuarioController->index();
         break;
 
-    case 'asignarPermiso':
+    case 'listarUsuarios':
+        require_once 'controllers/UsuarioController.php';
+        $usuarioController = new UsuarioController();
+        $usuarioController->listar();
+        break;
+
+    case 'crearUsuario':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $rolId = $_POST['rol_id'];
-            $permisoId = $_POST['permiso_id'];
-            $rolController->asignarPermiso($rolId, $permisoId);
+            require_once 'controllers/UsuarioController.php';
+            $usuarioController = new UsuarioController();
+            $usuarioController->crear();
         }
         break;
 
-    case 'eliminarPermiso':
+    case 'actualizarUsuario':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $rolId = $_POST['rol_id'];
-            $permisoId = $_POST['permiso_id'];
-            $rolController->eliminarPermiso($rolId, $permisoId);
+            require_once 'controllers/UsuarioController.php';
+            $usuarioController = new UsuarioController();
+            $usuarioController->actualizar();
+        }
+        break;
+
+    case 'eliminarUsuario':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            require_once 'controllers/UsuarioController.php';
+            $usuarioController = new UsuarioController();
+            $usuarioController->eliminar();
+        }
+        break;
+
+    case 'obtenerUsuario':
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            require_once 'controllers/UsuarioController.php';
+            $usuarioController = new UsuarioController();
+            $usuarioController->obtenerPorId();
+        }
+        break;
+
+    case 'cambiarEstadoUsuario':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            require_once 'controllers/UsuarioController.php';
+            $usuarioController = new UsuarioController();
+            $usuarioController->cambiarEstado();
+        }
+        break;
+
+    case 'resetearPasswordUsuario':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            require_once 'controllers/UsuarioController.php';
+            $usuarioController = new UsuarioController();
+            $usuarioController->resetearPassword();
+        }
+        break;
+
+    case 'obtenerEstadisticasUsuarios':
+        require_once 'controllers/UsuarioController.php';
+        $usuarioController = new UsuarioController();
+        $usuarioController->obtenerEstadisticas();
+        break;
+
+    // === MÓDULO DE ROLES ===
+    case 'rolesGestion':
+        require_once 'controllers/RolController.php';
+        $rolController = new RolController();
+        $rolController->index();
+        break;
+
+    case 'listarRoles':
+        require_once 'controllers/RolController.php';
+        $rolController = new RolController();
+        $rolController->listar();
+        break;
+
+    case 'listarPermisos':
+        require_once 'controllers/RolController.php';
+        $rolController = new RolController();
+        $rolController->listarPermisos();
+        break;
+
+    case 'crearRol':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            require_once 'controllers/RolController.php';
+            $rolController = new RolController();
+            $rolController->crear();
+        }
+        break;
+
+    case 'actualizarRol':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            require_once 'controllers/RolController.php';
+            $rolController = new RolController();
+            $rolController->actualizar();
+        }
+        break;
+
+    case 'eliminarRol':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            require_once 'controllers/RolController.php';
+            $rolController = new RolController();
+            $rolController->eliminar();
         }
         break;
 
