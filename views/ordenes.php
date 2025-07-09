@@ -53,17 +53,259 @@ require_once 'header.php';
             min-width: 36px;
             margin: 0 2px;
         }
+        footer {
+            text-align: center;
+            font-size: 14px;
+        }
+    }
+    
+    .page-container {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 25%, #4a4a4a 50%, #6a6a6a 75%, #8a8a8a 100%);
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        text-align: center;
+        color: #212529;
+        border: 2px solid #ced4da;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    .content-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    
+    /* Botón negro para acciones principales */
+    .btn-dark {
+        background: linear-gradient(45deg, #000000, #111111, #333333);
+        border: 1px solid #444444;
+        border-radius: 8px;
+        padding: 10px 20px;
+        transition: all 0.3s ease;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    }
+    
+    .btn-dark:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0, 0.4);
+        background: linear-gradient(45deg, #111111, #333333, #555555);
+    }
+    
+    .table th {
+        background: linear-gradient(45deg, #000000, #111111, #222222);
+        color: white;
+        border: none;
+        font-weight: 600;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    }
+    
+    /* Limitar longitud de textos largos en la tabla */
+    .texto-truncado {
+        max-width: 120px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+    }
+    
+    /* Estilos para los botones con degradados */
+    .btn-warning {
+        background: linear-gradient(45deg, #ffc107, #e0a800, #d39e00);
+        border: 1px solid #d39e00;
+        color: #212529;
+        text-shadow: 1px 1px 2px rgba(255,255,255,0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0, 0.3);
+        background: linear-gradient(45deg, #e0a800, #d39e00, #ba8b00);
+    }
+    
+    .btn-success {
+        background: linear-gradient(45deg, #28a745, #218838, #1e7e34);
+        border: 1px solid #1e7e34;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0, 0.3);
+        background: linear-gradient(45deg, #218838, #1e7e34, #1c7430);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(45deg, #007bff, #0069d9, #0062cc);
+        border: 1px solid #0062cc;
+        border-radius: 8px;
+        padding: 10px 20px;
+        transition: all 0.3s ease;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0, 0.4);
+        background: linear-gradient(45deg, #0069d9, #0062cc, #005cbf);
+    }
+    
+    .bg-primary {
+        background: linear-gradient(45deg, #007bff, #0069d9, #0062cc) !important;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    }
+    
+    .btn-danger {
+        background: linear-gradient(45deg, #dc3545, #c82333, #bd2130);
+        border: 1px solid #bd2130;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0, 0.3);
+        background: linear-gradient(45deg, #c82333, #bd2130, #a71d2a);
+    }
+    
+    .btn-info {
+        background: linear-gradient(45deg, #17a2b8, #138496, #117a8b);
+        border: 1px solid #117a8b;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-info:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0, 0.3);
+        background: linear-gradient(45deg, #138496, #117a8b, #0e6674);
+    }
+    
+    /* Asegurar que todos los iconos tengan el mismo tamaño */
+    .btn-sm i {
+        font-size: 12px;
+        width: 12px;
+        height: 12px;
+        display: inline-block;
+        vertical-align: middle;
+        line-height: 1;
+    }
+    
+    /* Ajustar el espaciado de los botones para mejor alineación */
+    .btn-sm {
+        padding: 0.25rem 0.4rem;
+        margin: 2px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        min-height: 28px;
+    }
+    
+    /* Centrar los botones en la columna de acciones */
+    .acciones-centradas {
+        text-align: center;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 3px;
+    }
+    
+    /* Estilos para tabla fluida con muchas columnas */
+    .table-fluid {
+        width: 100%;
+        min-width: 100%;
+        table-layout: fixed;
+    }
+    
+    .table-fluid th, .table-fluid td {
+        padding: 8px 5px;
+        font-size: 0.9rem;
+    }
+    
+    /* Estilos específicos para cada columna en la tabla de órdenes */
+    .col-id { width: 4%; }
+    .col-imagen { width: 6%; }
+    .col-cliente { width: 12%; }
+    .col-tecnico { width: 12%; }
+    .col-marca { width: 8%; }
+    .col-modelo { width: 8%; }
+    .col-falla { width: 15%; }
+    .col-estado { width: 8%; }
+    .col-prioridad { width: 8%; }
+    .col-fecha { width: 7%; }
+    .col-acciones { width: 12%; text-align: center; }
+    
+    /* Ajustes adicionales para diseño fluido */
+    .container-fluid {
+        max-width: 100%;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    /* Mejorar el diseño responsive */
+    @media (max-width: 768px) {
+        .table-fluid th, .table-fluid td {
+            padding: 6px 3px;
+            font-size: 0.8rem;
+        }
+        
+        .col-falla { width: 18%; }
+        .col-cliente { width: 15%; }
+        .col-tecnico { width: 15%; }
+    }
+    
+    /* Estilos para mejorar la visualización de estados */
+    .estado-terminado {
+        background-color: rgba(40, 167, 69, 0.1) !important;
+    }
+    
+    .estado-alta-prioridad {
+        background-color: rgba(220, 53, 69, 0.1) !important;
+    }
+    
+    /* Ajustar imagen de miniatura */
+    .miniatura-orden {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        cursor: pointer;
+        border-radius: 4px;
+        border: 1px solid #ddd;
     }
 </style>
 
-<div class="container-fluid">
-    <center><br>
-    <h3>Gestión de Órdenes de Reparación</h3>
-    <p>Desde aquí puedes gestionar las órdenes de trabajo, asignar técnicos y registrar la información del cliente.</p>
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarOrden">
-        Agregar Orden
-    </button>
-    </center>
+<div class="page-container">
+    <div class="container-fluid">
+        <!-- Header de la página -->
+        <div class="page-header">
+            <h1><i class="bi bi-tools me-3"></i>Gestión de Órdenes de Reparación</h1>
+            <p class="mb-0">Desde aquí puedes gestionar las órdenes de trabajo, asignar técnicos y registrar la información del cliente.</p>
+        </div>
+        
+        <!-- Contenido principal -->
+        <div class="content-card">
+            <div class="text-center mb-4">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarOrden">
+                    <i class="bi bi-plus-circle me-2"></i>Agregar Orden
+                </button>
+            </div>
 
     <!-- Modal para agregar orden con cliente y técnico dinámicos -->
     <div class="modal fade" id="modalAgregarOrden" tabindex="-1" aria-labelledby="modalAgregarOrdenLabel" aria-hidden="true">
@@ -430,34 +672,39 @@ require_once 'header.php';
     <!-- Buscador de órdenes y clientes -->
     <div class="row mb-3">
         <div class="col-md-6 offset-md-3">
-            <input type="text" id="buscadorOrdenes" class="form-control" placeholder="Buscar por cliente, técnico, marca, modelo, estado, prioridad, ID, etc...">
+            <div class="input-group">
+                <span class="input-group-text bg-primary text-white">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" id="buscadorOrdenes" class="form-control" placeholder="Buscar por cliente, técnico, marca, modelo, estado, prioridad, ID, etc...">
+            </div>
         </div>
     </div>
 
     <div class="responsive-table">
-        <table class="table table-striped w-100">
+        <table class="table table-striped table-fluid w-100">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Imagen</th>
-                    <th>Cliente</th>
-                    <th>Técnico</th>
-                    <th>Marca</th>
-                    <th>Modelo</th>
-                    <th>Falla Reportada</th>
-                    <th>Estado</th>
-                    <th>Prioridad</th>
-                    <th>Fecha de Ingreso</th>
-                    <th>Acciones</th>
+                    <th class="col-id">ID</th>
+                    <th class="col-imagen">Imagen</th>
+                    <th class="col-cliente">Cliente</th>
+                    <th class="col-tecnico">Técnico</th>
+                    <th class="col-marca">Marca</th>
+                    <th class="col-modelo">Modelo</th>
+                    <th class="col-falla">Falla Reportada</th>
+                    <th class="col-estado">Estado</th>
+                    <th class="col-prioridad">Prioridad</th>
+                    <th class="col-fecha">Fecha</th>
+                    <th class="col-acciones text-center">Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($ordenes as $orden): ?>
-                    <tr class="fila-orden" style="<?php 
+                    <tr class="fila-orden <?php 
                         if ($orden['estado'] === 'terminado') {
-                            echo 'background-color: rgba(0, 128, 0, 0.1);';
+                            echo 'estado-terminado';
                         } elseif ($orden['estado'] !== 'entregado' && $orden['prioridad'] === 'alta') {
-                            echo 'background-color: rgba(255, 0, 0, 0.1);';
+                            echo 'estado-alta-prioridad';
                         }
                     ?>" data-id="<?php echo $orden['id']; ?>">
                         <td><?php echo $orden['id']; ?></td>
@@ -470,24 +717,22 @@ require_once 'header.php';
                             }
                             ?>
                             <?php if ($miniatura): ?>
-                                <img src="<?php echo $miniatura; ?>" alt="Imagen principal" style="width: 50px; height: 50px; object-fit: cover; cursor: pointer;" onclick="verImagenModal('<?php echo htmlspecialchars(json_encode($orden['imagen_url']), ENT_QUOTES, 'UTF-8'); ?>')">
+                                <img src="<?php echo $miniatura; ?>" alt="Imagen principal" class="miniatura-orden" onclick="verImagenModal('<?php echo htmlspecialchars(json_encode($orden['imagen_url']), ENT_QUOTES, 'UTF-8'); ?>')">
                             <?php else: ?>
                                 <span class="text-muted">Sin imagen</span>
                             <?php endif; ?>
                         </td>
-                        <td><?php echo $orden['cliente_nombre']; ?></td>
-                        <td><?php echo $orden['tecnico_nombre']; ?></td>
-                        <td><?php echo $orden['marca']; ?></td>
-                        <td><?php echo $orden['modelo']; ?></td>
-                        <td title="<?php echo htmlspecialchars($orden['falla_reportada']); ?>">
-                            <?php echo mb_strimwidth($orden['falla_reportada'], 0, 30, '...'); ?>
-                        </td>
+                        <td><span class="texto-truncado" title="<?php echo htmlspecialchars($orden['cliente_nombre']); ?>"><?php echo $orden['cliente_nombre']; ?></span></td>
+                        <td><span class="texto-truncado" title="<?php echo htmlspecialchars($orden['tecnico_nombre']); ?>"><?php echo $orden['tecnico_nombre']; ?></span></td>
+                        <td><span class="texto-truncado" title="<?php echo htmlspecialchars($orden['marca']); ?>"><?php echo $orden['marca']; ?></span></td>
+                        <td><span class="texto-truncado" title="<?php echo htmlspecialchars($orden['modelo']); ?>"><?php echo $orden['modelo']; ?></span></td>
+                        <td><span class="texto-truncado" title="<?php echo htmlspecialchars($orden['falla_reportada']); ?>"><?php echo mb_strimwidth($orden['falla_reportada'], 0, 30, '...'); ?></span></td>
                         <td><?php echo $orden['estado']; ?></td>
                         <td><?php echo $orden['prioridad']; ?></td>
                         <td title="<?php echo $orden['fecha_ingreso']; ?>">
                             <?php echo date('Y-m-d', strtotime($orden['fecha_ingreso'])); ?>
                         </td>
-                        <td class="acciones-responsive">
+                        <td class="acciones-centradas">
                             <a href="#" class="btn btn-warning btn-sm" title="Editar" onclick="abrirModalEditarOrden(<?php echo $orden['id']; ?>)">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
@@ -522,6 +767,9 @@ require_once 'header.php';
             </tbody>
         </table>
     </div>
+        </div>
+    </div>
+</div>
 
     <!-- Modal para ver imagen en tamaño completo -->
     <div class="modal fade" id="modalVerImagen" tabindex="-1" aria-labelledby="modalVerImagenLabel" aria-hidden="true">
@@ -1310,6 +1558,7 @@ require_once 'header.php';
         let timeoutBusquedaProducto;
 
         // Función para abrir el modal de nuevo producto con nombre prellenado
+
         function abrirModalNuevoProductoConNombre(nombreSugerido = '') {
             console.log('Abriendo modal de nuevo producto con nombre sugerido:', nombreSugerido);
             
