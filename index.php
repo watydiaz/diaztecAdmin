@@ -1,7 +1,7 @@
 <?php
 
 // Solo mostrar errores si no es una petición AJAX
-$is_ajax = isset($_GET['action']) && in_array($_GET['action'], ['obtenerPagosCaja', 'obtenerDetalleFactura', 'obtenerDetalleOrden', 'registrarVentaCompleta']);
+$is_ajax = isset($_GET['action']) && in_array($_GET['action'], ['obtenerPagosCaja', 'obtenerDetalleFactura', 'obtenerDetalleOrden', 'registrarVentaCompleta', 'obtenerInventario']);
 
 if (!$is_ajax) {
     // Activo la visualización de errores para depurar problemas
@@ -393,6 +393,62 @@ switch ($action) {
         include 'views/caja.php';
         break;
 
+    case 'inventario':
+        // Mostrar la vista de inventario
+        include 'views/inventario.php';
+        break;
+
+    case 'obtenerInventario':
+        // Obtener listado de productos del inventario
+        header('Content-Type: application/json');
+        ob_clean();
+        
+        try {
+            require_once 'models/Conexion.php';
+            $db = Conexion::getConexion();
+            
+            // Consulta para obtener productos (aquí deberías tener tu tabla de productos)
+            // Por ahora retorno datos de ejemplo - debes cambiar esto por tu tabla real
+            $productos = [
+                [
+                    'id' => 1,
+                    'codigo' => 'TEL001',
+                    'nombre' => 'iPhone 13 Pro',
+                    'categoria' => 'electronica',
+                    'marca' => 'Apple',
+                    'descripcion' => 'Teléfono inteligente de alta gama',
+                    'stock_actual' => 15,
+                    'stock_minimo' => 5,
+                    'precio_compra' => 800.00,
+                    'precio_venta' => 1200.00,
+                    'proveedor' => 'Tech Distributor',
+                    'ubicacion' => 'A-1',
+                    'fecha_creacion' => '2024-01-15'
+                ],
+                [
+                    'id' => 2,
+                    'codigo' => 'REP001',
+                    'nombre' => 'Pantalla Samsung A52',
+                    'categoria' => 'repuestos',
+                    'marca' => 'Samsung',
+                    'descripcion' => 'Pantalla de repuesto original',
+                    'stock_actual' => 3,
+                    'stock_minimo' => 10,
+                    'precio_compra' => 50.00,
+                    'precio_venta' => 85.00,
+                    'proveedor' => 'Parts Express',
+                    'ubicacion' => 'B-3',
+                    'fecha_creacion' => '2024-02-01'
+                ]
+            ];
+            
+            echo json_encode(['success' => true, 'productos' => $productos]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Error al obtener inventario: ' . $e->getMessage()]);
+        }
+        exit;
+        break;
+
     case 'obtenerPagosCaja':
         // Desactivar el buffer de salida y errores de display para evitar HTML extra
         ob_clean();
@@ -417,7 +473,7 @@ switch ($action) {
             $pagos = [];
             $pagos_productos = [];
             
-            // Pagos de productos (ventas) con filtro de fecha - Consulta más simple
+            // Pagos de productos (ventas) con filtro de fecha
             try {
                 $query = "SELECT 
                             pp.id,
@@ -455,72 +511,6 @@ switch ($action) {
                 $pagos_productos = [];
             }
             
-            // Pagos de órdenes - consulta con datos reales del cliente
-            try {
-                // Verificar si las tablas de órdenes existen
-                $check_orden = $db->query("SHOW TABLES LIKE 'orden_pagos'");
-                $check_ordenes_reparacion = $db->query("SHOW TABLES LIKE 'ordenes_reparacion'");
-                $check_clientes = $db->query("SHOW TABLES LIKE 'clientes'");
-                
-                if ($check_orden && $check_orden->num_rows > 0) {
-                    if ($check_ordenes_reparacion && $check_ordenes_reparacion->num_rows > 0 && 
-                        $check_clientes && $check_clientes->num_rows > 0) {
-                        // Consulta completa con cliente y orden
-                        $query_ordenes = "SELECT 
-                                            op.id,
-                                            op.fecha_pago,
-                                            op.orden_id,
-                                            op.dinero_recibido,
-                                            op.metodo_pago,
-                                            CONCAT('ORD-', op.orden_id) as numero_orden,
-                                            COALESCE(c.nombre, 'Cliente no encontrado') as cliente_nombre,
-                                            COALESCE(c.identificacion, 'N/A') as cliente_identificacion,
-                                            COALESCE(c.telefono, '') as cliente_telefono,
-                                            COALESCE(c.email, '') as cliente_email,
-                                            CONCAT(COALESCE(o.marca, ''), ' ', COALESCE(o.modelo, '')) as equipo_info
-                                          FROM orden_pagos op
-                                          LEFT JOIN ordenes_reparacion o ON op.orden_id = o.id
-                                          LEFT JOIN clientes c ON o.cliente_id = c.id
-                                          WHERE DATE(op.fecha_pago) BETWEEN ? AND ? 
-                                          ORDER BY op.fecha_pago DESC";
-                    } else {
-                        // Consulta básica sin información de cliente
-                        $query_ordenes = "SELECT 
-                                            op.id,
-                                            op.fecha_pago,
-                                            op.orden_id,
-                                            op.dinero_recibido,
-                                            op.metodo_pago,
-                                            CONCAT('ORD-', op.orden_id) as numero_orden,
-                                            'Cliente de Orden' as cliente_nombre,
-                                            'N/A' as cliente_identificacion,
-                                            '' as cliente_telefono,
-                                            '' as cliente_email,
-                                            'Equipo no disponible' as equipo_info
-                                          FROM orden_pagos op
-                                          WHERE DATE(op.fecha_pago) BETWEEN ? AND ? 
-                                          ORDER BY op.fecha_pago DESC";
-                    }
-                    
-                    $stmt = $db->prepare($query_ordenes);
-                    if ($stmt) {
-                        $stmt->bind_param('ss', $fecha_inicio, $fecha_fin);
-                        $stmt->execute();
-                        $result = $stmt->get_result();
-                        
-                        if ($result) {
-                            while ($row = $result->fetch_assoc()) {
-                                $pagos[] = $row;
-                            }
-                        }
-                        $stmt->close();
-                    }
-                }
-            } catch (Exception $e) {
-                // Si no hay tabla de órdenes, continuar con array vacío
-                $pagos = [];
-            }
-            
             // Respuesta JSON limpia
             header('Content-Type: application/json; charset=utf-8');
             $response = [
@@ -551,21 +541,6 @@ switch ($action) {
                 ]
             ]);
         }
-        exit();
-        break;
-
-    case 'obtenerProductos':
-        require_once 'models/Conexion.php';
-        $db = Conexion::getConexion();
-        $productos = [];
-        $result = $db->query("SELECT id, nombre, precio_venta as precio FROM productos ORDER BY nombre ASC");
-        if ($result) {
-            while ($row = $result->fetch_assoc()) {
-                $productos[] = $row;
-            }
-        }
-        header('Content-Type: application/json');
-        echo json_encode($productos);
         exit();
         break;
 
@@ -1261,6 +1236,73 @@ switch ($action) {
             ]);
         }
         exit();
+        break;
+
+    case 'obtenerPagosCaja':
+        // Desactivar el buffer de salida y errores de display para evitar HTML extra
+        ob_clean();
+        error_reporting(0);
+        ini_set('display_errors', 0);
+        
+        try {
+            require_once 'models/Conexion.php';
+            $db = Conexion::getConexion();
+            
+            // Obtener parámetros de fecha (por defecto día actual)
+            $fecha_inicio = isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : date('Y-m-d');
+            $fecha_fin = isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : date('Y-m-d');
+            
+            // Validar formato de fechas
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_inicio) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_fin)) {
+                $fecha_inicio = date('Y-m-d');
+                $fecha_fin = date('Y-m-d');
+            }
+            
+            // Consultar pagos en el rango de fechas
+            $query = "SELECT 
+                            pp.id,
+                            pp.orden_id,
+                            COALESCE(pp.dinero_recibido, 0) as dinero_recibido,
+                            COALESCE(pp.costo_total, 0) as costo_total,
+                            pp.fecha_pago,
+                            COALESCE(pp.metodo_pago, 'efectivo') as metodo_pago,
+                            COALESCE(v.numero_factura, CONCAT('FAC-', pp.venta_id)) as numero_factura,
+                            v.total as total_venta,
+                            COALESCE(c.nombre, 'Cliente') as cliente_nombre,
+                            COALESCE(c.identificacion, 'N/A') as cliente_identificacion,
+                            COALESCE(u.nombre, 'Sistema') as usuario_nombre
+                          FROM pagos_productos pp
+                          INNER JOIN ventas v ON pp.venta_id = v.id
+                          INNER JOIN clientes c ON v.cliente_id = c.id
+                          LEFT JOIN usuarios u ON pp.usuario_id = u.id
+                          WHERE DATE(pp.fecha_pago) BETWEEN ? AND ?
+                          ORDER BY pp.fecha_pago DESC";
+                
+            $stmt = $db->prepare($query);
+            if ($stmt) {
+                $stmt->bind_param('ss', $fecha_inicio, $fecha_fin);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                
+                $pagos = [];
+                if ($result) {
+                    while ($row = $result->fetch_assoc()) {
+                        $pagos[] = $row;
+                    }
+                }
+                
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'pagos' => $pagos,
+                    'fecha_inicio' => $fecha_inicio,
+                    'fecha_fin' => $fecha_fin
+                ]);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        }
+        exit;
         break;
 
     default:
