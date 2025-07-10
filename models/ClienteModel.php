@@ -9,7 +9,7 @@ class ClienteModel {
     }
 
     public function obtenerClientes() {
-        $query = "SELECT * FROM clientes";
+        $query = "SELECT * FROM clientes ORDER BY id DESC";
         $resultado = $this->conexion->query($query);
         return $resultado->fetch_all(MYSQLI_ASSOC);
     }

@@ -378,6 +378,7 @@ require_once 'header.php';
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                alert('Cliente creado exitosamente');
                 // Actualizar la tabla de clientes
                 location.reload();
             } else {
