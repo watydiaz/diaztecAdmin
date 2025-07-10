@@ -1014,8 +1014,35 @@ switch ($action) {
         $db->begin_transaction();
         
         try {
-            // 1. Insertar la venta principal
-            $numero_factura = 'FAC-' . str_pad(($db->query("SELECT COUNT(*) as total FROM ventas")->fetch_assoc()['total'] + 1), 3, '0', STR_PAD_LEFT);
+            // 1. Generar número de factura único
+            // Obtener el último número de factura y generar el siguiente
+            $result = $db->query("SELECT numero_factura FROM ventas WHERE numero_factura REGEXP '^FAC-[0-9]+$' ORDER BY CAST(SUBSTRING(numero_factura, 5) AS UNSIGNED) DESC LIMIT 1");
+            $ultimo_numero = 0;
+            if ($result && $row = $result->fetch_assoc()) {
+                $ultimo_numero = intval(substr($row['numero_factura'], 4));
+            }
+            $siguiente_numero = $ultimo_numero + 1;
+            $numero_factura = 'FAC-' . str_pad($siguiente_numero, 3, '0', STR_PAD_LEFT);
+            
+            // Verificar que el número no exista (medida de seguridad adicional)
+            $check_stmt = $db->prepare("SELECT COUNT(*) as count FROM ventas WHERE numero_factura = ?");
+            $check_stmt->bind_param('s', $numero_factura);
+            $check_stmt->execute();
+            $check_result = $check_stmt->get_result()->fetch_assoc();
+            $check_stmt->close();
+            
+            // Si ya existe, generar uno nuevo incrementando hasta encontrar uno disponible
+            while ($check_result['count'] > 0) {
+                $siguiente_numero++;
+                $numero_factura = 'FAC-' . str_pad($siguiente_numero, 3, '0', STR_PAD_LEFT);
+                $check_stmt = $db->prepare("SELECT COUNT(*) as count FROM ventas WHERE numero_factura = ?");
+                $check_stmt->bind_param('s', $numero_factura);
+                $check_stmt->execute();
+                $check_result = $check_stmt->get_result()->fetch_assoc();
+                $check_stmt->close();
+            }
+            
+            // 2. Insertar la venta principal
             $stmt = $db->prepare("INSERT INTO ventas (cliente_id, usuario_id, numero_factura, total, metodo_pago, fecha_venta) VALUES (?, ?, ?, ?, ?, NOW())");
             $stmt->bind_param('iisds', $cliente_id, $usuario_id, $numero_factura, $total, $metodo_pago);
             

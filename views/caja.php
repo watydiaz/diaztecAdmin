@@ -12,6 +12,40 @@ require_once 'header.php';
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <!-- Bootstrap Select (si lo usas en otra parte) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/js/bootstrap-select.min.js"></script>
+<style>
+/* Estilos para el dropdown personalizado de clientes */
+#clientesDropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ced4da;
+    border-top: none;
+    border-radius: 0 0 0.375rem 0.375rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    z-index: 1000;
+}
+
+#clientesDropdown .dropdown-item {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+#clientesDropdown .dropdown-item:hover {
+    background-color: #e9ecef;
+}
+
+#clientesDropdown .dropdown-item:last-child {
+    border-bottom: none;
+}
+
+/* Mejorar la visibilidad del input cuando está activo */
+#clienteBusqueda:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+</style>
 <div class="container-fluid">
     <h3 class="mt-4 mb-3">Caja - Pagos Registrados</h3>
     <!-- Filtro de fechas -->
@@ -369,8 +403,12 @@ function verDetalleOrden(ordenId) {
                 <form id="formVentaProducto">
                     <div class="mb-3">
                         <label for="clienteBusqueda" class="form-label">Cliente</label>
-                        <input type="text" class="form-control" id="clienteBusqueda" list="clientesList" placeholder="Buscar cliente por nombre... (si no existe, se creará automáticamente)">
-                        <datalist id="clientesList"><!-- Opciones dinámicas JS --></datalist>
+                        <div class="position-relative">
+                            <input type="text" class="form-control" id="clienteBusqueda" list="clientesList" placeholder="Buscar cliente por nombre... (si no existe, se creará automáticamente)" autocomplete="off">
+                            <datalist id="clientesList"><!-- Opciones dinámicas JS --></datalist>
+                            <!-- Lista desplegable personalizada como fallback -->
+                            <div id="clientesDropdown" class="dropdown-menu w-100 mt-1" style="display: none; max-height: 200px; overflow-y: auto;"></div>
+                        </div>
                         <input type="hidden" id="clienteSeleccionadoId" name="cliente_id">
                         <small class="form-text text-muted">Escribe el nombre del cliente. Si no existe, aparecerá la opción de crearlo automáticamente.</small>
                     </div>
@@ -522,13 +560,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalVenta = document.getElementById('modalPagoProducto');
     const inputBusqueda = document.getElementById('clienteBusqueda');
     const datalist = document.getElementById('clientesList');
+    const clientesDropdown = document.getElementById('clientesDropdown');
     const inputClienteId = document.getElementById('clienteSeleccionadoId');
     
-    if (!modalVenta || !inputBusqueda || !datalist || !inputClienteId) {
+    if (!modalVenta || !inputBusqueda || !datalist || !clientesDropdown || !inputClienteId) {
         console.error('Error: No se encontraron todos los elementos necesarios:', {
             modalVenta: !!modalVenta,
             inputBusqueda: !!inputBusqueda,
             datalist: !!datalist,
+            clientesDropdown: !!clientesDropdown,
             inputClienteId: !!inputClienteId
         });
         return;
@@ -898,26 +938,111 @@ document.addEventListener('DOMContentLoaded', function() {
                         datalist.innerHTML = '';
                         
                         if (clientes.length > 0) {
-                            // Si hay resultados, mostrarlos
+                            // Si hay resultados, mostrarlos en el datalist
                             clientes.forEach(c => {
-                                datalist.innerHTML += `<option value="${c.nombre} (${c.identificacion})" data-id="${c.id}">${c.nombre} (${c.identificacion})</option>`;
+                                const option = document.createElement('option');
+                                option.value = `${c.nombre} (${c.identificacion})`;
+                                option.setAttribute('data-id', c.id);
+                                option.textContent = `${c.nombre} (${c.identificacion})`;
+                                datalist.appendChild(option);
                             });
+                            
+                            // También mostrarlos en el dropdown personalizado
+                            clientesDropdown.innerHTML = '';
+                            clientes.forEach(c => {
+                                const item = document.createElement('div');
+                                item.className = 'dropdown-item';
+                                item.style.cursor = 'pointer';
+                                item.textContent = `${c.nombre} (${c.identificacion})`;
+                                item.setAttribute('data-id', c.id);
+                                item.addEventListener('click', function() {
+                                    inputBusqueda.value = this.textContent;
+                                    inputClienteId.value = this.getAttribute('data-id');
+                                    clientesDropdown.style.display = 'none';
+                                    console.log('Cliente seleccionado desde dropdown:', c);
+                                });
+                                clientesDropdown.appendChild(item);
+                            });
+                            clientesDropdown.style.display = 'block';
+                            
                             console.log(`Encontrados ${clientes.length} clientes para: "${query}"`);
+                            console.log('Datalist actualizado con opciones:', datalist.children.length);
+                            
+                            // Forzar el foco en el input para mostrar las opciones
+                            inputBusqueda.focus();
+                            
                         } else {
                             // Si no hay resultados, sugerir crear cliente
                             console.log(`No se encontraron clientes para: "${query}". Mostrando opción de crear cliente.`);
-                            datalist.innerHTML = `<option value="➕ Crear nuevo cliente: ${query}" data-action="create">➕ Crear nuevo cliente: "${query}"</option>`;
+                            const option = document.createElement('option');
+                            option.value = `➕ Crear nuevo cliente: ${query}`;
+                            option.setAttribute('data-action', 'create');
+                            option.textContent = `➕ Crear nuevo cliente: "${query}"`;
+                            datalist.appendChild(option);
+                            
+                            // También en el dropdown personalizado
+                            clientesDropdown.innerHTML = '';
+                            const item = document.createElement('div');
+                            item.className = 'dropdown-item';
+                            item.style.cursor = 'pointer';
+                            item.textContent = `➕ Crear nuevo cliente: ${query}`;
+                            item.setAttribute('data-action', 'create');
+                            item.addEventListener('click', function() {
+                                inputBusqueda.value = '';
+                                inputClienteId.value = '';
+                                clientesDropdown.style.display = 'none';
+                                abrirModalNuevoClienteConNombre(query);
+                            });
+                            clientesDropdown.appendChild(item);
+                            clientesDropdown.style.display = 'block';
                         }
                     })
                     .catch(error => {
                         console.error('Error buscando clientes:', error);
-                        datalist.innerHTML = `<option value="➕ Crear nuevo cliente: ${query}" data-action="create">➕ Crear nuevo cliente: "${query}"</option>`;
+                        // Mostrar opción de crear cliente en caso de error
+                        datalist.innerHTML = '';
+                        const option = document.createElement('option');
+                        option.value = `➕ Crear nuevo cliente: ${query}`;
+                        option.setAttribute('data-action', 'create');
+                        option.textContent = `➕ Crear nuevo cliente: "${query}"`;
+                        datalist.appendChild(option);
+                        
+                        clientesDropdown.innerHTML = '';
+                        const item = document.createElement('div');
+                        item.className = 'dropdown-item';
+                        item.style.cursor = 'pointer';
+                        item.textContent = `➕ Crear nuevo cliente: ${query}`;
+                        item.setAttribute('data-action', 'create');
+                        item.addEventListener('click', function() {
+                            inputBusqueda.value = '';
+                            inputClienteId.value = '';
+                            clientesDropdown.style.display = 'none';
+                            abrirModalNuevoClienteConNombre(query);
+                        });
+                        clientesDropdown.appendChild(item);
+                        clientesDropdown.style.display = 'block';
                     });
             }, 300); // Delay de 300ms
         } else {
             datalist.innerHTML = '';
+            clientesDropdown.style.display = 'none';
         }
         // No limpiar automáticamente el cliente seleccionado aquí
+    });
+    
+    // Evento para ocultar dropdown cuando se hace clic fuera
+    document.addEventListener('click', function(e) {
+        if (!inputBusqueda.contains(e.target) && !clientesDropdown.contains(e.target)) {
+            clientesDropdown.style.display = 'none';
+        }
+    });
+    
+    // Ocultar dropdown cuando el input pierde el foco
+    inputBusqueda.addEventListener('blur', function() {
+        // Delay para permitir clicks en el dropdown
+        setTimeout(() => {
+            clientesDropdown.style.display = 'none';
+        }, 200);
     });
     inputBusqueda.addEventListener('change', function() {
         const valor = this.value.trim();
