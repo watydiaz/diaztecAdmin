@@ -21,6 +21,14 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             border: none;
             overflow: hidden;
+            min-height: 130px;
+        }
+        .dashboard-card .card-body {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
         }
         .dashboard-card:hover {
             transform: translateY(-5px);
@@ -33,9 +41,10 @@
             margin-top: -10px;
         }
         .metric-value {
-            font-size: 2.5rem;
+            font-size: clamp(1.8rem, 3vw, 2.2rem);
             font-weight: bold;
             margin: 10px 0;
+            line-height: 1.1;
         }
         .metric-label {
             font-size: 0.9rem;
@@ -178,7 +187,7 @@
         }
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -188,7 +197,7 @@
     <?php include 'header.php'; ?>
 
     <div class="dashboard-container">
-        <div class="container">
+        <div class="container-fluid">
             <!-- Header de bienvenida -->
             <div class="welcome-header">
                 <h1><i class="fas fa-tachometer-alt me-3"></i>Dashboard Diaztecnologia</h1>
@@ -249,6 +258,38 @@
                         <i class="fas fa-exclamation-triangle card-icon"></i>
                         <div class="metric-label">Saldos Pendientes</div>
                         <div class="metric-value" id="saldosPendientes">$0</div>
+                    </div>
+                </div>
+
+                <!-- MÉTRICAS DE INVENTARIO -->
+                
+                <!-- Total Productos en Inventario -->
+                <div class="card dashboard-card text-white" style="background: linear-gradient(45deg, #667eea, #764ba2);">
+                    <div class="card-body">
+                        <i class="fas fa-cubes card-icon"></i>
+                        <div class="metric-label">Total Productos</div>
+                        <div class="metric-value" id="totalProductosInventario">0</div>
+                        <small class="opacity-75">En inventario</small>
+                    </div>
+                </div>
+
+                <!-- Valor Total del Inventario (Costo) -->
+                <div class="card dashboard-card text-white" style="background: linear-gradient(45deg, #56ab2f, #a8e6cf);">
+                    <div class="card-body">
+                        <i class="fas fa-shopping-cart card-icon"></i>
+                        <div class="metric-label">Valor Inventario</div>
+                        <div class="metric-value" id="valorInventarioCostoDashboard">$0</div>
+                        <small class="opacity-75">Precio de costo</small>
+                    </div>
+                </div>
+
+                <!-- Stock Bajo -->
+                <div class="card dashboard-card text-white" style="background: linear-gradient(45deg, #f093fb, #f5576c);">
+                    <div class="card-body">
+                        <i class="fas fa-exclamation-triangle card-icon"></i>
+                        <div class="metric-label">Stock Bajo</div>
+                        <div class="metric-value" id="stockBajoDashboard">0</div>
+                        <small class="opacity-75">Productos críticos</small>
                     </div>
                 </div>
             </div>
@@ -401,6 +442,9 @@
 
             // Cargar datos de productividad
             cargarProductividad();
+            
+            // Cargar métricas del inventario
+            cargarMetricasInventario();
             
             // Cargar gráfico de ventas
             cargarGraficoVentas();
@@ -586,6 +630,31 @@
             });
             
             container.innerHTML = html;
+        }
+
+        function cargarMetricasInventario() {
+            fetch('index.php?action=obtenerEstadisticasInventario')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const stats = data.estadisticas;
+                        
+                        // Actualizar métricas del inventario en el dashboard
+                        document.getElementById('totalProductosInventario').textContent = stats.total_productos || 0;
+                        
+                        const valorCosto = parseFloat(stats.valor_total_costo || 0);
+                        document.getElementById('valorInventarioCostoDashboard').textContent = '$' + valorCosto.toLocaleString('es-CO');
+                        
+                        document.getElementById('stockBajoDashboard').textContent = stats.productos_stock_bajo || 0;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al cargar métricas del inventario:', error);
+                    // Valores por defecto en caso de error
+                    document.getElementById('totalProductosInventario').textContent = '0';
+                    document.getElementById('valorInventarioCostoDashboard').textContent = '$0';
+                    document.getElementById('stockBajoDashboard').textContent = '0';
+                });
         }
     </script>
 
