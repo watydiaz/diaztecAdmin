@@ -298,10 +298,6 @@ require_once 'header.php';
     flex-shrink: 0;
 }
 
-.avatar-circle .text-warning {
-    color: #ffc107 !important;
-}
-
 /* Texto truncado */
 .texto-truncado {
     max-width: 150px;
@@ -445,44 +441,13 @@ require_once 'header.php';
                                 <tr>
                                     <td class="fw-bold text-primary"><?php echo $orden['id']; ?></td>
                                     <td>
-                                        <?php if (!empty($orden['imagen_url'])): ?>
-                                            <?php 
-                                            // Separar múltiples imágenes (si hay varias separadas por comas)
-                                            $imagenes = explode(',', $orden['imagen_url']);
-                                            $primeraImagen = trim($imagenes[0]);
-                                            
-                                            if (!empty($primeraImagen)): 
-                                                // Limpiar la ruta - si ya incluye assets/img/, usar tal como está
-                                                // Si no, agregar el prefijo assets/img/
-                                                if (strpos($primeraImagen, 'assets/img/') === 0) {
-                                                    $rutaImagen = $primeraImagen; // Ya tiene la ruta completa
-                                                    $nombreArchivo = str_replace('assets/img/', '', $primeraImagen);
-                                                } else {
-                                                    $rutaImagen = 'assets/img/' . $primeraImagen; // Solo nombre del archivo
-                                                    $nombreArchivo = $primeraImagen;
-                                                }
-                                                
-                                                if (file_exists($rutaImagen)): 
-                                            ?>
-                                                    <img src="<?php echo $rutaImagen; ?>" 
-                                                         class="miniatura-orden" 
-                                                         alt="Imagen orden" 
-                                                         onclick="mostrarImagenCompleta('<?php echo $nombreArchivo; ?>')">
-                                                    <?php if (count($imagenes) > 1): ?>
-                                                        <small class="text-muted d-block">+<?php echo count($imagenes) - 1; ?> más</small>
-                                                    <?php endif; ?>
-                                                <?php else: ?>
-                                                    <div class="avatar-circle" title="Imagen no encontrada: <?php echo $rutaImagen; ?>">
-                                                        <i class="fas fa-image-slash text-warning"></i>
-                                                    </div>
-                                                <?php endif; ?>
-                                            <?php else: ?>
-                                                <div class="avatar-circle" title="Imagen vacía">
-                                                    <i class="fas fa-image text-muted"></i>
-                                                </div>
-                                            <?php endif; ?>
+                                        <?php if (!empty($orden['imagen'])): ?>
+                                            <img src="assets/img/<?php echo $orden['imagen']; ?>" 
+                                                 class="miniatura-orden" 
+                                                 alt="Imagen orden" 
+                                                 onclick="mostrarImagenCompleta('<?php echo $orden['imagen']; ?>')">
                                         <?php else: ?>
-                                            <div class="avatar-circle" title="Sin imagen">
+                                            <div class="avatar-circle">
                                                 <i class="fas fa-image"></i>
                                             </div>
                                         <?php endif; ?>
@@ -818,28 +783,15 @@ function mostrarModalAgregarOrden() {
 // Función para cargar técnicos
 function cargarTecnicos() {
     fetch('index.php?action=obtenerTecnicos')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.text();
-        })
-        .then(text => {
-            try {
-                const data = JSON.parse(text);
-                const select = document.getElementById('usuario_tecnico_id');
-                select.innerHTML = '<option value="">Seleccione un técnico</option>';
-                
-                if (data.success && data.tecnicos) {
-                    data.tecnicos.forEach(tecnico => {
-                        select.innerHTML += `<option value="${tecnico.id}">${tecnico.nombre}</option>`;
-                    });
-                } else {
-                    console.warn('No se pudieron cargar los técnicos:', data);
-                }
-            } catch (e) {
-                console.error('Error parsing JSON:', e);
-                console.error('Response text:', text);
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('usuario_tecnico_id');
+            select.innerHTML = '<option value="">Seleccione un técnico</option>';
+            
+            if (data.success && data.tecnicos) {
+                data.tecnicos.forEach(tecnico => {
+                    select.innerHTML += `<option value="${tecnico.id}">${tecnico.nombre}</option>`;
+                });
             }
         })
         .catch(error => {
@@ -854,48 +806,35 @@ function buscarClientes(query) {
         return;
     }
     
-    fetch(`index.php?action=buscarCliente&query=${encodeURIComponent(query)}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.text();
-        })
-        .then(text => {
-            try {
-                const data = JSON.parse(text);
-                const resultados = document.getElementById('resultadosClientes');
-                
-                if (data.success && data.clientes && data.clientes.length > 0) {
-                    let html = '<div class="list-group">';
-                    data.clientes.forEach(cliente => {
-                        html += `
-                            <button type="button" class="list-group-item list-group-item-action" 
-                                    onclick="seleccionarCliente(${cliente.id}, '${cliente.nombre.replace(/'/g, "\\'")}')">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>${cliente.nombre}</strong><br>
-                                        <small class="text-muted">${cliente.identificacion || 'Sin identificación'} - ${cliente.telefono || 'Sin teléfono'}</small>
-                                    </div>
-                                    <i class="fas fa-check-circle text-success"></i>
+    fetch(`index.php?action=buscarClientes&q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+            const resultados = document.getElementById('resultadosClientes');
+            
+            if (data.success && data.clientes.length > 0) {
+                let html = '<div class="list-group">';
+                data.clientes.forEach(cliente => {
+                    html += `
+                        <button type="button" class="list-group-item list-group-item-action" 
+                                onclick="seleccionarCliente(${cliente.id}, '${cliente.nombre}')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>${cliente.nombre}</strong><br>
+                                    <small class="text-muted">${cliente.identificacion} - ${cliente.telefono}</small>
                                 </div>
-                            </button>
-                        `;
-                    });
-                    html += '</div>';
-                    resultados.innerHTML = html;
-                } else {
-                    resultados.innerHTML = '<div class="alert alert-info">No se encontraron clientes que coincidan con la búsqueda</div>';
-                }
-            } catch (e) {
-                console.error('Error parsing JSON:', e);
-                console.error('Response text:', text);
-                document.getElementById('resultadosClientes').innerHTML = '<div class="alert alert-danger">Error al procesar la respuesta del servidor</div>';
+                                <i class="fas fa-check-circle text-success"></i>
+                            </div>
+                        </button>
+                    `;
+                });
+                html += '</div>';
+                resultados.innerHTML = html;
+            } else {
+                resultados.innerHTML = '<div class="alert alert-info">No se encontraron clientes</div>';
             }
         })
         .catch(error => {
             console.error('Error al buscar clientes:', error);
-            document.getElementById('resultadosClientes').innerHTML = '<div class="alert alert-danger">Error de conexión al buscar clientes</div>';
         });
 }
 
@@ -927,37 +866,25 @@ function guardarClienteRapido(e) {
         method: 'POST',
         body: formData
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.text();
-    })
-    .then(text => {
-        try {
-            const data = JSON.parse(text);
-            if (data.success) {
-                // Seleccionar el cliente recién creado
-                seleccionarCliente(data.cliente_id, formData.get('nombre'));
-                
-                // Cerrar modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('modalAgregarClienteRapido'));
-                modal.hide();
-                
-                Swal.fire({
-                    title: '¡Éxito!',
-                    text: 'Cliente agregado y seleccionado',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-            } else {
-                Swal.fire('Error', data.message || 'Error al guardar cliente', 'error');
-            }
-        } catch (e) {
-            console.error('Error parsing JSON:', e);
-            console.error('Response text:', text);
-            Swal.fire('Error', 'Error al procesar la respuesta del servidor', 'error');
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Seleccionar el cliente recién creado
+            seleccionarCliente(data.cliente_id, formData.get('nombre'));
+            
+            // Cerrar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalAgregarClienteRapido'));
+            modal.hide();
+            
+            Swal.fire({
+                title: '¡Éxito!',
+                text: 'Cliente agregado y seleccionado',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } else {
+            Swal.fire('Error', data.message, 'error');
         }
     })
     .catch(error => {
@@ -990,35 +917,23 @@ function guardarOrden(e) {
         method: 'POST',
         body: formData
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.text();
-    })
-    .then(text => {
-        try {
-            const data = JSON.parse(text);
-            if (data.success) {
-                Swal.fire({
-                    title: '¡Éxito!',
-                    text: 'Orden de trabajo creada exitosamente',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-                
-                // Cerrar modal y recargar
-                const modal = bootstrap.Modal.getInstance(document.getElementById('modalAgregarOrden'));
-                modal.hide();
-                setTimeout(() => location.reload(), 1500);
-            } else {
-                Swal.fire('Error', data.message || 'Error al guardar la orden', 'error');
-            }
-        } catch (e) {
-            console.error('Error parsing JSON:', e);
-            console.error('Response text:', text);
-            Swal.fire('Error', 'Error al procesar la respuesta del servidor', 'error');
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: '¡Éxito!',
+                text: 'Orden de trabajo creada exitosamente',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            
+            // Cerrar modal y recargar
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalAgregarOrden'));
+            modal.hide();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            Swal.fire('Error', data.message, 'error');
         }
     })
     .catch(error => {
