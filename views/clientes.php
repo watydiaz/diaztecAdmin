@@ -1,360 +1,377 @@
 <?php
 require_once 'header.php';
 ?>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Font Awesome para iconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-    .responsive-table {
-        width: 100%;
-        overflow-x: auto;
-        display: block;
-    }
+.dashboard-container {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 25%, #4a4a4a 50%, #6a6a6a 75%, #8a8a8a 100%);
+    min-height: 100vh;
+    padding: 20px 0;
+}
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
+.welcome-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    text-align: center;
+    color: #212529;
+    border: 2px solid #ced4da;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
 
-    th, td {
-                                    <label for="direccion" class="form-label">Dirección</label>
-                                    <textarea class="form-control" id="direccion" name="direccion"></textarea>
-                                </div>
-                                <button type="submit" class="btn btn-dark">Guardar</button>    padding: 10px;
-        text-align: left;
-        border: 1px solid #ddd;
-    }
+.content-section {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin: 20px 0;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
 
-    th {
-        background-color: #f4f4f4;
-    }
+.section-title {
+    color: #333;
+    margin-bottom: 20px;
+    font-weight: 600;
+    border-bottom: 3px solid #4a6fa5;
+    padding-bottom: 10px;
+}
 
-    @media (max-width: 768px) {
-        footer {
-            text-align: center;
-            font-size: 14px;
-        }
-    }
+.search-box {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 2px solid #dee2e6;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
 
-    .page-container {
-        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 25%, #4a4a4a 50%, #6a6a6a 75%, #8a8a8a 100%);
-        min-height: 100vh;
-        padding: 20px 0;
+.table-container {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.table th {
+    background-color: #000000;
+    color: white;
+    border: none;
+    font-weight: 500;
+    padding: 15px;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table td {
+    padding: 12px 15px;
+    vertical-align: middle;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.01);
+    transition: all 0.2s ease;
+}
+
+.btn-action {
+    margin: 2px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.btn-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    color: white;
+}
+
+.floating-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.25);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.floating-btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 12px 35px rgba(102, 126, 234, 0.35);
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    color: white;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px 15px 0 0;
+    border: none;
+    padding: 20px 25px;
+}
+
+.modal-header .modal-title {
+    font-weight: 600;
+    font-size: 1.25rem;
+}
+
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+}
+
+.modal-header .btn-close:hover {
+    opacity: 1;
+}
+
+.modal-content {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+    overflow: hidden;
+}
+
+.modal-body {
+    padding: 25px;
+}
+
+.modal-footer {
+    background: #f8f9fa;
+    border: none;
+    padding: 20px 25px;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    padding: 12px 15px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.input-group-text {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px 0 0 10px;
+}
+
+/* Estilos para truncar texto */
+.email-truncado {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+
+.nombre-truncado {
+    max-width: 180px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+
+/* Estilos adicionales para avatar y mejoras visuales */
+.avatar-circle {
+    width: 35px;
+    height: 35px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .content-section {
+        padding: 20px;
+        margin: 15px 0;
     }
     
-    .page-header {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
-        border-radius: 15px;
-        padding: 30px;
-        margin-bottom: 30px;
-        text-align: center;
-        color: #212529;
-        border: 2px solid #ced4da;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    .search-box {
+        padding: 15px;
     }
     
-    .content-card {
-        background: white;
-        border-radius: 15px;
-        padding: 25px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
+    .table th, .table td {
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .welcome-header {
+        padding: 20px;
     }
     
-    /* Botón negro para acciones principales */
-    .btn-dark {
-        background: linear-gradient(45deg, #000000, #111111, #333333);
-        border: 1px solid #444444;
-        border-radius: 8px;
-        padding: 10px 20px;
-        transition: all 0.3s ease;
-        color: white;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    .content-section {
+        padding: 15px;
     }
-    
-    .btn-dark:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0, 0.4);
-        background: linear-gradient(45deg, #111111, #333333, #555555);
-    }
-    
-    .table th {
-        background: linear-gradient(45deg, #000000, #111111, #222222);
-        color: white;
-        border: none;
-        font-weight: 600;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-    }
-    
-    /* Limitar longitud de textos largos en la tabla */
-    .direccion-truncada {
-        max-width: 150px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: block;
-    }
-    
-    .email-truncado {
-        max-width: 120px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: block;
-    }
-    
-    .nombre-truncado {
-        max-width: 120px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: block;
-    }
-    
-    /* Estilos para los botones con degradados */
-    .btn-warning {
-        background: linear-gradient(45deg, #ffc107, #e0a800, #d39e00);
-        border: 1px solid #d39e00;
-        color: #212529;
-        text-shadow: 1px 1px 2px rgba(255,255,255,0.3);
-        transition: all 0.3s ease;
-    }
-    
-    .btn-warning:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0, 0.3);
-        background: linear-gradient(45deg, #e0a800, #d39e00, #ba8b00);
-    }
-    
-    .btn-success {
-        background: linear-gradient(45deg, #28a745, #218838, #1e7e34);
-        border: 1px solid #1e7e34;
-        color: white;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-        transition: all 0.3s ease;
-    }
-    
-    .btn-success:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0, 0.3);
-        background: linear-gradient(45deg, #218838, #1e7e34, #1c7430);
-    }
-    
-    .btn-primary {
-        background: linear-gradient(45deg, #007bff, #0069d9, #0062cc);
-        border: 1px solid #0062cc;
-        border-radius: 8px;
-        padding: 10px 20px;
-        transition: all 0.3s ease;
-        color: white;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-    }
-    
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0, 0.4);
-        background: linear-gradient(45deg, #0069d9, #0062cc, #005cbf);
-    }
-    
-    .bg-primary {
-        background: linear-gradient(45deg, #007bff, #0069d9, #0062cc) !important;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-    }
-    
-    .btn-danger {
-        background: linear-gradient(45deg, #dc3545, #c82333, #bd2130);
-        border: 1px solid #bd2130;
-        color: white;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-        transition: all 0.3s ease;
-    }
-    
-    .btn-danger:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0, 0.3);
-        background: linear-gradient(45deg, #c82333, #bd2130, #a71d2a);
-    }
-    
-    /* Asegurar que todos los iconos tengan el mismo tamaño */
-    .btn-sm i {
-        font-size: 12px;
-        width: 12px;
-        height: 12px;
-        display: inline-block;
-        vertical-align: middle;
-        line-height: 1;
-    }
-    
-    /* Ajustar el espaciado de los botones para mejor alineación */
-    .btn-sm {
-        padding: 0.25rem 0.4rem;
-        margin: 2px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 28px;
-        min-height: 28px;
-    }
-    
-    /* Centrar los botones en la columna de acciones */
-    .acciones-centradas {
-        text-align: center;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        align-items: center;
-        gap: 3px;
-    }
+}
 </style>
 
-<div class="page-container">
-    <div class="container">
-        <!-- Header de la página -->
-        <div class="page-header">
-            <h1><i class="bi bi-people-fill me-3"></i>Gestión de Clientes</h1>
-            <p class="mb-0">Administra la información de clientes del sistema</p>
+<div class="dashboard-container">
+    <div class="container-fluid">
+        <!-- Header de bienvenida -->
+        <div class="welcome-header">
+            <h1><i class="fas fa-users me-3"></i>Gestión de Clientes</h1>
+            <p class="mb-0">Centro de Control de Información de Clientes</p>
+            <small id="fechaActual"></small>
         </div>
         
-        <!-- Botón para abrir el modal -->
-        <div class="content-card">
-            <div class="text-center mb-4">
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarCliente">
-                    <i class="bi bi-plus-circle me-2"></i>Agregar Cliente
-                </button>
-            </div>
-
-            <!-- Modal para agregar cliente -->
-            <div class="modal fade" id="modalAgregarCliente" tabindex="-1" aria-labelledby="modalAgregarClienteLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modalAgregarClienteLabel">Agregar Cliente</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="formAgregarCliente">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="nombre" class="form-label">Nombre</label>
-                                        <input type="text" class="form-control" id="nombre" name="nombre" required>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="identificacion" class="form-label">Identificación</label>
-                                        <input type="text" class="form-control" id="identificacion" name="identificacion" required>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="telefono" class="form-label">Teléfono</label>
-                                        <input type="text" class="form-control" id="telefono" name="telefono">
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="email" class="form-label">Email</label>
-                                        <input type="email" class="form-control" id="email" name="email">
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-12 mb-3">
-                                        <label for="direccion" class="form-label">Dirección</label>
-                                        <textarea class="form-control" id="direccion" name="direccion"></textarea>
-                                    </div>
-                                </div>
-                                <button type="submit" class="btn btn-primary">Guardar</button>
-                            </form>
-                        </div>
-                    </div>
+        <!-- Controles superiores -->
+        <div class="content-section">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="section-title mb-0">
+                    <i class="fas fa-list me-2"></i>Lista de Clientes
+                </h4>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-info" onclick="exportarClientes()" title="Exportar clientes">
+                        <i class="fas fa-download me-2"></i>Exportar
+                    </button>
                 </div>
             </div>
 
-            <!-- Modal para editar cliente -->
-            <div class="modal fade" id="modalEditarCliente" tabindex="-1" aria-labelledby="modalEditarClienteLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modalEditarClienteLabel">Editar Cliente</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <!-- Buscador mejorado -->
+            <div class="search-box">
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-search me-2"></i>Buscar cliente
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" class="form-control" id="buscadorClientes" 
+                                   placeholder="Nombre, identificación, teléfono, email o dirección..." 
+                                   onkeyup="filtrarClientes()">
                         </div>
-                        <div class="modal-body">
-                            <form id="formEditarCliente">
-                                <input type="hidden" id="editarId" name="id">
-                                <div class="mb-3">
-                                    <label for="editarNombre" class="form-label">Nombre</label>
-                                    <input type="text" class="form-control" id="editarNombre" name="nombre" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="editarIdentificacion" class="form-label">Identificación</label>
-                                    <input type="text" class="form-control" id="editarIdentificacion" name="identificacion" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="editarTelefono" class="form-label">Teléfono</label>
-                                    <input type="text" class="form-control" id="editarTelefono" name="telefono">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="editarEmail" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="editarEmail" name="email">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="editarDireccion" class="form-label">Dirección</label>
-                                    <textarea class="form-control" id="editarDireccion" name="direccion"></textarea>
-                                </div>
-                                <button type="submit" class="btn btn-primary">Guardar</button>
-                            </form>
-                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3 d-flex align-items-end">
+                        <button class="btn btn-outline-secondary w-100" onclick="limpiarFiltros()">
+                            <i class="fas fa-redo me-2"></i>Limpiar
+                        </button>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Buscador de clientes -->
-            <div class="row mb-3">
-                <div class="col-md-6 offset-md-3">
-                    <div class="input-group">
-                        <span class="input-group-text bg-primary text-white">
-                            <i class="bi bi-search"></i>
-                        </span>
-                        <input type="text" id="buscadorClientes" class="form-control" placeholder="Buscar cliente por nombre, identificación, teléfono, email, dirección, etc...">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tabla para listar clientes -->
-            <div class="responsive-table">
-                <table class="table table-striped w-100">
+        <!-- Tabla de clientes -->
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="tablaClientes">
                     <thead>
                         <tr>
-                            <th width="5%">ID</th>
-                            <th width="20%">Nombre</th>
-                            <th width="12%">Identificación</th>
-                            <th width="10%">Teléfono</th>
-                            <th width="15%">Email</th>
-                            <th width="18%">Dirección</th>
-                            <th width="20%" class="text-center">Acciones</th>
+                            <th><i class="fas fa-hashtag me-2"></i>ID</th>
+                            <th><i class="fas fa-user me-2"></i>Nombre</th>
+                            <th><i class="fas fa-id-card me-2"></i>Identificación</th>
+                            <th><i class="fas fa-phone me-2"></i>Teléfono</th>
+                            <th><i class="fas fa-envelope me-2"></i>Email</th>
+                            <th><i class="fas fa-cogs me-2"></i>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="bodyTablaClientes">
                         <?php foreach ($clientes as $cliente): ?>
                             <tr>
-                                <td><?php echo $cliente['id']; ?></td>
-                                <td><span class="nombre-truncado" title="<?php echo htmlspecialchars($cliente['nombre']); ?>"><?php echo $cliente['nombre']; ?></span></td>
+                                <td class="fw-bold text-primary"><?php echo $cliente['id']; ?></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle me-2">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <span class="nombre-truncado fw-bold" title="<?php echo htmlspecialchars($cliente['nombre']); ?>">
+                                            <?php echo $cliente['nombre']; ?>
+                                        </span>
+                                    </div>
+                                </td>
                                 <td><?php echo $cliente['identificacion']; ?></td>
-                                <td><?php echo $cliente['telefono']; ?></td>
-                                <td><span class="email-truncado" title="<?php echo htmlspecialchars($cliente['email']); ?>"><?php echo $cliente['email']; ?></span></td>
-                                <td><span class="direccion-truncada" title="<?php echo htmlspecialchars($cliente['direccion']); ?>"><?php echo $cliente['direccion']; ?></span></td>
-                                <td class="acciones-centradas">
-                                    <a href="#" class="btn btn-warning btn-sm" onclick="abrirModalEditar(<?php echo $cliente['id']; ?>)" title="Editar">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </a>
-                                    <a href="tel:<?php echo $cliente['telefono']; ?>" class="btn btn-success btn-sm" title="Llamar">
-                                        <i class="bi bi-telephone-fill"></i>
-                                    </a>
-                                    <a href="mailto:<?php echo $cliente['email']; ?>" class="btn btn-primary btn-sm" title="Correo">
-                                        <i class="bi bi-envelope"></i>
-                                    </a>
-                                    <a href="https://wa.me/<?php echo $cliente['telefono']; ?>" target="_blank" class="btn btn-success btn-sm" title="WhatsApp">
-                                        <i class="bi bi-whatsapp"></i>
-                                    </a>
-                                    <a href="#" class="btn btn-danger btn-sm" onclick="confirmarEliminacion(event, <?php echo $cliente['id']; ?>)" title="Eliminar">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
+                                <td class="text-success fw-bold"><?php echo $cliente['telefono']; ?></td>
+                                <td>
+                                    <span class="email-truncado text-info" title="<?php echo htmlspecialchars($cliente['email']); ?>">
+                                        <?php echo $cliente['email']; ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-sm btn-outline-primary btn-action" 
+                                                onclick="abrirModalEditar(<?php echo $cliente['id']; ?>)" 
+                                                title="Editar cliente">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <a href="tel:<?php echo $cliente['telefono']; ?>" 
+                                           class="btn btn-sm btn-outline-success btn-action" 
+                                           title="Llamar">
+                                            <i class="fas fa-phone"></i>
+                                        </a>
+                                        <a href="mailto:<?php echo $cliente['email']; ?>" 
+                                           class="btn btn-sm btn-outline-info btn-action" 
+                                           title="Enviar email">
+                                            <i class="fas fa-envelope"></i>
+                                        </a>
+                                        <a href="https://wa.me/<?php echo $cliente['telefono']; ?>" 
+                                           target="_blank" 
+                                           class="btn btn-sm btn-outline-success btn-action" 
+                                           title="WhatsApp">
+                                            <i class="fab fa-whatsapp"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-outline-danger btn-action" 
+                                                onclick="confirmarEliminacion(event, <?php echo $cliente['id']; ?>)" 
+                                                title="Eliminar cliente">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -365,116 +382,375 @@ require_once 'header.php';
     </div>
 </div>
 
+<!-- Botón flotante para agregar cliente -->
+<button class="floating-btn" onclick="mostrarModalAgregarCliente()" title="Agregar nuevo cliente">
+    <i class="fas fa-plus"></i>
+</button>
+
+<!-- Modal para agregar cliente -->
+<div class="modal fade" id="modalAgregarCliente" tabindex="-1" aria-labelledby="modalAgregarClienteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalAgregarClienteLabel">
+                    <i class="fas fa-user-plus me-2"></i>Agregar Cliente
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formAgregarCliente">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="nombre" class="form-label fw-bold">
+                                <i class="fas fa-user me-2"></i>Nombre Completo *
+                            </label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="identificacion" class="form-label fw-bold">
+                                <i class="fas fa-id-card me-2"></i>Identificación *
+                            </label>
+                            <input type="text" class="form-control" id="identificacion" name="identificacion" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="telefono" class="form-label fw-bold">
+                                <i class="fas fa-phone me-2"></i>Teléfono
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-phone"></i>
+                                </span>
+                                <input type="text" class="form-control" id="telefono" name="telefono">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label fw-bold">
+                                <i class="fas fa-envelope me-2"></i>Email
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                <input type="email" class="form-control" id="email" name="email">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="direccion" class="form-label fw-bold">
+                            <i class="fas fa-map-marker-alt me-2"></i>Dirección
+                        </label>
+                        <textarea class="form-control" id="direccion" name="direccion" rows="3" 
+                                  placeholder="Dirección completa del cliente"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-gradient" id="btnGuardarCliente">
+                        <i class="fas fa-save me-2"></i>Guardar Cliente
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar cliente -->
+<div class="modal fade" id="modalEditarCliente" tabindex="-1" aria-labelledby="modalEditarClienteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEditarClienteLabel">
+                    <i class="fas fa-user-edit me-2"></i>Editar Cliente
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formEditarCliente">
+                <div class="modal-body">
+                    <input type="hidden" id="editarId" name="id">
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editarNombre" class="form-label fw-bold">
+                                <i class="fas fa-user me-2"></i>Nombre Completo *
+                            </label>
+                            <input type="text" class="form-control" id="editarNombre" name="nombre" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editarIdentificacion" class="form-label fw-bold">
+                                <i class="fas fa-id-card me-2"></i>Identificación *
+                            </label>
+                            <input type="text" class="form-control" id="editarIdentificacion" name="identificacion" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editarTelefono" class="form-label fw-bold">
+                                <i class="fas fa-phone me-2"></i>Teléfono
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-phone"></i>
+                                </span>
+                                <input type="text" class="form-control" id="editarTelefono" name="telefono">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editarEmail" class="form-label fw-bold">
+                                <i class="fas fa-envelope me-2"></i>Email
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                <input type="email" class="form-control" id="editarEmail" name="email">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editarDireccion" class="form-label fw-bold">
+                            <i class="fas fa-map-marker-alt me-2"></i>Dirección
+                        </label>
+                        <textarea class="form-control" id="editarDireccion" name="direccion" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-gradient" id="btnActualizarCliente">
+                        <i class="fas fa-save me-2"></i>Actualizar Cliente
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
-    document.getElementById('formAgregarCliente').addEventListener('submit', function(event) {
-        event.preventDefault();
+// Variables globales
+let clientes = [];
 
-        const formData = new FormData(this);
-
-        fetch('index.php?action=agregarCliente', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Cliente creado exitosamente');
-                // Actualizar la tabla de clientes
-                location.reload();
-            } else {
-                alert('Error al agregar cliente: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+// Inicialización
+document.addEventListener('DOMContentLoaded', function() {
+    // Event listeners para formularios
+    document.getElementById('formAgregarCliente').addEventListener('submit', guardarCliente);
+    document.getElementById('formEditarCliente').addEventListener('submit', actualizarCliente);
+    
+    // Actualizar fecha
+    document.getElementById('fechaActual').textContent = new Date().toLocaleDateString('es-CO', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
     });
+});
 
-    // Abrir modal con datos del cliente
-    function abrirModalEditar(id) {
-        fetch(`index.php?action=obtenerCliente&id=${id}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('editarId').value = data.cliente.id;
-                    document.getElementById('editarNombre').value = data.cliente.nombre;
-                    document.getElementById('editarIdentificacion').value = data.cliente.identificacion;
-                    document.getElementById('editarTelefono').value = data.cliente.telefono;
-                    document.getElementById('editarEmail').value = data.cliente.email;
-                    document.getElementById('editarDireccion').value = data.cliente.direccion;
+// Función para mostrar modal agregar cliente
+function mostrarModalAgregarCliente() {
+    document.getElementById('formAgregarCliente').reset();
+    const modal = new bootstrap.Modal(document.getElementById('modalAgregarCliente'));
+    modal.show();
+}
 
-                    const modalEditar = new bootstrap.Modal(document.getElementById('modalEditarCliente'));
-                    modalEditar.show();
-                } else {
-                    alert('Error al obtener los datos del cliente: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
+// Función para guardar cliente
+function guardarCliente(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const btn = document.getElementById('btnGuardarCliente');
+    
+    // Deshabilitar botón
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+    
+    fetch('index.php?action=agregarCliente', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: '¡Éxito!',
+                text: 'Cliente agregado exitosamente',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
             });
-    }
+            
+            // Cerrar modal y recargar
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalAgregarCliente'));
+            modal.hide();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            Swal.fire('Error', data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire('Error', 'Error de conexión al guardar cliente', 'error');
+    })
+    .finally(() => {
+        // Restaurar botón
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save me-2"></i>Guardar Cliente';
+    });
+}
 
-    // Enviar datos editados al servidor
-    document.getElementById('formEditarCliente').addEventListener('submit', function(event) {
-        event.preventDefault();
-
-        const formData = new FormData(this);
-
-        fetch('index.php?action=editarCliente', {
-            method: 'POST',
-            body: formData
-        })
+// Función para abrir modal editar
+function abrirModalEditar(id) {
+    fetch(`index.php?action=obtenerCliente&id=${id}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Actualizar la tabla de clientes
-                location.reload();
+                const cliente = data.cliente;
+                document.getElementById('editarId').value = cliente.id;
+                document.getElementById('editarNombre').value = cliente.nombre;
+                document.getElementById('editarIdentificacion').value = cliente.identificacion;
+                document.getElementById('editarTelefono').value = cliente.telefono;
+                document.getElementById('editarEmail').value = cliente.email;
+                document.getElementById('editarDireccion').value = cliente.direccion;
+
+                const modal = new bootstrap.Modal(document.getElementById('modalEditarCliente'));
+                modal.show();
             } else {
-                alert('Error al actualizar cliente: ' + data.message);
+                Swal.fire('Error', 'Error al cargar datos del cliente', 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
+            Swal.fire('Error', 'Error de conexión', 'error');
         });
-    });
+}
 
-    // Confirmación para eliminar cliente
-    function confirmarEliminacion(event, id) {
-        event.preventDefault();
-        if (confirm('¿Estás seguro de eliminar este cliente?')) {
+// Función para actualizar cliente
+function actualizarCliente(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const btn = document.getElementById('btnActualizarCliente');
+    
+    // Deshabilitar botón
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Actualizando...';
+    
+    fetch('index.php?action=editarCliente', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: '¡Éxito!',
+                text: 'Cliente actualizado exitosamente',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            
+            // Cerrar modal y recargar
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalEditarCliente'));
+            modal.hide();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            Swal.fire('Error', data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire('Error', 'Error de conexión al actualizar cliente', 'error');
+    })
+    .finally(() => {
+        // Restaurar botón
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save me-2"></i>Actualizar Cliente';
+    });
+}
+
+// Función para confirmar eliminación
+function confirmarEliminacion(event, id) {
+    event.preventDefault();
+    
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: 'Se eliminará el cliente permanentemente',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
             fetch(`index.php?action=eliminarCliente&id=${id}`, {
                 method: 'GET'
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Actualizar la tabla de clientes
-                    location.reload();
+                    Swal.fire({
+                        title: '¡Eliminado!',
+                        text: 'Cliente eliminado exitosamente',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    setTimeout(() => location.reload(), 1500);
                 } else {
-                    alert('Error al eliminar cliente: ' + data.message);
+                    Swal.fire('Error', data.message, 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
+                Swal.fire('Error', 'Error de conexión al eliminar cliente', 'error');
             });
         }
-    }
-
-    // --- FILTRO DE TABLA POR BUSCADOR DE CLIENTES ---
-    document.getElementById('buscadorClientes').addEventListener('input', function() {
-        const filtro = this.value.toLowerCase();
-        document.querySelectorAll('.responsive-table tbody tr').forEach(function(fila) {
-            let textoFila = '';
-            fila.querySelectorAll('td').forEach(function(td) {
-                textoFila += (td.textContent || '').toLowerCase() + ' ';
-            });
-            if (textoFila.includes(filtro)) {
-                fila.style.display = '';
-            } else {
-                fila.style.display = 'none';
-            }
-        });
     });
+}
+
+// Función para filtrar clientes
+function filtrarClientes() {
+    const filtro = document.getElementById('buscadorClientes').value.toLowerCase();
+    const filas = document.querySelectorAll('#bodyTablaClientes tr');
+    
+    filas.forEach(function(fila) {
+        let textoFila = '';
+        fila.querySelectorAll('td').forEach(function(td) {
+            textoFila += (td.textContent || '').toLowerCase() + ' ';
+        });
+        
+        if (textoFila.includes(filtro)) {
+            fila.style.display = '';
+        } else {
+            fila.style.display = 'none';
+        }
+    });
+}
+
+// Función para limpiar filtros
+function limpiarFiltros() {
+    document.getElementById('buscadorClientes').value = '';
+    filtrarClientes();
+}
+
+// Función para exportar clientes
+function exportarClientes() {
+    Swal.fire({
+        title: 'Exportar Clientes',
+        text: 'Funcionalidad de exportación en desarrollo',
+        icon: 'info',
+        confirmButtonText: 'Entendido'
+    });
+}
 </script>
 
 <?php
