@@ -45,19 +45,46 @@ require_once 'header.php';
 }
 
 .stats-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border-radius: 15px;
     padding: 25px;
     text-align: center;
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
     transition: all 0.3s ease;
     border: none;
 }
 
 .stats-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.25);
+}
+
+/* Tarjeta Total Usuarios - Azul */
+.stats-card.total-usuarios {
+    background: linear-gradient(135deg, #4285f4 0%, #1976d2 100%);
+    box-shadow: 0 8px 25px rgba(66, 133, 244, 0.15);
+}
+
+.stats-card.total-usuarios:hover {
+    box-shadow: 0 15px 35px rgba(66, 133, 244, 0.25);
+}
+
+/* Tarjeta Usuarios Activos - Verde */
+.stats-card.usuarios-activos {
+    background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.15);
+}
+
+.stats-card.usuarios-activos:hover {
+    box-shadow: 0 15px 35px rgba(76, 175, 80, 0.25);
+}
+
+/* Tarjeta Usuarios Inactivos - Naranja/Rojo */
+.stats-card.usuarios-inactivos {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    box-shadow: 0 8px 25px rgba(255, 152, 0, 0.15);
+}
+
+.stats-card.usuarios-inactivos:hover {
+    box-shadow: 0 15px 35px rgba(255, 152, 0, 0.25);
 }
 
 .stats-number {
@@ -294,19 +321,19 @@ require_once 'header.php';
         <div class="stats-container">
             <div class="row" id="statsContainer">
                 <div class="col-md-4 mb-3">
-                    <div class="stats-card">
+                    <div class="stats-card total-usuarios">
                         <span class="stats-number" id="totalUsuarios">0</span>
                         <span class="stats-label">Total Usuarios</span>
                     </div>
                 </div>
                 <div class="col-md-4 mb-3">
-                    <div class="stats-card">
+                    <div class="stats-card usuarios-activos">
                         <span class="stats-number" id="usuariosActivos">0</span>
                         <span class="stats-label">Usuarios Activos</span>
                     </div>
                 </div>
                 <div class="col-md-4 mb-3">
-                    <div class="stats-card">
+                    <div class="stats-card usuarios-inactivos">
                         <span class="stats-number" id="usuariosInactivos">0</span>
                         <span class="stats-label">Usuarios Inactivos</span>
                     </div>
