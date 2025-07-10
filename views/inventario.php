@@ -1,6 +1,8 @@
 <?php
 require_once 'header.php';
 ?>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <!-- Bootstrap Select CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/css/bootstrap-select.min.css">
 <!-- jQuery primero -->
@@ -228,27 +230,16 @@ require_once 'header.php';
     <!-- Filtros y búsqueda -->
     <div class="search-box">
         <div class="row">
-            <div class="col-md-4 mb-3">
+            <div class="col-md-6 mb-3">
                 <label class="form-label">Buscar producto</label>
                 <div class="input-group">
                     <span class="input-group-text">
                         <i class="bi bi-search"></i>
                     </span>
                     <input type="text" class="form-control" id="buscarProducto" 
-                           placeholder="Nombre, código o categoría..." 
+                           placeholder="Nombre o descripción..." 
                            onkeyup="filtrarProductos()">
                 </div>
-            </div>
-            <div class="col-md-2 mb-3">
-                <label class="form-label">Categoría</label>
-                <select class="form-select" id="filtroCategoria" onchange="filtrarProductos()">
-                    <option value="">Todas</option>
-                    <option value="electronica">Electrónica</option>
-                    <option value="repuestos">Repuestos</option>
-                    <option value="accesorios">Accesorios</option>
-                    <option value="herramientas">Herramientas</option>
-                    <option value="otros">Otros</option>
-                </select>
             </div>
             <div class="col-md-2 mb-3">
                 <label class="form-label">Estado Stock</label>
@@ -266,7 +257,6 @@ require_once 'header.php';
                     <option value="nombre">Nombre</option>
                     <option value="stock">Stock</option>
                     <option value="precio">Precio</option>
-                    <option value="categoria">Categoría</option>
                     <option value="fecha">Fecha Creación</option>
                 </select>
             </div>
@@ -287,9 +277,7 @@ require_once 'header.php';
             <table class="table table-hover mb-0" id="tablaInventario">
                 <thead>
                     <tr>
-                        <th>Código</th>
                         <th>Producto</th>
-                        <th>Categoría</th>
                         <th>Stock Actual</th>
                         <th>Stock Mínimo</th>
                         <th>Precio Compra</th>
@@ -339,33 +327,9 @@ require_once 'header.php';
                 <div class="modal-body">
                     <input type="hidden" id="productoId" name="id">
                     
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="productoNombre" class="form-label">Nombre del Producto *</label>
-                            <input type="text" class="form-control" id="productoNombre" name="nombre" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="productoCodigo" class="form-label">Código/SKU</label>
-                            <input type="text" class="form-control" id="productoCodigo" name="codigo">
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="productoCategoria" class="form-label">Categoría *</label>
-                            <select class="form-select" id="productoCategoria" name="categoria" required>
-                                <option value="">Seleccionar categoría</option>
-                                <option value="electronica">Electrónica</option>
-                                <option value="repuestos">Repuestos</option>
-                                <option value="accesorios">Accesorios</option>
-                                <option value="herramientas">Herramientas</option>
-                                <option value="otros">Otros</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="productoMarca" class="form-label">Marca</label>
-                            <input type="text" class="form-control" id="productoMarca" name="marca">
-                        </div>
+                    <div class="mb-3">
+                        <label for="productoNombre" class="form-label">Nombre del Producto *</label>
+                        <input type="text" class="form-control" id="productoNombre" name="nombre" required>
                     </div>
 
                     <div class="mb-3">
@@ -374,38 +338,30 @@ require_once 'header.php';
                     </div>
 
                     <div class="row">
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-6 mb-3">
                             <label for="productoStockActual" class="form-label">Stock Actual *</label>
-                            <input type="number" class="form-control" id="productoStockActual" name="stock_actual" min="0" required>
+                            <input type="number" class="form-control" id="productoStockActual" name="stock" min="0" required>
                         </div>
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-6 mb-3">
                             <label for="productoStockMinimo" class="form-label">Stock Mínimo *</label>
                             <input type="number" class="form-control" id="productoStockMinimo" name="stock_minimo" min="0" required>
                         </div>
-                        <div class="col-md-3 mb-3">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
                             <label for="productoPrecioCompra" class="form-label">Precio Compra</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
                                 <input type="number" class="form-control" id="productoPrecioCompra" name="precio_compra" min="0" step="0.01">
                             </div>
                         </div>
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-6 mb-3">
                             <label for="productoPrecioVenta" class="form-label">Precio Venta *</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
                                 <input type="number" class="form-control" id="productoPrecioVenta" name="precio_venta" min="0" step="0.01" required>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="productoProveedor" class="form-label">Proveedor</label>
-                            <input type="text" class="form-control" id="productoProveedor" name="proveedor">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="productoUbicacion" class="form-label">Ubicación</label>
-                            <input type="text" class="form-control" id="productoUbicacion" name="ubicacion" placeholder="Ej: Estante A-2">
                         </div>
                     </div>
                 </div>
@@ -544,84 +500,57 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Función para cargar inventario
 function cargarInventario() {
-    // Simulando llamada a la API - reemplaza con tu endpoint real
-    fetch('/diaztecAdmin/index.php?action=obtenerInventario')
+    fetch('index.php?action=listarProductos')
         .then(response => response.json())
         .then(data => {
-            productos = data.productos || [];
-            productosFiltrados = [...productos];
-            actualizarEstadisticas();
-            renderizarTabla();
-            renderizarPaginacion();
+            if (data.success) {
+                productos = data.productos || [];
+                productosFiltrados = [...productos];
+                actualizarEstadisticas();
+                renderizarTabla();
+                renderizarPaginacion();
+            } else {
+                console.error('Error al cargar inventario:', data.message);
+                Swal.fire('Error', data.message, 'error');
+            }
         })
         .catch(error => {
             console.error('Error al cargar inventario:', error);
-            // Datos de ejemplo para demostración
-            productos = [
-                {
-                    id: 1,
-                    codigo: 'TEL001',
-                    nombre: 'iPhone 13 Pro',
-                    categoria: 'electronica',
-                    marca: 'Apple',
-                    descripcion: 'Teléfono inteligente de alta gama',
-                    stock_actual: 15,
-                    stock_minimo: 5,
-                    precio_compra: 800.00,
-                    precio_venta: 1200.00,
-                    proveedor: 'Tech Distributor',
-                    ubicacion: 'A-1',
-                    fecha_creacion: '2024-01-15'
-                },
-                {
-                    id: 2,
-                    codigo: 'REP001',
-                    nombre: 'Pantalla Samsung A52',
-                    categoria: 'repuestos',
-                    marca: 'Samsung',
-                    descripcion: 'Pantalla de repuesto original',
-                    stock_actual: 3,
-                    stock_minimo: 10,
-                    precio_compra: 50.00,
-                    precio_venta: 85.00,
-                    proveedor: 'Parts Express',
-                    ubicacion: 'B-3',
-                    fecha_creacion: '2024-02-01'
-                },
-                {
-                    id: 3,
-                    codigo: 'ACC001',
-                    nombre: 'Cargador Universal USB-C',
-                    categoria: 'accesorios',
-                    marca: 'Anker',
-                    descripcion: 'Cargador rápido 25W',
-                    stock_actual: 0,
-                    stock_minimo: 8,
-                    precio_compra: 15.00,
-                    precio_venta: 25.00,
-                    proveedor: 'Accessories Plus',
-                    ubicacion: 'C-2',
-                    fecha_creacion: '2024-01-20'
-                }
-            ];
-            productosFiltrados = [...productos];
-            actualizarEstadisticas();
-            renderizarTabla();
-            renderizarPaginacion();
+            Swal.fire('Error', 'Error de conexión al cargar inventario', 'error');
         });
 }
 
 // Función para actualizar estadísticas
 function actualizarEstadisticas() {
-    const totalProductos = productos.length;
-    const valorTotal = productos.reduce((total, p) => total + (p.stock_actual * p.precio_venta), 0);
-    const stockBajo = productos.filter(p => p.stock_actual <= p.stock_minimo && p.stock_actual > 0).length;
-    const stockAgotado = productos.filter(p => p.stock_actual === 0).length;
-    
-    document.getElementById('totalProductos').textContent = totalProductos;
-    document.getElementById('valorInventario').textContent = '$' + valorTotal.toLocaleString('es-CO');
-    document.getElementById('stockBajo').textContent = stockBajo;
-    document.getElementById('stockAgotado').textContent = stockAgotado;
+    // Usar la API para obtener estadísticas reales
+    fetch('index.php?action=obtenerEstadisticasInventario')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const stats = data.estadisticas;
+                document.getElementById('totalProductos').textContent = stats.total_productos || 0;
+                document.getElementById('valorInventario').textContent = '$' + (parseFloat(stats.valor_total_inventario || 0)).toLocaleString('es-CO');
+                document.getElementById('stockBajo').textContent = stats.productos_stock_bajo || 0;
+                document.getElementById('stockAgotado').textContent = stats.productos_sin_stock || 0;
+            } else {
+                console.error('Error al obtener estadísticas:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error al cargar estadísticas:', error);
+            // Fallback: calcular estadísticas localmente si hay productos cargados
+            if (productos.length > 0) {
+                const totalProductos = productos.length;
+                const valorTotal = productos.reduce((total, p) => total + (p.stock * p.precio_venta), 0);
+                const stockBajo = productos.filter(p => p.stock <= p.stock_minimo && p.stock > 0).length;
+                const stockAgotado = productos.filter(p => p.stock === 0).length;
+                
+                document.getElementById('totalProductos').textContent = totalProductos;
+                document.getElementById('valorInventario').textContent = '$' + valorTotal.toLocaleString('es-CO');
+                document.getElementById('stockBajo').textContent = stockBajo;
+                document.getElementById('stockAgotado').textContent = stockAgotado;
+            }
+        });
 }
 
 // Función para determinar el estado del stock
@@ -642,24 +571,19 @@ function renderizarTabla() {
     const productosParaMostrar = productosFiltrados.slice(inicio, fin);
     
     productosParaMostrar.forEach(producto => {
-        const estadoStock = obtenerEstadoStock(producto.stock_actual, producto.stock_minimo);
-        const valorTotal = producto.stock_actual * producto.precio_venta;
+        const estadoStock = obtenerEstadoStock(producto.stock, producto.stock_minimo);
+        const valorTotal = producto.stock * producto.precio_venta;
         
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><code>${producto.codigo || 'N/A'}</code></td>
             <td>
-                <div>
+                <div class="producto-info">
                     <strong>${producto.nombre}</strong>
-                    <br>
-                    <small class="text-muted">${producto.marca || ''}</small>
+                    <small class="text-muted d-block">${producto.descripcion || 'Sin descripción'}</small>
                 </div>
             </td>
-            <td>
-                <span class="badge bg-secondary">${producto.categoria}</span>
-            </td>
             <td class="text-center">
-                <strong>${producto.stock_actual}</strong>
+                <strong>${producto.stock}</strong>
             </td>
             <td class="text-center">
                 ${producto.stock_minimo}
@@ -747,21 +671,17 @@ function cambiarPagina(nuevaPagina) {
 // Función para filtrar productos
 function filtrarProductos() {
     const busqueda = document.getElementById('buscarProducto').value.toLowerCase();
-    const categoria = document.getElementById('filtroCategoria').value;
     const stock = document.getElementById('filtroStock').value;
     
     productosFiltrados = productos.filter(producto => {
         const cumpleBusqueda = !busqueda || 
             producto.nombre.toLowerCase().includes(busqueda) ||
-            (producto.codigo && producto.codigo.toLowerCase().includes(busqueda)) ||
-            producto.categoria.toLowerCase().includes(busqueda);
+            (producto.descripcion && producto.descripcion.toLowerCase().includes(busqueda));
             
-        const cumpleCategoria = !categoria || producto.categoria === categoria;
-        
-        const estadoStock = obtenerEstadoStock(producto.stock_actual, producto.stock_minimo);
+        const estadoStock = obtenerEstadoStock(producto.stock, producto.stock_minimo);
         const cumpleStock = !stock || estadoStock === stock;
         
-        return cumpleBusqueda && cumpleCategoria && cumpleStock;
+        return cumpleBusqueda && cumpleStock;
     });
     
     paginaActual = 1;
@@ -776,7 +696,6 @@ function mostrarFiltrosActivos() {
     contenedor.innerHTML = '';
     
     const busqueda = document.getElementById('buscarProducto').value;
-    const categoria = document.getElementById('filtroCategoria').value;
     const stock = document.getElementById('filtroStock').value;
     
     if (busqueda) {
@@ -784,15 +703,6 @@ function mostrarFiltrosActivos() {
             <span class="filter-chip">
                 Búsqueda: ${busqueda}
                 <button type="button" class="btn-close" onclick="limpiarFiltro('buscarProducto')"></button>
-            </span>
-        `;
-    }
-    
-    if (categoria) {
-        contenedor.innerHTML += `
-            <span class="filter-chip">
-                Categoría: ${categoria}
-                <button type="button" class="btn-close" onclick="limpiarFiltro('filtroCategoria')"></button>
             </span>
         `;
     }
@@ -816,7 +726,6 @@ function limpiarFiltro(filtroId) {
 // Función para limpiar todos los filtros
 function limpiarFiltros() {
     document.getElementById('buscarProducto').value = '';
-    document.getElementById('filtroCategoria').value = '';
     document.getElementById('filtroStock').value = '';
     filtrarProductos();
 }
@@ -842,16 +751,12 @@ function ordenarProductos() {
                 valorB = b.nombre.toLowerCase();
                 break;
             case 'stock':
-                valorA = a.stock_actual;
-                valorB = b.stock_actual;
+                valorA = a.stock;
+                valorB = b.stock;
                 break;
             case 'precio':
                 valorA = a.precio_venta;
                 valorB = b.precio_venta;
-                break;
-            case 'categoria':
-                valorA = a.categoria;
-                valorB = b.categoria;
                 break;
             case 'fecha':
                 valorA = new Date(a.fecha_creacion);
@@ -888,16 +793,11 @@ function editarProducto(id) {
     document.getElementById('modalProductoLabel').innerHTML = '<i class="bi bi-pencil me-2"></i>Editar Producto';
     document.getElementById('productoId').value = producto.id;
     document.getElementById('productoNombre').value = producto.nombre;
-    document.getElementById('productoCodigo').value = producto.codigo || '';
-    document.getElementById('productoCategoria').value = producto.categoria;
-    document.getElementById('productoMarca').value = producto.marca || '';
     document.getElementById('productoDescripcion').value = producto.descripcion || '';
-    document.getElementById('productoStockActual').value = producto.stock_actual;
+    document.getElementById('productoStockActual').value = producto.stock;
     document.getElementById('productoStockMinimo').value = producto.stock_minimo;
     document.getElementById('productoPrecioCompra').value = producto.precio_compra || '';
     document.getElementById('productoPrecioVenta').value = producto.precio_venta;
-    document.getElementById('productoProveedor').value = producto.proveedor || '';
-    document.getElementById('productoUbicacion').value = producto.ubicacion || '';
     
     const modal = new bootstrap.Modal(document.getElementById('modalProducto'));
     modal.show();
@@ -909,32 +809,69 @@ function guardarProducto(e) {
     
     const formData = new FormData(e.target);
     const btn = document.getElementById('btnGuardarProducto');
+    const esEdicion = formData.get('id');
     
     // Deshabilitar botón
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
     
-    // Simular guardado - reemplaza con tu endpoint real
-    setTimeout(() => {
-        const esEdicion = formData.get('id');
+    const url = esEdicion ? 'index.php?action=actualizarProducto' : 'index.php?action=crearProducto';
+    
+    fetch(url, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers.get('content-type'));
         
-        if (esEdicion) {
-            alert('Producto actualizado exitosamente');
-        } else {
-            alert('Producto creado exitosamente');
+        // Verificar si la respuesta es JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('La respuesta del servidor no es JSON válido');
         }
         
-        // Cerrar modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('modalProducto'));
-        modal.hide();
-        
-        // Recargar inventario
-        cargarInventario();
-        
+        return response.text().then(text => {
+            console.log('Response text:', text);
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                console.error('Error parsing JSON:', e);
+                console.error('Raw response:', text);
+                throw new Error('Respuesta JSON inválida del servidor');
+            }
+        });
+    })
+    .then(data => {
+        console.log('Parsed data:', data);
+        if (data.success) {
+            Swal.fire({
+                title: '¡Éxito!',
+                text: data.message,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            
+            // Cerrar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalProducto'));
+            modal.hide();
+            
+            // Recargar inventario
+            cargarInventario();
+        } else {
+            Swal.fire('Error', data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error completo:', error);
+        Swal.fire('Error', 'Error de conexión: ' + error.message, 'error');
+    })
+    .finally(() => {
         // Restaurar botón
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-save me-2"></i>Guardar Producto';
-    }, 1000);
+    });
 }
 
 // Función para mostrar modal de ajustar stock
@@ -944,8 +881,8 @@ function mostrarModalAjustarStock(id) {
     
     document.getElementById('ajusteProductoId').value = producto.id;
     document.getElementById('ajusteProductoNombre').value = producto.nombre;
-    document.getElementById('ajusteStockActual').value = producto.stock_actual;
-    document.getElementById('ajusteNuevoStock').value = producto.stock_actual;
+    document.getElementById('ajusteStockActual').value = producto.stock;
+    document.getElementById('ajusteNuevoStock').value = producto.stock;
     document.getElementById('ajusteTipo').value = '';
     document.getElementById('ajusteMotivo').value = '';
     
@@ -965,29 +902,68 @@ function ajustarStock(e) {
     const nuevoStock = parseInt(formData.get('nuevo_stock'));
     
     if (nuevoStock < 0) {
-        alert('El stock no puede ser negativo');
+        Swal.fire('Error', 'El stock no puede ser negativo', 'error');
         return;
     }
+    
+    // Determinar tipo de ajuste
+    let tipo, cantidad;
+    if (nuevoStock > stockActual) {
+        tipo = 'incremento';
+        cantidad = nuevoStock - stockActual;
+    } else if (nuevoStock < stockActual) {
+        tipo = 'decremento';
+        cantidad = stockActual - nuevoStock;
+    } else {
+        Swal.fire('Info', 'No hay cambios en el stock', 'info');
+        return;
+    }
+    
+    // Preparar datos para envío
+    const ajusteData = new FormData();
+    ajusteData.append('id', formData.get('producto_id'));
+    ajusteData.append('tipo', tipo);
+    ajusteData.append('cantidad', cantidad);
+    ajusteData.append('motivo', formData.get('motivo'));
     
     // Deshabilitar botón
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Ajustando...';
     
-    // Simular ajuste - reemplaza con tu endpoint real
-    setTimeout(() => {
-        alert(`Stock ajustado exitosamente. Cambio: ${stockActual} → ${nuevoStock}`);
-        
-        // Cerrar modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('modalAjustarStock'));
-        modal.hide();
-        
-        // Recargar inventario
-        cargarInventario();
-        
+    fetch('index.php?action=ajustarStockProducto', {
+        method: 'POST',
+        body: ajusteData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: '¡Éxito!',
+                text: `Stock ajustado: ${stockActual} → ${nuevoStock}`,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            
+            // Cerrar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalAjustarStock'));
+            modal.hide();
+            
+            // Recargar inventario
+            cargarInventario();
+        } else {
+            Swal.fire('Error', data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire('Error', 'Error de conexión al ajustar stock', 'error');
+    })
+    .finally(() => {
         // Restaurar botón
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-arrow-repeat me-2"></i>Ajustar Stock';
-    }, 1000);
+    });
 }
 
 // Función para ver historial
@@ -1051,11 +1027,45 @@ function eliminarProducto(id) {
     const producto = productos.find(p => p.id === id);
     if (!producto) return;
     
-    if (confirm(`¿Estás seguro de que deseas eliminar el producto "${producto.nombre}"?`)) {
-        // Simular eliminación - reemplaza con tu endpoint real
-        alert('Producto eliminado exitosamente');
-        cargarInventario();
-    }
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: `Se eliminará el producto "${producto.nombre}"`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const formData = new FormData();
+            formData.append('id', id);
+            
+            fetch('index.php?action=eliminarProducto', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: '¡Eliminado!',
+                        text: data.message,
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    cargarInventario();
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire('Error', 'Error de conexión al eliminar producto', 'error');
+            });
+        }
+    });
 }
 
 // Función para mostrar productos con stock bajo

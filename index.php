@@ -1,7 +1,12 @@
 <?php
 
 // Solo mostrar errores si no es una petición AJAX
-$is_ajax = isset($_GET['action']) && in_array($_GET['action'], ['obtenerPagosCaja', 'obtenerDetalleFactura', 'obtenerDetalleOrden', 'registrarVentaCompleta', 'obtenerInventario']);
+$is_ajax = isset($_GET['action']) && in_array($_GET['action'], [
+    'obtenerPagosCaja', 'obtenerDetalleFactura', 'obtenerDetalleOrden', 'registrarVentaCompleta', 
+    'obtenerInventario', 'listarProductos', 'crearProducto', 'obtenerProducto', 'actualizarProducto', 
+    'eliminarProducto', 'ajustarStockProducto', 'obtenerEstadisticasInventario', 'buscarProductos', 
+    'obtenerStockCritico'
+]);
 
 if (!$is_ajax) {
     // Activo la visualización de errores para depurar problemas
@@ -393,60 +398,96 @@ switch ($action) {
         include 'views/caja.php';
         break;
 
+    // === MÓDULO DE INVENTARIO ===
     case 'inventario':
-        // Mostrar la vista de inventario
-        include 'views/inventario.php';
+        require_once 'controllers/ProductoController.php';
+        $productoController = new ProductoController();
+        $productoController->index();
         break;
 
-    case 'obtenerInventario':
-        // Obtener listado de productos del inventario
-        header('Content-Type: application/json');
-        ob_clean();
-        
-        try {
-            require_once 'models/Conexion.php';
-            $db = Conexion::getConexion();
-            
-            // Consulta para obtener productos (aquí deberías tener tu tabla de productos)
-            // Por ahora retorno datos de ejemplo - debes cambiar esto por tu tabla real
-            $productos = [
-                [
-                    'id' => 1,
-                    'codigo' => 'TEL001',
-                    'nombre' => 'iPhone 13 Pro',
-                    'categoria' => 'electronica',
-                    'marca' => 'Apple',
-                    'descripcion' => 'Teléfono inteligente de alta gama',
-                    'stock_actual' => 15,
-                    'stock_minimo' => 5,
-                    'precio_compra' => 800.00,
-                    'precio_venta' => 1200.00,
-                    'proveedor' => 'Tech Distributor',
-                    'ubicacion' => 'A-1',
-                    'fecha_creacion' => '2024-01-15'
-                ],
-                [
-                    'id' => 2,
-                    'codigo' => 'REP001',
-                    'nombre' => 'Pantalla Samsung A52',
-                    'categoria' => 'repuestos',
-                    'marca' => 'Samsung',
-                    'descripcion' => 'Pantalla de repuesto original',
-                    'stock_actual' => 3,
-                    'stock_minimo' => 10,
-                    'precio_compra' => 50.00,
-                    'precio_venta' => 85.00,
-                    'proveedor' => 'Parts Express',
-                    'ubicacion' => 'B-3',
-                    'fecha_creacion' => '2024-02-01'
-                ]
-            ];
-            
-            echo json_encode(['success' => true, 'productos' => $productos]);
-        } catch (Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Error al obtener inventario: ' . $e->getMessage()]);
+    case 'listarProductos':
+        require_once 'controllers/ProductoController.php';
+        $productoController = new ProductoController();
+        $productoController->listar();
+        break;
+
+    case 'crearProducto':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                require_once 'controllers/ProductoController.php';
+                $productoController = new ProductoController();
+                $productoController->crear();
+            } catch (Exception $e) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Error en el sistema: ' . $e->getMessage()
+                ]);
+            }
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'message' => 'Método no permitido'
+            ]);
         }
-        exit;
+        break;
+
+    case 'obtenerProducto':
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            require_once 'controllers/ProductoController.php';
+            $productoController = new ProductoController();
+            $productoController->obtenerPorId();
+        }
+        break;
+
+    case 'actualizarProducto':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            require_once 'controllers/ProductoController.php';
+            $productoController = new ProductoController();
+            $productoController->actualizar();
+        }
+        break;
+
+    case 'eliminarProducto':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            require_once 'controllers/ProductoController.php';
+            $productoController = new ProductoController();
+            $productoController->eliminar();
+        }
+        break;
+
+    case 'ajustarStockProducto':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            require_once 'controllers/ProductoController.php';
+            $productoController = new ProductoController();
+            $productoController->ajustarStock();
+        }
+        break;
+
+    case 'obtenerEstadisticasInventario':
+        require_once 'controllers/ProductoController.php';
+        $productoController = new ProductoController();
+        $productoController->obtenerEstadisticas();
+        break;
+
+    case 'buscarProductos':
+        require_once 'controllers/ProductoController.php';
+        $productoController = new ProductoController();
+        $productoController->buscar();
+        break;
+
+    case 'obtenerStockCritico':
+        require_once 'controllers/ProductoController.php';
+        $productoController = new ProductoController();
+        $productoController->obtenerStockCritico();
+        break;
+
+    // Mantener compatibilidad con el nombre anterior
+    case 'obtenerInventario':
+        require_once 'controllers/ProductoController.php';
+        $productoController = new ProductoController();
+        $productoController->listar();
         break;
 
     case 'obtenerPagosCaja':
