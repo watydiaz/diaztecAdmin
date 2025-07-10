@@ -196,8 +196,12 @@ class ProductoModel {
         $result = $this->conexion->query("SELECT COUNT(*) as total FROM productos WHERE activo = 1 AND stock <= stock_minimo");
         $estadisticas['productos_stock_bajo'] = $result->fetch_assoc()['total'];
 
-        // Valor total del inventario
-        $result = $this->conexion->query("SELECT SUM(stock * precio_compra) as valor_total FROM productos WHERE activo = 1");
+        // Valor total del inventario a precio de costo
+        $result = $this->conexion->query("SELECT SUM(stock * COALESCE(precio_compra, 0)) as valor_total FROM productos WHERE activo = 1");
+        $estadisticas['valor_total_costo'] = $result->fetch_assoc()['valor_total'] ?? 0;
+
+        // Valor total del inventario a precio de venta
+        $result = $this->conexion->query("SELECT SUM(stock * precio_venta) as valor_total FROM productos WHERE activo = 1");
         $estadisticas['valor_total_inventario'] = $result->fetch_assoc()['valor_total'] ?? 0;
 
         // Productos sin stock

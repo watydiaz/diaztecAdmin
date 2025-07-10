@@ -3,136 +3,366 @@ require_once 'header.php';
 ?>
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<!-- Bootstrap Select CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/css/bootstrap-select.min.css">
+<!-- Font Awesome para iconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <!-- jQuery primero -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- jQuery UI después de jQuery -->
-<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 <!-- Bootstrap JS después de jQuery -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Bootstrap Select -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/js/bootstrap-select.min.js"></script>
 
 <style>
-.inventory-stats {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.dashboard-container {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 25%, #4a4a4a 50%, #6a6a6a 75%, #8a8a8a 100%);
+    min-height: 100vh;
+    padding: 20px 0;
+}
+
+.dashboard-card {
     border-radius: 15px;
-    color: white;
-    padding: 20px;
-    margin-bottom: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    overflow: hidden;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
 }
 
-.stat-card {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    padding: 15px;
-    text-align: center;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+.dashboard-card .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1.5rem;
+    position: relative;
 }
 
-.stat-number {
-    font-size: 2rem;
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+}
+
+.card-icon {
+    font-size: 3rem;
+    opacity: 0.8;
+    float: right;
+    margin-top: -10px;
+}
+
+.metric-value {
+    font-size: clamp(1.8rem, 3vw, 2.2rem);
     font-weight: bold;
-    margin-bottom: 5px;
+    margin: 10px 0;
+    line-height: 1.1;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
-.stat-label {
+.metric-label {
     font-size: 0.9rem;
     opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.gradient-primary { background: linear-gradient(45deg, #667eea, #764ba2); }
+.gradient-success { background: linear-gradient(45deg, #56ab2f, #a8e6cf); }
+.gradient-warning { background: linear-gradient(45deg, #f093fb, #f5576c); }
+.gradient-info { background: linear-gradient(45deg, #4facfe, #00f2fe); }
+.gradient-danger { background: linear-gradient(45deg, #fa709a, #fee140); }
+
+.welcome-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    text-align: center;
+    color: #212529;
+    border: 2px solid #ced4da;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.content-section {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin: 20px 0;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+.section-title {
+    color: #333;
+    margin-bottom: 20px;
+    font-weight: 600;
+    border-bottom: 3px solid #4a6fa5;
+    padding-bottom: 10px;
 }
 
 .search-box {
-    background: #f8f9fa;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     border-radius: 15px;
     padding: 20px;
-    margin-bottom: 25px;
-    border: 1px solid #e9ecef;
+    margin-bottom: 20px;
+    border: 2px solid #dee2e6;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
 .table-container {
     background: white;
     border-radius: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     overflow: hidden;
+    margin-bottom: 20px;
 }
 
 .table th {
-    background-color: #495057;
+    background-color: #000000;
     color: white;
     border: none;
     font-weight: 500;
     padding: 15px;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .table td {
     padding: 12px 15px;
     vertical-align: middle;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.01);
+    transition: all 0.2s ease;
 }
 
 .btn-action {
     margin: 2px;
-    padding: 6px 12px;
-    border-radius: 8px;
+    padding: 8px 12px;
+    border-radius: 10px;
     font-size: 0.875rem;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
 .stock-badge {
-    padding: 8px 12px;
+    padding: 8px 16px;
     border-radius: 20px;
-    font-weight: 500;
+    font-weight: 600;
     font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .stock-alto {
-    background-color: #d4edda;
-    color: #155724;
+    background: linear-gradient(45deg, #28a745, #20c997);
+    color: white;
 }
 
 .stock-medio {
-    background-color: #fff3cd;
-    color: #856404;
+    background: linear-gradient(45deg, #ffc107, #fd7e14);
+    color: white;
 }
 
 .stock-bajo {
-    background-color: #f8d7da;
-    color: #721c24;
+    background: linear-gradient(45deg, #dc3545, #e83e8c);
+    color: white;
 }
 
 .stock-agotado {
-    background-color: #e2e3e5;
-    color: #383d41;
+    background: linear-gradient(45deg, #6c757d, #495057);
+    color: white;
 }
 
 .floating-btn {
     position: fixed;
     bottom: 30px;
     right: 30px;
-    width: 60px;
-    height: 60px;
+    width: 65px;
+    height: 65px;
     border-radius: 50%;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
     color: white;
     font-size: 1.5rem;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.25);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
 }
 
 .floating-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 12px 35px rgba(102, 126, 234, 0.35);
     background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
     color: white;
+}
+
+.floating-btn:active {
+    transform: translateY(-1px) scale(1.02);
 }
 
 .modal-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
+    border-radius: 15px 15px 0 0;
+    border: none;
+    padding: 20px 25px;
+}
+
+.modal-header .modal-title {
+    font-weight: 600;
+    font-size: 1.25rem;
+}
+
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+}
+
+.modal-header .btn-close:hover {
+    opacity: 1;
+}
+
+.modal-content {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+    overflow: hidden;
+}
+
+.modal-body {
+    padding: 25px;
+}
+
+.modal-footer {
+    background: #f8f9fa;
+    border: none;
+    padding: 20px 25px;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    padding: 12px 15px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.input-group-text {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px 0 0 10px;
+}
+
+/* Estilos de paginación mejorados */
+.pagination {
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.page-link {
+    border: none;
+    border-radius: 10px;
+    margin: 0 3px;
+    padding: 10px 15px;
+    color: #667eea;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.page-link:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.page-item.active .page-link {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Estilos para filtros mejorados */
+.filter-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 2px solid #dee2e6;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.filter-row {
+    display: flex;
+    gap: 15px;
+    align-items: end;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.btn-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    color: white;
+}
+    color: white;
     border-bottom: none;
+    border-radius: 15px 15px 0 0;
+}
+
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    overflow: hidden;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
 }
 
 .modal-header .btn-close {
@@ -147,27 +377,31 @@ require_once 'header.php';
 .pagination .page-link {
     color: #667eea;
     border-color: #dee2e6;
+    border-radius: 10px;
+    margin: 0 2px;
 }
 
 .pagination .page-link:hover {
     color: #495057;
     background-color: #e9ecef;
     border-color: #dee2e6;
+    transform: translateY(-2px);
 }
 
 .pagination .page-item.active .page-link {
-    background-color: #667eea;
+    background: linear-gradient(45deg, #667eea, #764ba2);
     border-color: #667eea;
 }
 
 .filter-chip {
     display: inline-block;
-    background: #667eea;
+    background: linear-gradient(45deg, #667eea, #764ba2);
     color: white;
-    padding: 5px 12px;
+    padding: 8px 16px;
     border-radius: 20px;
     font-size: 0.875rem;
-    margin: 2px;
+    margin: 3px;
+    font-weight: 500;
 }
 
 .filter-chip .btn-close {
@@ -175,142 +409,229 @@ require_once 'header.php';
     font-size: 0.75rem;
     margin-left: 8px;
 }
+
+.btn-outline-primary:hover, .btn-outline-warning:hover, 
+.btn-outline-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+    }
+    
+    .metric-value {
+        font-size: clamp(1.5rem, 4vw, 1.8rem);
+    }
+    
+    .content-section {
+        padding: 20px;
+        margin: 15px 0;
+    }
+    
+    .search-box {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 576px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .metric-value {
+        font-size: 1.6rem;
+    }
+    
+    .dashboard-card .card-body {
+        padding: 1.25rem;
+    }
+}
 </style>
 
-<div class="container-fluid">
-    <!-- Header del módulo -->
-    <div class="row">
-        <div class="col-12">
+<div class="dashboard-container">
+    <div class="container-fluid">
+        <!-- Header de bienvenida -->
+        <div class="welcome-header">
+            <h1><i class="fas fa-boxes me-3"></i>Gestión de Inventario</h1>
+            <p class="mb-0">Centro de Control de Productos y Stock</p>
+            <small id="fechaActual"></small>
+        </div>
+
+        <!-- Estadísticas del inventario -->
+        <div class="stats-grid">
+            <div class="card dashboard-card text-white gradient-primary">
+                <div class="card-body">
+                    <i class="fas fa-cubes card-icon"></i>
+                    <div class="metric-label">Total Productos</div>
+                    <div class="metric-value" id="totalProductos">0</div>
+                </div>
+            </div>
+
+            <div class="card dashboard-card text-white gradient-success">
+                <div class="card-body">
+                    <i class="fas fa-shopping-cart card-icon"></i>
+                    <div class="metric-label">Valor Costo</div>
+                    <div class="metric-value" id="valorInventarioCosto">$0</div>
+                    <small class="opacity-75">Precio de compra total</small>
+                </div>
+            </div>
+
+            <div class="card dashboard-card text-white gradient-info">
+                <div class="card-body">
+                    <i class="fas fa-dollar-sign card-icon"></i>
+                    <div class="metric-label">Valor Venta</div>
+                    <div class="metric-value" id="valorInventarioVenta">$0</div>
+                    <small class="opacity-75">Precio de venta total</small>
+                </div>
+            </div>
+
+            <div class="card dashboard-card text-white gradient-warning">
+                <div class="card-body">
+                    <i class="fas fa-chart-line card-icon"></i>
+                    <div class="metric-label">Margen Potencial</div>
+                    <div class="metric-value" id="margenGanancia">$0</div>
+                    <small class="opacity-75">Diferencia venta - costo</small>
+                </div>
+            </div>
+
+            <div class="card dashboard-card text-white gradient-danger">
+                <div class="card-body">
+                    <i class="fas fa-exclamation-triangle card-icon"></i>
+                    <div class="metric-label">Stock Bajo</div>
+                    <div class="metric-value" id="stockBajo">0</div>
+                </div>
+            </div>
+
+            <div class="card dashboard-card text-white gradient-danger">
+                <div class="card-body">
+                    <i class="fas fa-times-circle card-icon"></i>
+                    <div class="metric-label">Agotados</div>
+                    <div class="metric-value" id="stockAgotado">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controles superiores -->
+        <div class="content-section">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="mb-0">
-                    <i class="bi bi-boxes me-2"></i>Gestión de Inventario
-                </h2>
+                <h4 class="section-title mb-0">
+                    <i class="fas fa-list me-2"></i>Productos
+                </h4>
                 <div class="d-flex gap-2">
+                    <button class="btn btn-outline-info" onclick="mostrarResumenFinanciero()" title="Ver resumen financiero">
+                        <i class="fas fa-chart-pie me-2"></i>Resumen
+                    </button>
                     <button class="btn btn-outline-primary" onclick="exportarInventario()">
-                        <i class="bi bi-download me-2"></i>Exportar
+                        <i class="fas fa-download me-2"></i>Exportar
                     </button>
                     <button class="btn btn-outline-warning" onclick="mostrarProductosBajoStock()">
-                        <i class="bi bi-exclamation-triangle me-2"></i>Stock Bajo
+                        <i class="fas fa-exclamation-triangle me-2"></i>Stock Bajo
                     </button>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Estadísticas del inventario -->
-    <div class="inventory-stats">
-        <div class="row">
-            <div class="col-md-3 col-6 mb-3">
-                <div class="stat-card">
-                    <div class="stat-number" id="totalProductos">0</div>
-                    <div class="stat-label">Total Productos</div>
+            <!-- Filtros y búsqueda -->
+            <div class="search-box">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-search me-2"></i>Buscar producto
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" class="form-control" id="buscarProducto" 
+                                   placeholder="Nombre o descripción..." 
+                                   onkeyup="filtrarProductos()">
+                        </div>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-filter me-2"></i>Estado Stock
+                        </label>
+                        <select class="form-select" id="filtroStock" onchange="filtrarProductos()">
+                            <option value="">Todos</option>
+                            <option value="alto">Stock Alto</option>
+                            <option value="medio">Stock Medio</option>
+                            <option value="bajo">Stock Bajo</option>
+                            <option value="agotado">Agotado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-sort me-2"></i>Ordenar por
+                        </label>
+                        <select class="form-select" id="ordenarPor" onchange="ordenarProductos()">
+                            <option value="nombre">Nombre</option>
+                            <option value="stock">Stock</option>
+                            <option value="precio">Precio</option>
+                            <option value="fecha">Fecha Creación</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 mb-3 d-flex align-items-end">
+                        <button class="btn btn-outline-secondary w-100" onclick="limpiarFiltros()">
+                            <i class="fas fa-redo me-2"></i>Limpiar
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-3 col-6 mb-3">
-                <div class="stat-card">
-                    <div class="stat-number" id="valorInventario">$0</div>
-                    <div class="stat-label">Valor Total</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6 mb-3">
-                <div class="stat-card">
-                    <div class="stat-number text-warning" id="stockBajo">0</div>
-                    <div class="stat-label">Stock Bajo</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6 mb-3">
-                <div class="stat-card">
-                    <div class="stat-number text-danger" id="stockAgotado">0</div>
-                    <div class="stat-label">Agotados</div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Filtros y búsqueda -->
-    <div class="search-box">
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Buscar producto</label>
-                <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="bi bi-search"></i>
-                    </span>
-                    <input type="text" class="form-control" id="buscarProducto" 
-                           placeholder="Nombre o descripción..." 
-                           onkeyup="filtrarProductos()">
-                </div>
-            </div>
-            <div class="col-md-2 mb-3">
-                <label class="form-label">Estado Stock</label>
-                <select class="form-select" id="filtroStock" onchange="filtrarProductos()">
-                    <option value="">Todos</option>
-                    <option value="alto">Stock Alto</option>
-                    <option value="medio">Stock Medio</option>
-                    <option value="bajo">Stock Bajo</option>
-                    <option value="agotado">Agotado</option>
-                </select>
-            </div>
-            <div class="col-md-2 mb-3">
-                <label class="form-label">Ordenar por</label>
-                <select class="form-select" id="ordenarPor" onchange="ordenarProductos()">
-                    <option value="nombre">Nombre</option>
-                    <option value="stock">Stock</option>
-                    <option value="precio">Precio</option>
-                    <option value="fecha">Fecha Creación</option>
-                </select>
-            </div>
-            <div class="col-md-2 mb-3 d-flex align-items-end">
-                <button class="btn btn-outline-secondary w-100" onclick="limpiarFiltros()">
-                    <i class="bi bi-arrow-clockwise me-2"></i>Limpiar
-                </button>
+                <!-- Filtros activos -->
+                <div id="filtrosActivos" class="mt-2"></div>
             </div>
         </div>
 
-        <!-- Filtros activos -->
-        <div id="filtrosActivos" class="mt-2"></div>
-    </div>
-
-    <!-- Tabla de productos -->
-    <div class="table-container">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0" id="tablaInventario">
-                <thead>
-                    <tr>
-                        <th>Producto</th>
-                        <th>Stock Actual</th>
-                        <th>Stock Mínimo</th>
-                        <th>Precio Compra</th>
-                        <th>Precio Venta</th>
-                        <th>Valor Total</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="bodyTablaInventario">
-                    <!-- Se carga dinámicamente -->
-                </tbody>
-            </table>
+        <!-- Tabla de productos -->
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="tablaInventario">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-tag me-2"></i>Producto</th>
+                            <th><i class="fas fa-boxes me-2"></i>Stock Actual</th>
+                            <th><i class="fas fa-chart-line me-2"></i>Stock Mínimo</th>
+                            <th><i class="fas fa-shopping-cart me-2"></i>Precio Compra</th>
+                            <th><i class="fas fa-dollar-sign me-2"></i>Precio Venta</th>
+                            <th><i class="fas fa-calculator me-2"></i>Valor Costo</th>
+                            <th><i class="fas fa-money-bill me-2"></i>Valor Venta</th>
+                            <th><i class="fas fa-percentage me-2"></i>Margen %</th>
+                            <th><i class="fas fa-info-circle me-2"></i>Estado</th>
+                            <th><i class="fas fa-cogs me-2"></i>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodyTablaInventario">
+                        <!-- Se carga dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
 
-    <!-- Paginación -->
-    <div class="d-flex justify-content-between align-items-center mt-4">
-        <div class="text-muted">
-            Mostrando <span id="mostrandoDesde">1</span> a <span id="mostrandoHasta">10</span> 
-            de <span id="totalRegistros">0</span> productos
+        <!-- Paginación -->
+        <div class="content-section">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="text-muted">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Mostrando <span id="mostrandoDesde">1</span> a <span id="mostrandoHasta">10</span> 
+                    de <span id="totalRegistros">0</span> productos
+                </div>
+                <nav aria-label="Paginación de inventario">
+                    <ul class="pagination mb-0" id="paginacion">
+                        <!-- Se genera dinámicamente -->
+                    </ul>
+                </nav>
+            </div>
         </div>
-        <nav aria-label="Paginación de inventario">
-            <ul class="pagination mb-0" id="paginacion">
-                <!-- Se genera dinámicamente -->
-            </ul>
-        </nav>
     </div>
 </div>
 
 <!-- Botón flotante para agregar producto -->
 <button class="floating-btn" onclick="mostrarModalAgregarProducto()" title="Agregar nuevo producto">
-    <i class="bi bi-plus"></i>
+    <i class="fas fa-plus"></i>
 </button>
 
 <!-- Modal para agregar/editar producto -->
@@ -319,7 +640,7 @@ require_once 'header.php';
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalProductoLabel">
-                    <i class="bi bi-box me-2"></i>Agregar Producto
+                    <i class="fas fa-box me-2"></i>Agregar Producto
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -328,36 +649,48 @@ require_once 'header.php';
                     <input type="hidden" id="productoId" name="id">
                     
                     <div class="mb-3">
-                        <label for="productoNombre" class="form-label">Nombre del Producto *</label>
+                        <label for="productoNombre" class="form-label fw-bold">
+                            <i class="fas fa-tag me-2"></i>Nombre del Producto *
+                        </label>
                         <input type="text" class="form-control" id="productoNombre" name="nombre" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="productoDescripcion" class="form-label">Descripción</label>
+                        <label for="productoDescripcion" class="form-label fw-bold">
+                            <i class="fas fa-align-left me-2"></i>Descripción
+                        </label>
                         <textarea class="form-control" id="productoDescripcion" name="descripcion" rows="3"></textarea>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="productoStockActual" class="form-label">Stock Actual *</label>
+                            <label for="productoStockActual" class="form-label fw-bold">
+                                <i class="fas fa-boxes me-2"></i>Stock Actual *
+                            </label>
                             <input type="number" class="form-control" id="productoStockActual" name="stock" min="0" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="productoStockMinimo" class="form-label">Stock Mínimo *</label>
+                            <label for="productoStockMinimo" class="form-label fw-bold">
+                                <i class="fas fa-chart-line me-2"></i>Stock Mínimo *
+                            </label>
                             <input type="number" class="form-control" id="productoStockMinimo" name="stock_minimo" min="0" required>
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="productoPrecioCompra" class="form-label">Precio Compra</label>
+                            <label for="productoPrecioCompra" class="form-label fw-bold">
+                                <i class="fas fa-shopping-cart me-2"></i>Precio Compra
+                            </label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
                                 <input type="number" class="form-control" id="productoPrecioCompra" name="precio_compra" min="0" step="0.01">
                             </div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="productoPrecioVenta" class="form-label">Precio Venta *</label>
+                            <label for="productoPrecioVenta" class="form-label fw-bold">
+                                <i class="fas fa-dollar-sign me-2"></i>Precio Venta *
+                            </label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
                                 <input type="number" class="form-control" id="productoPrecioVenta" name="precio_venta" min="0" step="0.01" required>
@@ -366,9 +699,11 @@ require_once 'header.php';
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
                     <button type="submit" class="btn btn-primary" id="btnGuardarProducto">
-                        <i class="bi bi-save me-2"></i>Guardar Producto
+                        <i class="fas fa-save me-2"></i>Guardar Producto
                     </button>
                 </div>
             </form>
@@ -382,7 +717,7 @@ require_once 'header.php';
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalAjustarStockLabel">
-                    <i class="bi bi-arrow-up-down me-2"></i>Ajustar Stock
+                    <i class="fas fa-exchange-alt me-2"></i>Ajustar Stock
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -391,23 +726,31 @@ require_once 'header.php';
                     <input type="hidden" id="ajusteProductoId" name="producto_id">
                     
                     <div class="mb-3">
-                        <label class="form-label">Producto</label>
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-tag me-2"></i>Producto
+                        </label>
                         <input type="text" class="form-control" id="ajusteProductoNombre" readonly>
                     </div>
 
                     <div class="row">
                         <div class="col-6 mb-3">
-                            <label class="form-label">Stock Actual</label>
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-boxes me-2"></i>Stock Actual
+                            </label>
                             <input type="number" class="form-control" id="ajusteStockActual" readonly>
                         </div>
                         <div class="col-6 mb-3">
-                            <label class="form-label">Nuevo Stock *</label>
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-edit me-2"></i>Nuevo Stock *
+                            </label>
                             <input type="number" class="form-control" id="ajusteNuevoStock" name="nuevo_stock" min="0" required>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="ajusteTipo" class="form-label">Tipo de Ajuste *</label>
+                        <label for="ajusteTipo" class="form-label fw-bold">
+                            <i class="fas fa-list me-2"></i>Tipo de Ajuste *
+                        </label>
                         <select class="form-select" id="ajusteTipo" name="tipo_ajuste" required>
                             <option value="">Seleccionar tipo</option>
                             <option value="entrada">Entrada (Compra/Devolución)</option>
@@ -418,15 +761,19 @@ require_once 'header.php';
                     </div>
 
                     <div class="mb-3">
-                        <label for="ajusteMotivo" class="form-label">Motivo del Ajuste *</label>
+                        <label for="ajusteMotivo" class="form-label fw-bold">
+                            <i class="fas fa-comment me-2"></i>Motivo del Ajuste *
+                        </label>
                         <textarea class="form-control" id="ajusteMotivo" name="motivo" rows="3" required 
                                   placeholder="Describe el motivo del ajuste de stock..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
                     <button type="submit" class="btn btn-warning" id="btnGuardarAjuste">
-                        <i class="bi bi-arrow-repeat me-2"></i>Ajustar Stock
+                        <i class="fas fa-sync-alt me-2"></i>Ajustar Stock
                     </button>
                 </div>
             </form>
@@ -440,25 +787,27 @@ require_once 'header.php';
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalHistorialLabel">
-                    <i class="bi bi-clock-history me-2"></i>Historial de Movimientos
+                    <i class="fas fa-history me-2"></i>Historial de Movimientos
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    <h6 id="historialProductoNombre" class="text-primary"></h6>
+                    <h6 id="historialProductoNombre" class="text-primary">
+                        <i class="fas fa-tag me-2"></i>
+                    </h6>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th>Fecha</th>
-                                <th>Tipo</th>
-                                <th>Stock Anterior</th>
-                                <th>Cambio</th>
-                                <th>Stock Nuevo</th>
-                                <th>Motivo</th>
-                                <th>Usuario</th>
+                                <th><i class="fas fa-calendar me-2"></i>Fecha</th>
+                                <th><i class="fas fa-exchange-alt me-2"></i>Tipo</th>
+                                <th><i class="fas fa-history me-2"></i>Stock Anterior</th>
+                                <th><i class="fas fa-arrows-alt-h me-2"></i>Cambio</th>
+                                <th><i class="fas fa-boxes me-2"></i>Stock Nuevo</th>
+                                <th><i class="fas fa-comment me-2"></i>Motivo</th>
+                                <th><i class="fas fa-user me-2"></i>Usuario</th>
                             </tr>
                         </thead>
                         <tbody id="historialMovimientos">
@@ -468,7 +817,9 @@ require_once 'header.php';
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cerrar
+                </button>
             </div>
         </div>
     </div>
@@ -529,7 +880,16 @@ function actualizarEstadisticas() {
             if (data.success) {
                 const stats = data.estadisticas;
                 document.getElementById('totalProductos').textContent = stats.total_productos || 0;
-                document.getElementById('valorInventario').textContent = '$' + (parseFloat(stats.valor_total_inventario || 0)).toLocaleString('es-CO');
+                
+                // Valores del inventario
+                const valorCosto = parseFloat(stats.valor_total_costo || 0);
+                const valorVenta = parseFloat(stats.valor_total_inventario || 0);
+                const margen = valorVenta - valorCosto;
+                
+                document.getElementById('valorInventarioCosto').textContent = '$' + valorCosto.toLocaleString('es-CO');
+                document.getElementById('valorInventarioVenta').textContent = '$' + valorVenta.toLocaleString('es-CO');
+                document.getElementById('margenGanancia').textContent = '$' + margen.toLocaleString('es-CO');
+                
                 document.getElementById('stockBajo').textContent = stats.productos_stock_bajo || 0;
                 document.getElementById('stockAgotado').textContent = stats.productos_sin_stock || 0;
             } else {
@@ -541,12 +901,27 @@ function actualizarEstadisticas() {
             // Fallback: calcular estadísticas localmente si hay productos cargados
             if (productos.length > 0) {
                 const totalProductos = productos.length;
-                const valorTotal = productos.reduce((total, p) => total + (p.stock * p.precio_venta), 0);
+                
+                // Calcular valores de costo y venta
+                const valorCosto = productos.reduce((total, p) => {
+                    const precioCosto = parseFloat(p.precio_compra || 0);
+                    return total + (p.stock * precioCosto);
+                }, 0);
+                
+                const valorVenta = productos.reduce((total, p) => {
+                    const precioVenta = parseFloat(p.precio_venta || 0);
+                    return total + (p.stock * precioVenta);
+                }, 0);
+                
+                const margen = valorVenta - valorCosto;
+                
                 const stockBajo = productos.filter(p => p.stock <= p.stock_minimo && p.stock > 0).length;
                 const stockAgotado = productos.filter(p => p.stock === 0).length;
                 
                 document.getElementById('totalProductos').textContent = totalProductos;
-                document.getElementById('valorInventario').textContent = '$' + valorTotal.toLocaleString('es-CO');
+                document.getElementById('valorInventarioCosto').textContent = '$' + valorCosto.toLocaleString('es-CO');
+                document.getElementById('valorInventarioVenta').textContent = '$' + valorVenta.toLocaleString('es-CO');
+                document.getElementById('margenGanancia').textContent = '$' + margen.toLocaleString('es-CO');
                 document.getElementById('stockBajo').textContent = stockBajo;
                 document.getElementById('stockAgotado').textContent = stockAgotado;
             }
@@ -572,7 +947,23 @@ function renderizarTabla() {
     
     productosParaMostrar.forEach(producto => {
         const estadoStock = obtenerEstadoStock(producto.stock, producto.stock_minimo);
-        const valorTotal = producto.stock * producto.precio_venta;
+        const precioCosto = parseFloat(producto.precio_compra || 0);
+        const precioVenta = parseFloat(producto.precio_venta || 0);
+        const valorCosto = producto.stock * precioCosto;
+        const valorVenta = producto.stock * precioVenta;
+        
+        // Calcular margen porcentual
+        let margenPorcentaje = 0;
+        if (precioCosto > 0) {
+            margenPorcentaje = ((precioVenta - precioCosto) / precioCosto) * 100;
+        }
+        
+        // Color del margen según rentabilidad
+        let colorMargen = 'text-muted';
+        if (margenPorcentaje > 50) colorMargen = 'text-success fw-bold';
+        else if (margenPorcentaje > 20) colorMargen = 'text-info fw-bold';
+        else if (margenPorcentaje > 0) colorMargen = 'text-warning';
+        else if (margenPorcentaje < 0) colorMargen = 'text-danger fw-bold';
         
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -588,9 +979,15 @@ function renderizarTabla() {
             <td class="text-center">
                 ${producto.stock_minimo}
             </td>
-            <td>$${parseFloat(producto.precio_compra || 0).toLocaleString('es-CO')}</td>
-            <td>$${parseFloat(producto.precio_venta).toLocaleString('es-CO')}</td>
-            <td>$${valorTotal.toLocaleString('es-CO')}</td>
+            <td>$${precioCosto.toLocaleString('es-CO')}</td>
+            <td>$${precioVenta.toLocaleString('es-CO')}</td>
+            <td class="text-primary fw-bold">$${valorCosto.toLocaleString('es-CO')}</td>
+            <td class="text-success fw-bold">$${valorVenta.toLocaleString('es-CO')}</td>
+            <td class="${colorMargen}">
+                ${margenPorcentaje.toFixed(1)}%
+                ${margenPorcentaje > 0 ? '<i class="fas fa-arrow-up ms-1"></i>' : 
+                  margenPorcentaje < 0 ? '<i class="fas fa-arrow-down ms-1"></i>' : ''}
+            </td>
             <td>
                 <span class="stock-badge stock-${estadoStock}">
                     ${estadoStock.charAt(0).toUpperCase() + estadoStock.slice(1)}
@@ -1078,6 +1475,102 @@ function mostrarProductosBajoStock() {
 function exportarInventario() {
     // Simular exportación - implementa según tus necesidades
     alert('Exportando inventario... (funcionalidad a implementar)');
+}
+
+// Función para mostrar resumen financiero
+function mostrarResumenFinanciero() {
+    if (productos.length === 0) {
+        Swal.fire('Info', 'No hay productos para mostrar resumen', 'info');
+        return;
+    }
+    
+    // Calcular totales
+    let totalCosto = 0;
+    let totalVenta = 0;
+    let productosConMargen = 0;
+    let margenPromedio = 0;
+    
+    productos.forEach(producto => {
+        const precioCosto = parseFloat(producto.precio_compra || 0);
+        const precioVenta = parseFloat(producto.precio_venta || 0);
+        const valorCosto = producto.stock * precioCosto;
+        const valorVenta = producto.stock * precioVenta;
+        
+        totalCosto += valorCosto;
+        totalVenta += valorVenta;
+        
+        if (precioCosto > 0) {
+            const margen = ((precioVenta - precioCosto) / precioCosto) * 100;
+            margenPromedio += margen;
+            productosConMargen++;
+        }
+    });
+    
+    margenPromedio = productosConMargen > 0 ? margenPromedio / productosConMargen : 0;
+    const gananciaPotencial = totalVenta - totalCosto;
+    const margenTotal = totalCosto > 0 ? ((totalVenta - totalCosto) / totalCosto) * 100 : 0;
+    
+    Swal.fire({
+        title: '<i class="fas fa-chart-pie text-primary"></i> Resumen Financiero',
+        html: `
+            <div class="text-start">
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <div class="bg-light p-3 rounded">
+                            <h6 class="text-primary mb-2"><i class="fas fa-shopping-cart me-2"></i>Inversión Total</h6>
+                            <h4 class="text-primary mb-0">$${totalCosto.toLocaleString('es-CO')}</h4>
+                            <small class="text-muted">Precio de costo</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-light p-3 rounded">
+                            <h6 class="text-success mb-2"><i class="fas fa-dollar-sign me-2"></i>Valor de Venta</h6>
+                            <h4 class="text-success mb-0">$${totalVenta.toLocaleString('es-CO')}</h4>
+                            <small class="text-muted">Precio de venta</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <div class="bg-warning bg-opacity-10 p-3 rounded">
+                            <h6 class="text-warning mb-2"><i class="fas fa-chart-line me-2"></i>Ganancia Potencial</h6>
+                            <h4 class="text-warning mb-0">$${gananciaPotencial.toLocaleString('es-CO')}</h4>
+                            <small class="text-muted">Si se vende todo</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-info bg-opacity-10 p-3 rounded">
+                            <h6 class="text-info mb-2"><i class="fas fa-percentage me-2"></i>Margen Total</h6>
+                            <h4 class="text-info mb-0">${margenTotal.toFixed(1)}%</h4>
+                            <small class="text-muted">Rentabilidad general</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-secondary bg-opacity-10 p-3 rounded">
+                    <h6 class="mb-2"><i class="fas fa-calculator me-2"></i>Estadísticas Adicionales</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li><strong>Margen promedio por producto:</strong> ${margenPromedio.toFixed(1)}%</li>
+                        <li><strong>Productos con precio de costo:</strong> ${productosConMargen} de ${productos.length}</li>
+                        <li><strong>ROI potencial:</strong> ${margenTotal.toFixed(1)}% sobre inversión</li>
+                    </ul>
+                </div>
+            </div>
+        `,
+        width: '600px',
+        showConfirmButton: true,
+        confirmButtonText: '<i class="fas fa-download me-2"></i>Exportar Reporte',
+        showCancelButton: true,
+        cancelButtonText: 'Cerrar',
+        customClass: {
+            popup: 'text-start'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            exportarInventario();
+        }
+    });
 }
 </script>
 
