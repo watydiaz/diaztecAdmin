@@ -571,6 +571,7 @@ function mostrarImagenesActuales(imagenesUrl) {
 
 // Función para ver detalles de orden
 function verDetallesOrden(id) {
+    // Primero obtenemos la información de la orden
     fetch(`index.php?action=obtenerOrden&id=${id}`)
         .then(response => {
             if (!response.ok) {
@@ -578,95 +579,200 @@ function verDetallesOrden(id) {
             }
             return response.text();
         })
-        .then(text => {
+        .then(ordenText => {
             try {
-                const data = JSON.parse(text);
-                if (data.success && data.orden) {
-                    const orden = data.orden;
+                const ordenData = JSON.parse(ordenText);
+                
+                if (ordenData.success && ordenData.orden) {
+                    const orden = ordenData.orden;
                     
-                    // Construir el HTML con los detalles de la orden
-                    let detallesHTML = `
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title mb-4">Orden #${orden.id}</h5>
-                                
-                                <div class="row mb-4">
-                                    <div class="col-md-6">
-                                        <h6 class="fw-bold">Información del Cliente</h6>
-                                        <p><strong>Cliente:</strong> ${orden.cliente_nombre || 'No especificado'}</p>
-                                        <p><strong>Identificación:</strong> ${orden.cliente_identificacion || 'No especificado'}</p>
-                                        <p><strong>Teléfono:</strong> ${orden.cliente_telefono || 'No especificado'}</p>
-                                        <p><strong>Email:</strong> ${orden.cliente_email || 'No especificado'}</p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <h6 class="fw-bold">Información del Equipo</h6>
-                                        <p><strong>Marca:</strong> ${orden.marca || 'No especificado'}</p>
-                                        <p><strong>Modelo:</strong> ${orden.modelo || 'No especificado'}</p>
-                                        <p><strong>IMEI/Serial:</strong> ${orden.imei_serial || 'No especificado'}</p>
-                                        <p><strong>Contraseña:</strong> ${orden.contraseña_equipo || 'No especificado'}</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="row mb-4">
-                                    <div class="col-md-6">
-                                        <h6 class="fw-bold">Estado y Prioridad</h6>
-                                        <p><strong>Estado:</strong> <span class="estado-${orden.estado || 'pendiente'}">${orden.estado ? orden.estado.charAt(0).toUpperCase() + orden.estado.slice(1) : 'Pendiente'}</span></p>
-                                        <p><strong>Prioridad:</strong> <span class="prioridad-${orden.prioridad || 'media'}">${orden.prioridad ? orden.prioridad.charAt(0).toUpperCase() + orden.prioridad.slice(1) : 'Media'}</span></p>
-                                        <p><strong>Técnico:</strong> ${orden.tecnico_nombre || 'No asignado'}</p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <h6 class="fw-bold">Fechas</h6>
-                                        <p><strong>Fecha de Ingreso:</strong> ${new Date(orden.fecha_ingreso).toLocaleDateString('es-CO')}</p>
-                                        <p><strong>Fecha Estimada de Entrega:</strong> ${orden.fecha_entrega_estimada && orden.fecha_entrega_estimada !== '0000-00-00 00:00:00' ? new Date(orden.fecha_entrega_estimada).toLocaleDateString('es-CO') : 'No especificado'}</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="row mb-4">
-                                    <div class="col-12">
-                                        <h6 class="fw-bold">Falla Reportada</h6>
-                                        <div class="p-3 bg-light rounded">${orden.falla_reportada || 'No especificado'}</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="row mb-4">
-                                    <div class="col-12">
-                                        <h6 class="fw-bold">Diagnóstico</h6>
-                                        <div class="p-3 bg-light rounded">${orden.diagnostico || 'No especificado'}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    // Mostrar imágenes si hay
-                    if (orden.imagen_url) {
-                        const imagenes = orden.imagen_url.split(',');
-                        if (imagenes.length > 0 && imagenes[0].trim()) {
-                            detallesHTML += '<div class="mt-4"><h6 class="fw-bold">Imágenes</h6><div class="d-flex flex-wrap gap-2">';
-                            imagenes.forEach(img => {
-                                if (img.trim()) {
-                                    detallesHTML += `
-                                        <img src="${img}" class="img-thumbnail" style="width: 150px; height: 150px; object-fit: cover; cursor: pointer" 
-                                             onclick="mostrarImagenCompleta('${img.includes('/') ? img.split('/').pop() : img}')">
-                                    `;
+                    // Ahora obtenemos los pagos de manera separada
+                    fetch(`controllers/OrdenPagoController.php?action=obtenerPagosPorOrden&orden_id=${id}`)
+                        .then(pagosResponse => pagosResponse.text())
+                        .then(pagosText => {
+                            let pagos = [];
+                            
+                            // Intentar parsear los pagos, pero continuar aunque falle
+                            try {
+                                if (pagosText.trim()) {
+                                    const pagosData = JSON.parse(pagosText);
+                                    if (pagosData.success && pagosData.pagos) {
+                                        pagos = pagosData.pagos;
+                                    }
                                 }
-                            });
-                            detallesHTML += '</div></div>';
-                        }
-                    }
-                    
-                    // Cargar los detalles en el modal
-                    document.getElementById('contenidoDetallesOrden').innerHTML = detallesHTML;
-                    
-                    // Mostrar el modal
-                    const modal = new bootstrap.Modal(document.getElementById('modalDetallesOrden'));
-                    modal.show();
+                            } catch (pagosError) {
+                                console.warn('Error parsing pagos JSON:', pagosError);
+                                console.warn('Pagos response text:', pagosText);
+                                // Continuar con array vacío de pagos
+                            }
+                            
+                            // Calcular totales
+                            const totalPagado = pagos.reduce((sum, pago) => sum + parseFloat(pago.monto_pago || 0), 0);
+                            const costoTotal = parseFloat(orden.costo_total || 0);
+                            const saldoPendiente = costoTotal - totalPagado;
+                            
+                            // Construir el HTML con los detalles de la orden
+                            let detallesHTML = `
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title mb-4">Orden #${orden.id}</h5>
+                                        
+                                        <div class="row mb-4">
+                                            <div class="col-md-6">
+                                                <h6 class="fw-bold">Información del Cliente</h6>
+                                                <p><strong>Cliente:</strong> ${orden.cliente_nombre || 'No especificado'}</p>
+                                                <p><strong>Identificación:</strong> ${orden.cliente_identificacion || 'No especificado'}</p>
+                                                <p><strong>Teléfono:</strong> ${orden.cliente_telefono || 'No especificado'}</p>
+                                                <p><strong>Email:</strong> ${orden.cliente_email || 'No especificado'}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6 class="fw-bold">Información del Equipo</h6>
+                                                <p><strong>Marca:</strong> ${orden.marca || 'No especificado'}</p>
+                                                <p><strong>Modelo:</strong> ${orden.modelo || 'No especificado'}</p>
+                                                <p><strong>IMEI/Serial:</strong> ${orden.imei_serial || 'No especificado'}</p>
+                                                <p><strong>Contraseña:</strong> ${orden.contraseña_equipo || 'No especificado'}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row mb-4">
+                                            <div class="col-md-6">
+                                                <h6 class="fw-bold">Estado y Prioridad</h6>
+                                                <p><strong>Estado:</strong> <span class="estado-${orden.estado || 'pendiente'}">${orden.estado ? orden.estado.charAt(0).toUpperCase() + orden.estado.slice(1) : 'Pendiente'}</span></p>
+                                                <p><strong>Prioridad:</strong> <span class="prioridad-${orden.prioridad || 'media'}">${orden.prioridad ? orden.prioridad.charAt(0).toUpperCase() + orden.prioridad.slice(1) : 'Media'}</span></p>
+                                                <p><strong>Técnico:</strong> ${orden.tecnico_nombre || 'No asignado'}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6 class="fw-bold">Fechas</h6>
+                                                <p><strong>Fecha de Ingreso:</strong> ${new Date(orden.fecha_ingreso).toLocaleDateString('es-CO')}</p>
+                                                <p><strong>Fecha Estimada de Entrega:</strong> ${orden.fecha_entrega_estimada && orden.fecha_entrega_estimada !== '0000-00-00 00:00:00' ? new Date(orden.fecha_entrega_estimada).toLocaleDateString('es-CO') : 'No especificado'}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Nueva sección de información financiera -->
+                                        <div class="row mb-4">
+                                            <div class="col-12">
+                                                <h6 class="fw-bold">Información Financiera</h6>
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <div class="card bg-primary text-white">
+                                                            <div class="card-body text-center">
+                                                                <h6 class="card-title">Costo Total</h6>
+                                                                <h4 class="mb-0">$${costoTotal.toLocaleString('es-CO')}</h4>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="card bg-success text-white">
+                                                            <div class="card-body text-center">
+                                                                <h6 class="card-title">Total Pagado</h6>
+                                                                <h4 class="mb-0">$${totalPagado.toLocaleString('es-CO')}</h4>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="card ${saldoPendiente > 0 ? 'bg-warning' : 'bg-info'} text-white">
+                                                            <div class="card-body text-center">
+                                                                <h6 class="card-title">Saldo Pendiente</h6>
+                                                                <h4 class="mb-0">$${saldoPendiente.toLocaleString('es-CO')}</h4>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Historial de pagos -->
+                                        ${pagos.length > 0 ? `
+                                        <div class="row mb-4">
+                                            <div class="col-12">
+                                                <h6 class="fw-bold">Historial de Pagos</h6>
+                                                <div class="table-responsive">
+                                                    <table class="table table-bordered table-hover">
+                                                        <thead class="table-dark">
+                                                            <tr>
+                                                                <th>Fecha</th>
+                                                                <th>Monto</th>
+                                                                <th>Método</th>
+                                                                <th>Observaciones</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            ${pagos.map(pago => `
+                                                            <tr>
+                                                                <td>${new Date(pago.fecha_pago).toLocaleDateString('es-CO')}</td>
+                                                                <td class="text-end fw-bold text-success">$${parseFloat(pago.monto_pago).toLocaleString('es-CO')}</td>
+                                                                <td><span class="badge bg-info">${pago.metodo_pago || 'No especificado'}</span></td>
+                                                                <td>${pago.observaciones || 'Sin observaciones'}</td>
+                                                            </tr>
+                                                            `).join('')}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        ` : `
+                                        <div class="row mb-4">
+                                            <div class="col-12">
+                                                <h6 class="fw-bold">Historial de Pagos</h6>
+                                                <div class="alert alert-info">
+                                                    <i class="fas fa-info-circle me-2"></i>No hay pagos registrados para esta orden.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        `}
+                                        
+                                        <div class="row mb-4">
+                                            <div class="col-12">
+                                                <h6 class="fw-bold">Falla Reportada</h6>
+                                                <div class="p-3 bg-light rounded">${orden.falla_reportada || 'No especificado'}</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row mb-4">
+                                            <div class="col-12">
+                                                <h6 class="fw-bold">Diagnóstico</h6>
+                                                <div class="p-3 bg-light rounded">${orden.diagnostico || 'No especificado'}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            // Mostrar imágenes si hay
+                            if (orden.imagen_url) {
+                                const imagenes = orden.imagen_url.split(',');
+                                if (imagenes.length > 0 && imagenes[0].trim()) {
+                                    detallesHTML += '<div class="mt-4"><h6 class="fw-bold">Imágenes</h6><div class="d-flex flex-wrap gap-2">';
+                                    imagenes.forEach(img => {
+                                        if (img.trim()) {
+                                            detallesHTML += `
+                                                <img src="${img}" class="img-thumbnail" style="width: 150px; height: 150px; object-fit: cover; cursor: pointer" 
+                                                     onclick="mostrarImagenCompleta('${img.includes('/') ? img.split('/').pop() : img}')">
+                                            `;
+                                        }
+                                    });
+                                    detallesHTML += '</div></div>';
+                                }
+                            }
+                            
+                            // Cargar los detalles en el modal
+                            document.getElementById('contenidoDetallesOrden').innerHTML = detallesHTML;
+                            
+                            // Mostrar el modal
+                            const modal = new bootstrap.Modal(document.getElementById('modalDetallesOrden'));
+                            modal.show();
+                        })
+                        .catch(pagosError => {
+                            console.warn('Error al cargar pagos:', pagosError);
+                            // Continuar mostrando la orden sin información de pagos
+                            mostrarOrdenSinPagos(orden);
+                        });
                 } else {
                     Swal.fire('Error', 'No se pudo cargar la información de la orden', 'error');
                 }
             } catch (e) {
-                console.error('Error parsing JSON:', e);
-                console.error('Response text:', text);
+                console.error('Error parsing orden JSON:', e);
+                console.error('Response text:', ordenText);
                 Swal.fire('Error', 'Error al procesar la respuesta del servidor', 'error');
             }
         })
@@ -674,6 +780,108 @@ function verDetallesOrden(id) {
             console.error('Error:', error);
             Swal.fire('Error', 'Error de conexión al cargar la orden', 'error');
         });
+}
+
+// Función auxiliar para mostrar orden sin información de pagos
+function mostrarOrdenSinPagos(orden) {
+    const costoTotal = parseFloat(orden.costo_total || 0);
+    
+    let detallesHTML = `
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title mb-4">Orden #${orden.id}</h5>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Información del Cliente</h6>
+                        <p><strong>Cliente:</strong> ${orden.cliente_nombre || 'No especificado'}</p>
+                        <p><strong>Identificación:</strong> ${orden.cliente_identificacion || 'No especificado'}</p>
+                        <p><strong>Teléfono:</strong> ${orden.cliente_telefono || 'No especificado'}</p>
+                        <p><strong>Email:</strong> ${orden.cliente_email || 'No especificado'}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Información del Equipo</h6>
+                        <p><strong>Marca:</strong> ${orden.marca || 'No especificado'}</p>
+                        <p><strong>Modelo:</strong> ${orden.modelo || 'No especificado'}</p>
+                        <p><strong>IMEI/Serial:</strong> ${orden.imei_serial || 'No especificado'}</p>
+                        <p><strong>Contraseña:</strong> ${orden.contraseña_equipo || 'No especificado'}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Estado y Prioridad</h6>
+                        <p><strong>Estado:</strong> <span class="estado-${orden.estado || 'pendiente'}">${orden.estado ? orden.estado.charAt(0).toUpperCase() + orden.estado.slice(1) : 'Pendiente'}</span></p>
+                        <p><strong>Prioridad:</strong> <span class="prioridad-${orden.prioridad || 'media'}">${orden.prioridad ? orden.prioridad.charAt(0).toUpperCase() + orden.prioridad.slice(1) : 'Media'}</span></p>
+                        <p><strong>Técnico:</strong> ${orden.tecnico_nombre || 'No asignado'}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Fechas</h6>
+                        <p><strong>Fecha de Ingreso:</strong> ${new Date(orden.fecha_ingreso).toLocaleDateString('es-CO')}</p>
+                        <p><strong>Fecha Estimada de Entrega:</strong> ${orden.fecha_entrega_estimada && orden.fecha_entrega_estimada !== '0000-00-00 00:00:00' ? new Date(orden.fecha_entrega_estimada).toLocaleDateString('es-CO') : 'No especificado'}</p>
+                    </div>
+                </div>
+                
+                <!-- Información financiera básica -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h6 class="fw-bold">Información Financiera</h6>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-title">Costo Total</h6>
+                                        <h4 class="mb-0">$${costoTotal.toLocaleString('es-CO')}</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-exclamation-triangle me-2"></i>No se pudo cargar la información detallada de pagos.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h6 class="fw-bold">Falla Reportada</h6>
+                        <div class="p-3 bg-light rounded">${orden.falla_reportada || 'No especificado'}</div>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h6 class="fw-bold">Diagnóstico</h6>
+                        <div class="p-3 bg-light rounded">${orden.diagnostico || 'No especificado'}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Mostrar imágenes si hay
+    if (orden.imagen_url) {
+        const imagenes = orden.imagen_url.split(',');
+        if (imagenes.length > 0 && imagenes[0].trim()) {
+            detallesHTML += '<div class="mt-4"><h6 class="fw-bold">Imágenes</h6><div class="d-flex flex-wrap gap-2">';
+            imagenes.forEach(img => {
+                if (img.trim()) {
+                    detallesHTML += `
+                        <img src="${img}" class="img-thumbnail" style="width: 150px; height: 150px; object-fit: cover; cursor: pointer" 
+                             onclick="mostrarImagenCompleta('${img.includes('/') ? img.split('/').pop() : img}')">
+                    `;
+                }
+            });
+            detallesHTML += '</div></div>';
+        }
+    }
+    
+    // Cargar los detalles en el modal
+    document.getElementById('contenidoDetallesOrden').innerHTML = detallesHTML;
+    
+    // Mostrar el modal
+    const modal = new bootstrap.Modal(document.getElementById('modalDetallesOrden'));
+    modal.show();
 }
 
 // Función para eliminar orden
