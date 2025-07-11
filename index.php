@@ -279,8 +279,9 @@ switch ($action) {
         break;
 
     case 'actualizarOrden':
-        $ordenController = new OrdenController();
-        $ordenController->actualizarOrden($_POST['id'], $_POST);
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $ordenController->actualizarOrdenDesdeModal();
+        }
         break;
 
     case 'buscarCliente':

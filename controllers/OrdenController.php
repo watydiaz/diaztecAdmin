@@ -95,7 +95,10 @@ class OrdenController {
         if (empty($imagenes)) {
             $data['imagen_url'] = $ordenExistente['imagen_url'];
         } else {
-            $data['imagen_url'] = implode(',', $imagenes);
+            // Combinar imágenes existentes con nuevas
+            $imagenesExistentes = $ordenExistente['imagen_url'] ? explode(',', $ordenExistente['imagen_url']) : [];
+            $todasImagenes = array_merge($imagenesExistentes, $imagenes);
+            $data['imagen_url'] = implode(',', array_filter($todasImagenes));
         }
 
         $data['cliente_id'] = $data['cliente_id'] ?? $ordenExistente['cliente_id'];
@@ -121,6 +124,16 @@ class OrdenController {
             echo json_encode(['success' => false, 'message' => 'Error al actualizar la orden.']);
         }
         exit();
+    }
+
+    public function actualizarOrdenDesdeModal() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_POST['id'] ?? '';
+            $data = $_POST;
+            unset($data['id']); // Remover ID del array de datos
+            
+            $this->actualizarOrden($id, $data);
+        }
     }
 
     public function eliminarOrden($id) {
