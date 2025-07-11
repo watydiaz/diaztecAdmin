@@ -1,7 +1,35 @@
 /* Estilos específicos para el módulo de órdenes */
 
-/* Layout principal */
-.dashboard-container {
+/* Layout principal *//* Estilos específicos para la tabla de órdenes */
+#tablaOrdenes {
+    font-size: 0.42rem; /* Reducción adicional del 30% (0.6rem * 0.7 = 0.42rem ≈ 6.7px) */
+}
+
+#tablaOrdenes th {
+    font-size: 0.42rem;
+    padding: 6px 8px; /* Reducir padding para encabezados también */
+}
+
+#tablaOrdenes td {
+    font-size: 0.42rem;
+    padding: 6px 8px; /* Reducir padding más para compensar el texto aún más pequeño */
+}
+
+/* Aumentar significativamente el tamaño de los iconos para mejor visibilidad */
+#tablaOrdenes i {
+    font-size: 0.7rem; /* Iconos aumentados considerablemente (0.35 * 2 = 0.7rem) */
+}
+
+/* Iconos en botones de acción */
+#tablaOrdenes .btn-action i {
+    font-size: 0.7rem;
+}
+
+/* Iconos en encabezados */
+#tablaOrdenes th i {
+    font-size: 0.7rem;
+    margin-right: 4px; /* Aumentar espacio después del icono */
+}container {
     background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 25%, #4a4a4a 50%, #6a6a6a 75%, #8a8a8a 100%);
     min-height: 100vh;
     padding: 20px 0;
@@ -73,6 +101,42 @@
     background-color: #f8f9fa;
     transform: scale(1.01);
     transition: all 0.2s ease;
+}
+
+/* Estilos específicos para la tabla de órdenes */
+#tablaOrdenes {
+    font-size: 0.8rem; /* Reducción del 20% del tamaño base (1rem = 16px, 0.8rem = 12.8px) */
+}
+
+#tablaOrdenes th {
+    font-size: 0.8rem;
+}
+
+#tablaOrdenes td {
+    font-size: 0.8rem;
+    padding: 10px 12px; /* Reducir padding también para compensar */
+}
+
+/* Limitar el campo falla a aproximadamente 20 caracteres */
+.falla-truncada {
+    max-width: 95px; /* Ajustado para 20 caracteres con texto muy pequeño */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+}
+
+/* Tooltip para mostrar el texto completo al hacer hover */
+.falla-truncada:hover {
+    white-space: normal;
+    overflow: visible;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    position: relative;
+    z-index: 10;
+    max-width: none;
 }
 
 /* Botones y acciones */
@@ -211,7 +275,8 @@
     font-size: 0.875rem;
 }
 
-.estado-en-proceso { 
+.estado-en-proceso,
+.estado-en_proceso { 
     background: linear-gradient(45deg, #17a2b8, #138496);
     color: white; 
     font-weight: bold;
@@ -352,4 +417,74 @@
 
 .texto-pequeño {
     font-size: 0.7rem;
+}
+
+/* Ajustar botones de acción para el nuevo tamaño */
+#tablaOrdenes .btn-action {
+    padding: 4px 8px; /* Botones un poco más grandes */
+    font-size: 0.45rem; /* Texto de botones más legible */
+    margin: 1px;
+}
+
+#tablaOrdenes .btn-group {
+    gap: 1px; /* Reducir espacio entre botones */
+}
+
+/* Ajustar elementos específicos de la tabla */
+#tablaOrdenes .avatar-circle {
+    width: 32px; /* Aumentado significativamente (18 * 1.78 ≈ 32px) */
+    height: 32px;
+    font-size: 0.55rem; /* Aumentado proporcionalmente (0.3 * 1.83 = 0.55rem) */
+    margin-right: 5px;
+}
+
+/* Badges de estado y prioridad con tamaño mejorado para legibilidad */
+#tablaOrdenes .estado-pendiente,
+#tablaOrdenes .estado-en-proceso,
+#tablaOrdenes .estado-en_proceso,
+#tablaOrdenes .estado-terminado,
+#tablaOrdenes .estado-entregado {
+    font-size: 0.5rem; /* Aumentado significativamente para mejor legibilidad */
+    padding: 4px 10px; /* Padding más generoso */
+    border-radius: 14px; /* Mantener forma de pill más proporcionada */
+    font-weight: bold;
+    display: inline-block;
+    text-align: center;
+    min-width: 70px; /* Ancho mínimo ligeramente mayor */
+    line-height: 1.2; /* Mejor altura de línea */
+}
+
+/* Mantener colores específicos para cada estado en la tabla - TAMAÑO UNIFORME */
+#tablaOrdenes .estado-pendiente {
+    background: linear-gradient(45deg, #ffc107, #e0a800);
+    color: #212529;
+    /* Heredar estilos de tamaño del selector anterior */
+}
+
+#tablaOrdenes .estado-en-proceso,
+#tablaOrdenes .estado-en_proceso {
+    background: linear-gradient(45deg, #17a2b8, #138496);
+    color: white;
+    /* Heredar estilos de tamaño del selector anterior */
+}
+
+#tablaOrdenes .estado-terminado {
+    background: linear-gradient(45deg, #28a745, #218838);
+    color: white;
+    /* Heredar estilos de tamaño del selector anterior */
+}
+
+#tablaOrdenes .estado-entregado {
+    background: linear-gradient(45deg, #6c757d, #5a6268);
+    color: white;
+    /* Heredar estilos de tamaño del selector anterior */
+}
+
+/* Prioridades con tamaño mejorado para consistencia */
+#tablaOrdenes .prioridad-alta,
+#tablaOrdenes .prioridad-media,
+#tablaOrdenes .prioridad-baja {
+    font-size: 0.5rem; /* Mismo tamaño que los estados para consistencia */
+    padding: 4px 8px; /* Padding balanceado y generoso */
+    border-radius: 12px; /* Forma más redondeada */
 }

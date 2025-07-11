@@ -28,6 +28,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Cargar técnicos al inicializar
     cargarTecnicos();
     
+    // Cargar saldos de todas las órdenes en la tabla
+    cargarSaldosTabla();
+    
     // Establecer fecha actual por defecto
     const fechaActual = new Date();
     fechaActual.setMinutes(fechaActual.getMinutes() - fechaActual.getTimezoneOffset());
@@ -1260,3 +1263,61 @@ function guardarPago(e) {
         btn.innerHTML = '<i class="fas fa-save me-2"></i>Registrar Pago';
     });
 }
+
+// Función para cargar saldos de todas las órdenes en la tabla
+function cargarSaldosTabla() {
+    const filasOrden = document.querySelectorAll('[id^="saldo-orden-"]');
+    
+    filasOrden.forEach(elemento => {
+        const ordenId = elemento.id.replace('saldo-orden-', '');
+        
+        // Obtener el último saldo de la orden
+        fetch(`controllers/OrdenPagoController.php?accion=obtener&orden_id=${ordenId}`)
+            .then(response => response.json())
+            .then(pagos => {
+                let saldoTexto;
+                let claseColor;
+                
+                if (pagos && pagos.length > 0) {
+                    const ultimoSaldo = parseFloat(pagos[0].saldo);
+                    
+                    if (ultimoSaldo === 0) {
+                        saldoTexto = '<i class="fas fa-check-circle me-1"></i>Pagado';
+                        claseColor = 'text-success';
+                    } else {
+                        saldoTexto = '$' + ultimoSaldo.toLocaleString('es-CO');
+                        claseColor = ultimoSaldo > 0 ? 'text-danger' : 'text-success';
+                    }
+                } else {
+                    // Si no hay pagos, obtener el costo total de la orden
+                    fetch(`index.php?action=obtenerOrden&id=${ordenId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success && data.orden) {
+                                const costoTotal = parseFloat(data.orden.costo_total) || 0;
+                                if (costoTotal > 0) {
+                                    elemento.innerHTML = `<span class="text-danger">$${costoTotal.toLocaleString('es-CO')}</span>`;
+                                } else {
+                                    elemento.innerHTML = '<span class="text-muted">Sin costo</span>';
+                                }
+                            } else {
+                                elemento.innerHTML = '<span class="text-muted">N/A</span>';
+                            }
+                        })
+                        .catch(() => {
+                            elemento.innerHTML = '<span class="text-muted">Error</span>';
+                        });
+                    return;
+                }
+                
+                elemento.innerHTML = `<span class="${claseColor}">${saldoTexto}</span>`;
+            })
+            .catch(error => {
+                console.error('Error al cargar saldo para orden', ordenId, ':', error);
+                elemento.innerHTML = '<span class="text-muted">Error</span>';
+            });
+    });
+}
+
+// Cargar saldos al iniciar
+document.addEventListener('DOMContentLoaded', cargarSaldosTabla);

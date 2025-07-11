@@ -93,13 +93,13 @@ require_once 'header.php';
                             <th><i class="fas fa-hashtag me-2"></i>ID</th>
                             <th><i class="fas fa-image me-2"></i>Imagen</th>
                             <th><i class="fas fa-user me-2"></i>Cliente</th>
-                            <th><i class="fas fa-user-cog me-2"></i>Técnico</th>
                             <th><i class="fas fa-tag me-2"></i>Marca</th>
                             <th><i class="fas fa-laptop me-2"></i>Modelo</th>
                             <th><i class="fas fa-exclamation-circle me-2"></i>Falla</th>
                             <th><i class="fas fa-info-circle me-2"></i>Estado</th>
                             <th><i class="fas fa-flag me-2"></i>Prioridad</th>
-                            <th><i class="fas fa-calendar me-2"></i>Fecha</th>
+                            <th><i class="fas fa-dollar-sign me-2"></i>Total Reparación</th>
+                            <th><i class="fas fa-credit-card me-2"></i>Saldo</th>
                             <th><i class="fas fa-cogs me-2"></i>Acciones</th>
                         </tr>
                     </thead>
@@ -161,20 +161,12 @@ require_once 'header.php';
                                             </span>
                                         </div>
                                     </td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar-circle me-2">
-                                                <i class="fas fa-user-cog"></i>
-                                            </div>
-                                            <span class="texto-truncado" title="<?php echo htmlspecialchars($orden['tecnico_nombre'] ?? 'Sin asignar'); ?>">
-                                                <?php echo $orden['tecnico_nombre'] ?? 'Sin asignar'; ?>
-                                            </span>
-                                        </div>
-                                    </td>
                                     <td class="fw-bold text-info"><?php echo $orden['marca'] ?? 'N/A'; ?></td>
                                     <td><?php echo $orden['modelo'] ?? 'N/A'; ?></td>
-                                    <td class="texto-truncado" title="<?php echo htmlspecialchars($orden['falla_reportada'] ?? 'Sin descripción'); ?>">
-                                        <?php echo $orden['falla_reportada'] ?? 'Sin descripción'; ?>
+                                    <td>
+                                        <span class="falla-truncada" title="<?php echo htmlspecialchars($orden['falla_reportada'] ?? 'Sin descripción'); ?>">
+                                            <?php echo $orden['falla_reportada'] ?? 'Sin descripción'; ?>
+                                        </span>
                                     </td>
                                     <td>
                                         <span class="estado-<?php echo str_replace(' ', '-', strtolower($orden['estado'] ?? 'pendiente')); ?>">
@@ -186,8 +178,16 @@ require_once 'header.php';
                                             <?php echo ucfirst($orden['prioridad'] ?? 'Media'); ?>
                                         </span>
                                     </td>
-                                    <td class="text-muted">
-                                        <?php echo date('d/m/Y', strtotime($orden['fecha_ingreso'] ?? 'now')); ?>
+                                    <td class="fw-bold text-success">
+                                        <?php 
+                                        $total = $orden['costo_total'] ?? 0;
+                                        echo '$' . number_format($total, 0, ',', '.');
+                                        ?>
+                                    </td>
+                                    <td class="fw-bold" id="saldo-orden-<?php echo $orden['id']; ?>">
+                                        <span class="text-warning">
+                                            <i class="fas fa-spinner fa-spin me-1"></i>Calculando...
+                                        </span>
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
