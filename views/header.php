@@ -10,8 +10,13 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Favicon -->
     <link rel="icon" href="https://diaztecnologia.com/img/logo.png" type="image/x-icon">
     <link rel="apple-touch-icon" href="https://diaztecnologia.com/img/logo.png">
+    <!-- Estilos personalizados globales -->
+    <link rel="stylesheet" href="assets/css/main.css">
+    <!-- Script principal -->
+    <script src="assets/js/main.js" defer></script>
     <style>
         body {
             font-family: Arial, sans-serif;

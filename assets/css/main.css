@@ -1,0 +1,15 @@
+/**
+ * main.css
+ * Archivo principal de estilos que importa todos los módulos CSS
+ */
+
+/* Estilos globales compartidos */
+@import url('modules/global.css');
+
+/* Estilos de módulos específicos */
+@import url('modules/clientes.css');
+/* Descomenta o agrega más importaciones a medida que crees los módulos */
+/* @import url('modules/ordenes.css'); */
+/* @import url('modules/productos.css'); */
+/* @import url('modules/usuarios.css'); */
+/* @import url('modules/dashboard.css'); */

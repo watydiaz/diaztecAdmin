@@ -1,0 +1,143 @@
+/**
+ * Global CSS
+ * Estilos globales compartidos por todos los módulos
+ */
+
+/* Variables CSS globales */
+:root {
+  --primary-color: #4a6fa5;
+  --secondary-color: #764ba2;
+  --accent-color: #667eea;
+  --text-color: #333;
+  --light-text: #f8f9fa;
+  --light-bg: #f8f9fa;
+  --dark-bg: #212529;
+  --border-color: #dee2e6;
+  --shadow-sm: 0 5px 15px rgba(0,0,0,0.1);
+  --shadow-md: 0 10px 30px rgba(0,0,0,0.1);
+  --shadow-lg: 0 15px 50px rgba(0,0,0,0.2);
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-secondary: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
+  --gradient-dark: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 25%, #4a4a4a 50%, #6a6a6a 75%, #8a8a8a 100%);
+  --transition-fast: all 0.2s ease;
+  --transition-medium: all 0.3s ease;
+  --border-radius-sm: 5px;
+  --border-radius-md: 10px;
+  --border-radius-lg: 15px;
+  --border-radius-full: 50%;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 600;
+  --font-weight-extra-bold: 700;
+}
+
+/* Estilos globales del cuerpo */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text-color);
+  background-color: #f8f9fa;
+  line-height: 1.6;
+}
+
+/* Estilos para encabezados */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color);
+  margin-bottom: 1rem;
+}
+
+/* Estilos para botones */
+.btn {
+  border-radius: var(--border-radius-md);
+  padding: 0.5rem 1.25rem;
+  transition: var(--transition-medium);
+  font-weight: var(--font-weight-medium);
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-gradient {
+  background: var(--gradient-primary);
+  border: none;
+  color: white;
+}
+
+.btn-gradient:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Estilos para formularios */
+.form-control {
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+  padding: 0.75rem 1rem;
+  transition: var(--transition-fast);
+}
+
+.form-control:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+}
+
+.form-label {
+  font-weight: var(--font-weight-medium);
+  margin-bottom: 0.5rem;
+}
+
+/* Estilos para tablas */
+.table {
+  margin-bottom: 0;
+}
+
+/* Estilos para cards */
+.card {
+  border-radius: var(--border-radius-lg);
+  border: none;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-medium);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.card-header {
+  background-color: white;
+  border-bottom: 1px solid var(--border-color);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Utilidades generales */
+.text-gradient {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shadow-hover {
+  transition: var(--transition-medium);
+}
+
+.shadow-hover:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
