@@ -12,11 +12,17 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('formAgregarOrden')?.addEventListener('submit', guardarOrden);
     document.getElementById('formAgregarClienteRapido')?.addEventListener('submit', guardarClienteRapido);
     document.getElementById('formEditarOrden')?.addEventListener('submit', actualizarOrden);
+    document.getElementById('formAgregarPago')?.addEventListener('submit', guardarPago);
     
     // Event listeners para cálculos automáticos de pagos
     if (document.getElementById('costo_total_inicial')) {
         document.getElementById('costo_total_inicial').addEventListener('input', calcularSaldoInicial);
         document.getElementById('dinero_recibido_inicial').addEventListener('input', calcularSaldoInicial);
+    }
+    
+    // Event listeners para el modal de pagos
+    if (document.getElementById('dinero_recibido')) {
+        document.getElementById('dinero_recibido').addEventListener('input', calcularSaldo);
     }
     
     // Cargar técnicos al inicializar
@@ -1005,6 +1011,77 @@ function abrirModalPagos() {
         });
 }
 
+// Función para abrir modal de pagos directamente desde la lista (sin modal de editar)
+function abrirModalPagosDirecto(ordenId) {
+    if (!ordenId) {
+        Swal.fire('Error', 'No se pudo identificar la orden', 'error');
+        return;
+    }
+    
+    // Establecer la fecha actual en el formulario de pago
+    const fechaActual = new Date();
+    fechaActual.setMinutes(fechaActual.getMinutes() - fechaActual.getTimezoneOffset());
+    document.getElementById('fecha_pago').value = fechaActual.toISOString().slice(0, 16);
+    
+    // Obtener datos de la orden
+    fetch(`index.php?action=obtenerOrden&id=${ordenId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(text => {
+            try {
+                const data = JSON.parse(text);
+                if (data.success && data.orden) {
+                    const orden = data.orden;
+                    
+                    // Establecer los datos de la orden en el modal
+                    document.getElementById('pagoOrdenId').value = orden.id;
+                    document.getElementById('pago_orden_id').value = orden.id;
+                    
+                    // Intentar obtener el ID de usuario de la sesión actual o usar el técnico asignado
+                    fetch('index.php?action=getUserId')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success && data.usuario_id) {
+                                document.getElementById('pago_usuario_id').value = data.usuario_id;
+                            } else {
+                                // Si no se puede obtener el ID de usuario, usar el técnico asignado o 1 por defecto
+                                document.getElementById('pago_usuario_id').value = orden.usuario_tecnico_id || '1';
+                            }
+                        })
+                        .catch(err => {
+                            console.error("Error al obtener ID de usuario:", err);
+                            document.getElementById('pago_usuario_id').value = orden.usuario_tecnico_id || '1';
+                        });
+                    
+                    document.getElementById('pagosNumeroOrden').textContent = orden.id;
+                    document.getElementById('pagosNombreCliente').textContent = orden.cliente_nombre || 'Sin nombre';
+                    document.getElementById('pagosMarcaModelo').textContent = `${orden.marca || ''} ${orden.modelo || ''}`.trim() || 'No especificado';
+                    
+                    // Cargar historial de pagos
+                    cargarHistorialPagos(orden.id);
+                    
+                    // Mostrar el modal de pagos directamente
+                    const modalPagos = new bootstrap.Modal(document.getElementById('modalGestionarPagos'));
+                    modalPagos.show();
+                } else {
+                    Swal.fire('Error', 'No se pudo cargar la información de la orden', 'error');
+                }
+            } catch (e) {
+                console.error('Error parsing JSON:', e);
+                console.error('Response text:', text);
+                Swal.fire('Error', 'Error al procesar la respuesta del servidor', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire('Error', 'Error de conexión al cargar la orden', 'error');
+        });
+}
+
 // Función para cargar historial de pagos
 function cargarHistorialPagos(ordenId) {
     fetch(`controllers/OrdenPagoController.php?accion=obtener&orden_id=${ordenId}`, {
@@ -1061,6 +1138,7 @@ function cargarHistorialPagos(ordenId) {
                 
                 // Pre-llenar valores en el formulario de nuevo pago
                 document.getElementById('costo_total').value = pagos[0].costo_total;
+                // El saldo debe ser el saldo pendiente (último saldo registrado)
                 document.getElementById('saldo').value = ultimoSaldo;
             } else {
                 historialElement.innerHTML = `
@@ -1105,11 +1183,14 @@ function cargarHistorialPagos(ordenId) {
 
 // Función para calcular el saldo automáticamente
 function calcularSaldo() {
-    const costoTotal = parseFloat(document.getElementById('costo_total').value) || 0;
+    // Obtener el saldo actual del campo (que ya viene pre-cargado)
+    const saldoActual = parseFloat(document.getElementById('saldo').value) || 0;
     const dineroRecibido = parseFloat(document.getElementById('dinero_recibido').value) || 0;
-    const saldo = Math.max(0, costoTotal - dineroRecibido);
     
-    document.getElementById('saldo').value = saldo.toFixed(2);
+    // El nuevo saldo es el saldo actual menos lo que se está pagando ahora
+    const nuevoSaldo = Math.max(0, saldoActual - dineroRecibido);
+    
+    document.getElementById('saldo').value = nuevoSaldo.toFixed(2);
 }
 
 // Función para guardar un nuevo pago

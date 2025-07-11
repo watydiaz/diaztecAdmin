@@ -1,14 +1,20 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+// Iniciar buffer de salida y configurar headers para AJAX
+ob_start();
+header('Content-Type: application/json');
+
+// Solo mostrar errores en desarrollo, no en producción
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
+
 require_once __DIR__ . '/../models/OrdenPagoModel.php';
 require_once __DIR__ . '/../models/Conexion.php';
 
 // --- Manejo global de errores para devolver siempre JSON ---
 set_exception_handler(function($e) {
+    ob_clean(); // Limpiar cualquier output previo
     http_response_code(500);
-    header('Content-Type: application/json');
     echo json_encode([
         'success' => false,
         'message' => 'Error del servidor',
@@ -17,8 +23,8 @@ set_exception_handler(function($e) {
     exit;
 });
 set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    ob_clean(); // Limpiar cualquier output previo
     http_response_code(500);
-    header('Content-Type: application/json');
     echo json_encode([
         'success' => false,
         'message' => 'Error del servidor',
@@ -37,7 +43,6 @@ class OrdenPagoController {
 
     // Insertar un nuevo pago (desde POST)
     public function insertarPago() {
-        header('Content-Type: application/json');
         try {
             $data = [
                 'orden_id' => $_POST['orden_id'],
@@ -59,6 +64,33 @@ class OrdenPagoController {
                 echo json_encode(['success' => false, 'message' => 'Debe seleccionar un método de pago']);
                 return;
             }
+            
+            /* VALIDACIONES DESHABILITADAS TEMPORALMENTE
+            // Validación adicional: verificar que la orden existe
+            $db = (new Conexion())->getConexion();
+            $check_orden = $db->prepare("SELECT id FROM ordenes_reparacion WHERE id = ?");
+            $check_orden->bind_param("i", $data['orden_id']);
+            $check_orden->execute();
+            $result = $check_orden->get_result();
+            
+            if ($result->num_rows === 0) {
+                echo json_encode(['success' => false, 'message' => 'La orden especificada no existe (ID: ' . $data['orden_id'] . ')']);
+                return;
+            }
+            $check_orden->close();
+            
+            // Validación adicional: verificar que el usuario existe
+            $check_usuario = $db->prepare("SELECT id FROM usuarios WHERE id = ?");
+            $check_usuario->bind_param("i", $data['usuario_id']);
+            $check_usuario->execute();
+            $result_usuario = $check_usuario->get_result();
+            
+            if ($result_usuario->num_rows === 0) {
+                echo json_encode(['success' => false, 'message' => 'El usuario especificado no existe (ID: ' . $data['usuario_id'] . ')']);
+                return;
+            }
+            $check_usuario->close();
+            */
             $resultado = $this->model->insertarPago($data);
             if ($resultado) {
                 echo json_encode(['success' => true, 'message' => 'Pago registrado correctamente']);
@@ -73,7 +105,6 @@ class OrdenPagoController {
 
     // Obtener pagos por orden (GET)
     public function obtenerPagosPorOrden($orden_id) {
-        header('Content-Type: application/json');
         try {
             $pagos = $this->model->obtenerPagosPorOrden($orden_id);
             echo json_encode($pagos);
@@ -97,8 +128,10 @@ if (isset($_GET['accion'])) {
             }
             break;
         default:
-            header('Content-Type: application/json');
             echo json_encode(['success' => false, 'message' => 'Acción no válida']);
     }
+    
+    // Limpiar y enviar el buffer de salida
+    ob_end_flush();
     exit;
 }

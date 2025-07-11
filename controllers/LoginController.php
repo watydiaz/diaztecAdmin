@@ -18,6 +18,13 @@ class LoginController {
         $usuario = $this->usuarioModel->obtenerUsuarioPorEmail($email);
 
         if ($usuario && $this->usuarioModel->verificarPassword($password, $usuario['password'])) {
+            // SESIONES DESHABILITADAS TEMPORALMENTE
+            // session_start();
+            // $_SESSION['usuario_id'] = $usuario['id'];
+            // $_SESSION['usuario_nombre'] = $usuario['nombre'];
+            // $_SESSION['usuario_email'] = $usuario['email'];
+            // $_SESSION['usuario_rol'] = $usuario['rol'];
+            
             // Redirigir al dashboard
             header('Location: index.php?action=dashboard');
             exit();
@@ -30,6 +37,9 @@ class LoginController {
 
     // Método para cerrar sesión
     public function cerrarSesion() {
+        // SESIONES DESHABILITADAS TEMPORALMENTE
+        // session_start();
+        // session_destroy();
         header('Location: index.php?action=login');
         exit();
     }

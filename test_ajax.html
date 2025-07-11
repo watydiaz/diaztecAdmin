@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test AJAX Directo</title>
+</head>
+<body>
+    <h1>Test de AJAX para Pagos</h1>
+    
+    <button id="testGetUserId">Test getUserId</button>
+    <button id="testRegisterPago">Test Registrar Pago</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const results = document.getElementById('results');
+        
+        // Test getUserId
+        document.getElementById('testGetUserId').onclick = function() {
+            results.innerHTML += '<h3>Testing getUserId...</h3>';
+            
+            fetch('index.php?action=getUserId')
+                .then(response => {
+                    results.innerHTML += `<p>Status: ${response.status}</p>`;
+                    return response.text();
+                })
+                .then(text => {
+                    results.innerHTML += `<p>Response: ${text}</p>`;
+                    try {
+                        const json = JSON.parse(text);
+                        results.innerHTML += `<p>✓ JSON válido: ${JSON.stringify(json)}</p>`;
+                    } catch (e) {
+                        results.innerHTML += `<p>✗ JSON inválido: ${e.message}</p>`;
+                        results.innerHTML += `<p>Raw text: ${text}</p>`;
+                    }
+                })
+                .catch(error => {
+                    results.innerHTML += `<p>Error: ${error}</p>`;
+                });
+        };
+        
+        // Test registrar pago
+        document.getElementById('testRegisterPago').onclick = function() {
+            results.innerHTML += '<h3>Testing Registrar Pago...</h3>';
+            
+            const formData = new FormData();
+            formData.append('orden_id', '12');
+            formData.append('usuario_id', '1');
+            formData.append('fecha_pago', '2025-07-11 16:00:00');
+            formData.append('costo_total', '50000');
+            formData.append('dinero_recibido', '25000');
+            formData.append('valor_repuestos', '0');
+            formData.append('descripcion_repuestos', 'Test desde HTML');
+            formData.append('metodo_pago', 'efectivo');
+            formData.append('saldo', '25000');
+            
+            fetch('controllers/OrdenPagoController.php?accion=insertar', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                results.innerHTML += `<p>Status: ${response.status}</p>`;
+                return response.text();
+            })
+            .then(text => {
+                results.innerHTML += `<p>Response: ${text}</p>`;
+                try {
+                    const json = JSON.parse(text);
+                    results.innerHTML += `<p>✓ JSON válido: ${JSON.stringify(json)}</p>`;
+                } catch (e) {
+                    results.innerHTML += `<p>✗ JSON inválido: ${e.message}</p>`;
+                    results.innerHTML += `<p>Raw text: ${text}</p>`;
+                }
+            })
+            .catch(error => {
+                results.innerHTML += `<p>Error: ${error}</p>`;
+            });
+        };
+    </script>
+</body>
+</html>

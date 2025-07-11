@@ -201,6 +201,11 @@ require_once 'header.php';
                                                     title="Ver detalles">
                                                 <i class="fas fa-eye"></i>
                                             </button>
+                                            <button class="btn btn-sm btn-outline-warning btn-action" 
+                                                    onclick="abrirModalPagosDirecto(<?php echo $orden['id']; ?>)" 
+                                                    title="Gestionar pagos">
+                                                <i class="fas fa-dollar-sign"></i>
+                                            </button>
                                             <button class="btn btn-sm btn-outline-success btn-action" 
                                                     onclick="imprimirOrden(<?php echo $orden['id']; ?>)" 
                                                     title="Imprimir">
