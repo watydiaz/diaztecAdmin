@@ -20,9 +20,12 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('dinero_recibido_inicial').addEventListener('input', calcularSaldoInicial);
     }
     
-    // Event listeners para el modal de pagos
+    // Event listeners para el modal de gestión de pagos (diferente al de creación)
+    if (document.getElementById('costo_total')) {
+        document.getElementById('costo_total').addEventListener('input', calcularSaldoGestionPagos);
+    }
     if (document.getElementById('dinero_recibido')) {
-        document.getElementById('dinero_recibido').addEventListener('input', calcularSaldo);
+        document.getElementById('dinero_recibido').addEventListener('input', calcularSaldoGestionPagos);
     }
     
     // Cargar técnicos al inicializar
@@ -1199,6 +1202,19 @@ function abrirModalPagos() {
                     // Cargar historial de pagos
                     cargarHistorialPagos(orden.id);
                     
+                    // Agregar event listeners para cálculo automático en el modal de gestión
+                    const costoTotalInput = document.getElementById('costo_total');
+                    const dineroRecibidoInput = document.getElementById('dinero_recibido');
+                    
+                    if (costoTotalInput) {
+                        costoTotalInput.removeEventListener('input', calcularSaldoGestionPagos);
+                        costoTotalInput.addEventListener('input', calcularSaldoGestionPagos);
+                    }
+                    if (dineroRecibidoInput) {
+                        dineroRecibidoInput.removeEventListener('input', calcularSaldoGestionPagos);
+                        dineroRecibidoInput.addEventListener('input', calcularSaldoGestionPagos);
+                    }
+                    
                     // Mostrar el modal
                     const modalEditar = bootstrap.Modal.getInstance(document.getElementById('modalEditarOrden'));
                     if (modalEditar) {
@@ -1274,6 +1290,19 @@ function abrirModalPagosDirecto(ordenId) {
                     
                     // Cargar historial de pagos
                     cargarHistorialPagos(orden.id);
+                    
+                    // Agregar event listeners para cálculo automático en el modal de gestión
+                    const costoTotalInput = document.getElementById('costo_total');
+                    const dineroRecibidoInput = document.getElementById('dinero_recibido');
+                    
+                    if (costoTotalInput) {
+                        costoTotalInput.removeEventListener('input', calcularSaldoGestionPagos);
+                        costoTotalInput.addEventListener('input', calcularSaldoGestionPagos);
+                    }
+                    if (dineroRecibidoInput) {
+                        dineroRecibidoInput.removeEventListener('input', calcularSaldoGestionPagos);
+                        dineroRecibidoInput.addEventListener('input', calcularSaldoGestionPagos);
+                    }
                     
                     // Mostrar el modal de pagos directamente
                     const modalPagos = new bootstrap.Modal(document.getElementById('modalGestionarPagos'));
@@ -1392,7 +1421,7 @@ function cargarHistorialPagos(ordenId) {
     });
 }
 
-// Función para calcular el saldo automáticamente
+// Función para calcular el saldo automáticamente (ORIGINAL - para creación de orden)
 function calcularSaldo() {
     // Obtener el saldo actual del campo (que ya viene pre-cargado)
     const saldoActual = parseFloat(document.getElementById('saldo').value) || 0;
@@ -1400,6 +1429,22 @@ function calcularSaldo() {
     
     // El nuevo saldo es el saldo actual menos lo que se está pagando ahora
     const nuevoSaldo = Math.max(0, saldoActual - dineroRecibido);
+    
+    document.getElementById('saldo').value = nuevoSaldo.toFixed(2);
+}
+
+// Función para calcular el saldo en el modal de gestión de pagos
+function calcularSaldoGestionPagos() {
+    const costoTotal = parseFloat(document.getElementById('costo_total').value) || 0;
+    const dineroRecibido = parseFloat(document.getElementById('dinero_recibido').value) || 0;
+    
+    // Obtener el total ya pagado anteriormente
+    const totalPagadoElement = document.getElementById('pagosTotalPagado');
+    const totalPagadoAnterior = totalPagadoElement ? 
+        parseFloat(totalPagadoElement.textContent.replace(/[$,]/g, '')) || 0 : 0;
+    
+    // Calcular el nuevo saldo: costo total - pagos anteriores - pago actual
+    const nuevoSaldo = Math.max(0, costoTotal - totalPagadoAnterior - dineroRecibido);
     
     document.getElementById('saldo').value = nuevoSaldo.toFixed(2);
 }
