@@ -592,13 +592,14 @@ require_once 'header.php';
                 <table class="table table-hover mb-0" id="tablaInventario">
                     <thead>
                         <tr>
+                            <th><i class="fas fa-hashtag me-2"></i>ID</th>
+                            <th><i class="fas fa-image me-2"></i>Imagen</th>
                             <th><i class="fas fa-tag me-2"></i>Producto</th>
+                            <th><i class="fas fa-list me-2"></i>Categoría</th>
+                            <th><i class="fas fa-barcode me-2"></i>Código Barras</th>
                             <th><i class="fas fa-boxes me-2"></i>Stock Actual</th>
-                            <th><i class="fas fa-chart-line me-2"></i>Stock Mínimo</th>
                             <th><i class="fas fa-shopping-cart me-2"></i>Precio Compra</th>
                             <th><i class="fas fa-dollar-sign me-2"></i>Precio Venta</th>
-                            <th><i class="fas fa-calculator me-2"></i>Valor Costo</th>
-                            <th><i class="fas fa-money-bill me-2"></i>Valor Venta</th>
                             <th><i class="fas fa-percentage me-2"></i>Margen %</th>
                             <th><i class="fas fa-info-circle me-2"></i>Estado</th>
                             <th><i class="fas fa-cogs me-2"></i>Acciones</th>
@@ -647,21 +648,52 @@ require_once 'header.php';
             <form id="formProducto">
                 <div class="modal-body">
                     <input type="hidden" id="productoId" name="id">
-                    
-                    <div class="mb-3">
-                        <label for="productoNombre" class="form-label fw-bold">
-                            <i class="fas fa-tag me-2"></i>Nombre del Producto *
-                        </label>
-                        <input type="text" class="form-control" id="productoNombre" name="nombre" required>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="productoNombre" class="form-label fw-bold">
+                                    <i class="fas fa-tag me-2"></i>Nombre del Producto *
+                                </label>
+                                <input type="text" class="form-control" id="productoNombre" name="nombre" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="productoCategoria" class="form-label fw-bold">
+                                    <i class="fas fa-list me-2"></i>Categoría
+                                </label>
+                                <select class="form-select" id="productoCategoria" name="categoria" required>
+                                    <option value="">Selecciona una categoría</option>
+                                    <option value="Celulares">Celulares</option>
+                                    <option value="Accesorios">Accesorios</option>
+                                    <option value="Tablets">Tablets</option>
+                                    <option value="Computadores">Computadores</option>
+                                    <option value="Audio">Audio</option>
+                                    <option value="Otros">Otros</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-
                     <div class="mb-3">
                         <label for="productoDescripcion" class="form-label fw-bold">
                             <i class="fas fa-align-left me-2"></i>Descripción
                         </label>
                         <textarea class="form-control" id="productoDescripcion" name="descripcion" rows="3"></textarea>
                     </div>
-
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="productoCodigoBarras" class="form-label fw-bold">
+                                <i class="fas fa-barcode me-2"></i>Código de Barras
+                            </label>
+                            <input type="text" class="form-control" id="productoCodigoBarras" name="codigo_barras" placeholder="Escanea o ingresa el código">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="productoImagen" class="form-label fw-bold">
+                                <i class="fas fa-image me-2"></i>Imagen
+                            </label>
+                            <input type="file" class="form-control" id="productoImagen" name="imagen" accept="image/*">
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="productoStockActual" class="form-label fw-bold">
@@ -676,7 +708,6 @@ require_once 'header.php';
                             <input type="number" class="form-control" id="productoStockMinimo" name="stock_minimo" min="0" required>
                         </div>
                     </div>
-
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="productoPrecioCompra" class="form-label fw-bold">
@@ -715,23 +746,13 @@ require_once 'header.php';
 <div class="modal fade" id="modalAjustarStock" tabindex="-1" aria-labelledby="modalAjustarStockLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalAjustarStockLabel">
-                    <i class="fas fa-exchange-alt me-2"></i>Ajustar Stock
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
             <form id="formAjustarStock">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalAjustarStockLabel">
+                        <i class="fas fa-exchange-alt me-2"></i>Ajustar Stock
+                    </h5>
+                </div>
                 <div class="modal-body">
-                    <input type="hidden" id="ajusteProductoId" name="producto_id">
-                    
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">
-                            <i class="fas fa-tag me-2"></i>Producto
-                        </label>
-                        <input type="text" class="form-control" id="ajusteProductoNombre" readonly>
-                    </div>
-
                     <div class="row">
                         <div class="col-6 mb-3">
                             <label class="form-label fw-bold">
@@ -746,7 +767,6 @@ require_once 'header.php';
                             <input type="number" class="form-control" id="ajusteNuevoStock" name="nuevo_stock" min="0" required>
                         </div>
                     </div>
-
                     <div class="mb-3">
                         <label for="ajusteTipo" class="form-label fw-bold">
                             <i class="fas fa-list me-2"></i>Tipo de Ajuste *
@@ -759,7 +779,6 @@ require_once 'header.php';
                             <option value="correccion">Corrección</option>
                         </select>
                     </div>
-
                     <div class="mb-3">
                         <label for="ajusteMotivo" class="form-label fw-bold">
                             <i class="fas fa-comment me-2"></i>Motivo del Ajuste *
@@ -767,6 +786,8 @@ require_once 'header.php';
                         <textarea class="form-control" id="ajusteMotivo" name="motivo" rows="3" required 
                                   placeholder="Describe el motivo del ajuste de stock..."></textarea>
                     </div>
+                    <input type="hidden" id="ajusteProductoId" name="producto_id">
+                    <input type="hidden" id="ajusteProductoNombre" name="producto_nombre">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -949,44 +970,38 @@ function renderizarTabla() {
         const estadoStock = obtenerEstadoStock(producto.stock, producto.stock_minimo);
         const precioCosto = parseFloat(producto.precio_compra || 0);
         const precioVenta = parseFloat(producto.precio_venta || 0);
-        const valorCosto = producto.stock * precioCosto;
-        const valorVenta = producto.stock * precioVenta;
-        
-        // Calcular margen porcentual
         let margenPorcentaje = 0;
         if (precioCosto > 0) {
             margenPorcentaje = ((precioVenta - precioCosto) / precioCosto) * 100;
         }
-        
-        // Color del margen según rentabilidad
         let colorMargen = 'text-muted';
         if (margenPorcentaje > 50) colorMargen = 'text-success fw-bold';
         else if (margenPorcentaje > 20) colorMargen = 'text-info fw-bold';
         else if (margenPorcentaje > 0) colorMargen = 'text-warning';
         else if (margenPorcentaje < 0) colorMargen = 'text-danger fw-bold';
-        
+        // Imagen
+        let imagenHtml = `<img src="assets/img/default-product.png" alt="Sin imagen" style="width:48px;height:48px;object-fit:cover;border-radius:8px;opacity:0.5;">`;
+        if (producto.imagen) {
+            imagenHtml = `<img src="${producto.imagen}" alt="Imagen" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">`;
+        }
         const tr = document.createElement('tr');
         tr.innerHTML = `
+            <td class="text-center">${producto.id}</td>
+            <td class="text-center">${imagenHtml}</td>
             <td>
                 <div class="producto-info">
                     <strong>${producto.nombre}</strong>
                     <small class="text-muted d-block">${producto.descripcion || 'Sin descripción'}</small>
                 </div>
             </td>
-            <td class="text-center">
-                <strong>${producto.stock}</strong>
-            </td>
-            <td class="text-center">
-                ${producto.stock_minimo}
-            </td>
+            <td>${producto.categoria || '<span class="text-muted">Sin categoría</span>'}</td>
+            <td>${producto.codigo_barras || '<span class="text-muted">-</span>'}</td>
+            <td class="text-center"><strong>${producto.stock}</strong></td>
             <td>$${precioCosto.toLocaleString('es-CO')}</td>
             <td>$${precioVenta.toLocaleString('es-CO')}</td>
-            <td class="text-primary fw-bold">$${valorCosto.toLocaleString('es-CO')}</td>
-            <td class="text-success fw-bold">$${valorVenta.toLocaleString('es-CO')}</td>
             <td class="${colorMargen}">
                 ${margenPorcentaje.toFixed(1)}%
-                ${margenPorcentaje > 0 ? '<i class="fas fa-arrow-up ms-1"></i>' : 
-                  margenPorcentaje < 0 ? '<i class="fas fa-arrow-down ms-1"></i>' : ''}
+                ${margenPorcentaje > 0 ? '<i class="fas fa-arrow-up ms-1"></i>' : margenPorcentaje < 0 ? '<i class="fas fa-arrow-down ms-1"></i>' : ''}
             </td>
             <td>
                 <span class="stock-badge stock-${estadoStock}">
@@ -1190,12 +1205,14 @@ function editarProducto(id) {
     document.getElementById('modalProductoLabel').innerHTML = '<i class="bi bi-pencil me-2"></i>Editar Producto';
     document.getElementById('productoId').value = producto.id;
     document.getElementById('productoNombre').value = producto.nombre;
+    document.getElementById('productoCategoria').value = producto.categoria || '';
     document.getElementById('productoDescripcion').value = producto.descripcion || '';
+    document.getElementById('productoCodigoBarras').value = producto.codigo_barras || '';
     document.getElementById('productoStockActual').value = producto.stock;
     document.getElementById('productoStockMinimo').value = producto.stock_minimo;
     document.getElementById('productoPrecioCompra').value = producto.precio_compra || '';
     document.getElementById('productoPrecioVenta').value = producto.precio_venta;
-    
+    // No se carga imagen en el input file por seguridad, se muestra solo al renderizar tabla
     const modal = new bootstrap.Modal(document.getElementById('modalProducto'));
     modal.show();
 }

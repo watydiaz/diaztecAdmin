@@ -415,6 +415,27 @@ class ProductoController {
         $productoData['activo'] = isset($datos['activo']) ? 
             intval($datos['activo']) : 1;
 
+        // Imagen (opcional, procesar subida si existe)
+        if (isset($_FILES['imagen']) && isset($_FILES['imagen']['tmp_name']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
+            $nombreArchivo = uniqid() . '_' . basename($_FILES['imagen']['name']);
+            $rutaDestino = 'assets/img/' . $nombreArchivo;
+            if (move_uploaded_file($_FILES['imagen']['tmp_name'], $rutaDestino)) {
+                $productoData['imagen'] = $rutaDestino;
+            } else {
+                $productoData['imagen'] = '';
+            }
+        } else if (isset($datos['imagen'])) {
+            $productoData['imagen'] = trim($datos['imagen']);
+        } else {
+            $productoData['imagen'] = '';
+        }
+
+        // Categoría (opcional)
+        $productoData['categoria'] = isset($datos['categoria']) ? trim($datos['categoria']) : '';
+
+        // Código de barras (opcional)
+        $productoData['codigo_barras'] = isset($datos['codigo_barras']) ? trim($datos['codigo_barras']) : '';
+
         return $productoData;
     }
 }

@@ -46,6 +46,9 @@ class ProductoModel {
                     activo, 
                     fecha_creacion, 
                     fecha_actualizacion,
+                    imagen,
+                    categoria,
+                    codigo_barras,
                     CASE WHEN stock <= stock_minimo THEN 1 ELSE 0 END as stock_bajo
                 FROM productos";
 
@@ -87,23 +90,29 @@ class ProductoModel {
      * Crear un nuevo producto
      */
     public function crearProducto($datos) {
-        $sql = "INSERT INTO productos (nombre, descripcion, precio_compra, precio_venta, stock, stock_minimo, activo) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO productos (nombre, descripcion, precio_compra, precio_venta, stock, stock_minimo, activo, imagen, categoria, codigo_barras) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         $stmt = $this->conexion->prepare($sql);
         
         // Asegurar que activo tenga un valor válido
         $activo = isset($datos['activo']) ? $datos['activo'] : 1;
+        $imagen = isset($datos['imagen']) ? $datos['imagen'] : '';
+        $categoria = isset($datos['categoria']) ? $datos['categoria'] : '';
+        $codigo_barras = isset($datos['codigo_barras']) ? $datos['codigo_barras'] : '';
         
         $stmt->bind_param(
-            'ssddiii',
+            'ssddiiisss',
             $datos['nombre'],
             $datos['descripcion'],
             $datos['precio_compra'],
             $datos['precio_venta'],
             $datos['stock'],
             $datos['stock_minimo'],
-            $activo
+            $activo,
+            $imagen,
+            $categoria,
+            $codigo_barras
         );
 
         if ($stmt->execute()) {
@@ -118,12 +127,15 @@ class ProductoModel {
     public function actualizarProducto($id, $datos) {
         $sql = "UPDATE productos 
                 SET nombre = ?, descripcion = ?, precio_compra = ?, precio_venta = ?, 
-                    stock = ?, stock_minimo = ?, activo = ?, fecha_actualizacion = NOW()
+                    stock = ?, stock_minimo = ?, activo = ?, imagen = ?, categoria = ?, codigo_barras = ?, fecha_actualizacion = NOW()
                 WHERE id = ?";
         
         $stmt = $this->conexion->prepare($sql);
+        $imagen = isset($datos['imagen']) ? $datos['imagen'] : '';
+        $categoria = isset($datos['categoria']) ? $datos['categoria'] : '';
+        $codigo_barras = isset($datos['codigo_barras']) ? $datos['codigo_barras'] : '';
         $stmt->bind_param(
-            'ssddiiii',
+            'ssddiiisssi',
             $datos['nombre'],
             $datos['descripcion'],
             $datos['precio_compra'],
@@ -131,6 +143,9 @@ class ProductoModel {
             $datos['stock'],
             $datos['stock_minimo'],
             $datos['activo'] ?? 1,
+            $imagen,
+            $categoria,
+            $codigo_barras,
             $id
         );
 
