@@ -5,344 +5,8 @@ require_once 'header.php';
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <!-- Font Awesome para iconos -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-<style>
-.dashboard-container {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 25%, #4a4a4a 50%, #6a6a6a 75%, #8a8a8a 100%);
-    min-height: 100vh;
-    padding: 20px 0;
-}
-
-.welcome-header {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
-    border-radius: 15px;
-    padding: 30px;
-    margin-bottom: 30px;
-    text-align: center;
-    color: #212529;
-    border: 2px solid #ced4da;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-}
-
-.content-section {
-    background: white;
-    border-radius: 15px;
-    padding: 25px;
-    margin: 20px 0;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-}
-
-.section-title {
-    color: #333;
-    margin-bottom: 20px;
-    font-weight: 600;
-    border-bottom: 3px solid #4a6fa5;
-    padding-bottom: 10px;
-}
-
-.search-box {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: 15px;
-    padding: 20px;
-    margin-bottom: 20px;
-    border: 2px solid #dee2e6;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
-.table-container {
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    overflow: hidden;
-    margin-bottom: 20px;
-}
-
-.table th {
-    background-color: #000000;
-    color: white;
-    border: none;
-    font-weight: 500;
-    padding: 15px;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.table td {
-    padding: 12px 15px;
-    vertical-align: middle;
-    border-bottom: 1px solid #e9ecef;
-}
-
-.table tbody tr:hover {
-    background-color: #f8f9fa;
-    transform: scale(1.01);
-    transition: all 0.2s ease;
-}
-
-.btn-action {
-    margin: 2px;
-    padding: 8px 12px;
-    border-radius: 10px;
-    font-size: 0.875rem;
-    transition: all 0.3s ease;
-    border: none;
-}
-
-.btn-action:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
-
-.btn-gradient {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 10px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.btn-gradient:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-    color: white;
-}
-
-.floating-btn {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    width: 65px;
-    height: 65px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.25);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1050;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-}
-
-.floating-btn:hover {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 12px 35px rgba(102, 126, 234, 0.35);
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-    color: white;
-}
-
-.modal-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 15px 15px 0 0;
-    border: none;
-    padding: 20px 25px;
-}
-
-.modal-header .modal-title {
-    font-weight: 600;
-    font-size: 1.25rem;
-}
-
-.modal-header .btn-close {
-    filter: brightness(0) invert(1);
-    opacity: 0.8;
-}
-
-.modal-header .btn-close:hover {
-    opacity: 1;
-}
-
-.modal-content {
-    border: none;
-    border-radius: 15px;
-    box-shadow: 0 15px 50px rgba(0,0,0,0.2);
-    overflow: hidden;
-}
-
-.modal-body {
-    padding: 25px;
-}
-
-.modal-footer {
-    background: #f8f9fa;
-    border: none;
-    padding: 20px 25px;
-}
-
-.form-label {
-    font-weight: 600;
-    color: #495057;
-    margin-bottom: 8px;
-}
-
-.form-control, .form-select {
-    border-radius: 10px;
-    border: 2px solid #e9ecef;
-    padding: 12px 15px;
-    transition: all 0.3s ease;
-}
-
-.form-control:focus, .form-select:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-}
-
-.input-group-text {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    border-radius: 10px 0 0 10px;
-}
-
-/* Estados de órdenes */
-.estado-pendiente { 
-    background: linear-gradient(45deg, #ffc107, #e0a800);
-    color: #212529; 
-    font-weight: bold;
-    padding: 8px 12px;
-    border-radius: 20px;
-    font-size: 0.875rem;
-}
-
-.estado-en-proceso { 
-    background: linear-gradient(45deg, #17a2b8, #138496);
-    color: white; 
-    font-weight: bold;
-    padding: 8px 12px;
-    border-radius: 20px;
-    font-size: 0.875rem;
-}
-
-.estado-terminado { 
-    background: linear-gradient(45deg, #28a745, #218838);
-    color: white; 
-    font-weight: bold;
-    padding: 8px 12px;
-    border-radius: 20px;
-    font-size: 0.875rem;
-}
-
-.estado-entregado { 
-    background: linear-gradient(45deg, #6c757d, #5a6268);
-    color: white; 
-    font-weight: bold;
-    padding: 8px 12px;
-    border-radius: 20px;
-    font-size: 0.875rem;
-}
-
-/* Prioridades */
-.prioridad-baja { 
-    background: linear-gradient(45deg, #28a745, #20c997);
-    color: white; 
-    font-weight: bold;
-    padding: 6px 10px;
-    border-radius: 15px;
-    font-size: 0.8rem;
-}
-
-.prioridad-media { 
-    background: linear-gradient(45deg, #ffc107, #fd7e14);
-    color: white; 
-    font-weight: bold;
-    padding: 6px 10px;
-    border-radius: 15px;
-    font-size: 0.8rem;
-}
-
-.prioridad-alta { 
-    background: linear-gradient(45deg, #dc3545, #e83e8c);
-    color: white; 
-    font-weight: bold;
-    padding: 6px 10px;
-    border-radius: 15px;
-    font-size: 0.8rem;
-}
-
-/* Imagen miniatura */
-.miniatura-orden {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    cursor: pointer;
-    border-radius: 8px;
-    border: 2px solid #dee2e6;
-    transition: all 0.3s ease;
-}
-
-.miniatura-orden:hover {
-    transform: scale(1.1);
-    border-color: #667eea;
-}
-
-/* Avatar circular */
-.avatar-circle {
-    width: 35px;
-    height: 35px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 14px;
-    flex-shrink: 0;
-}
-
-.avatar-circle .text-warning {
-    color: #ffc107 !important;
-}
-
-/* Texto truncado */
-.texto-truncado {
-    max-width: 150px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: block;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .content-section {
-        padding: 20px;
-        margin: 15px 0;
-    }
-    
-    .search-box {
-        padding: 15px;
-    }
-    
-    .table th, .table td {
-        font-size: 0.875rem;
-        padding: 10px 8px;
-    }
-}
-
-@media (max-width: 576px) {
-    .welcome-header {
-        padding: 20px;
-    }
-    
-    .content-section {
-        padding: 15px;
-    }
-    
-    .miniatura-orden {
-        width: 40px;
-        height: 40px;
-    }
-}
-</style>
+<!-- Hoja de estilos específica para el módulo de órdenes -->
+<link rel="stylesheet" href="assets/css/modules/ordenes.css">
 
 <div class="dashboard-container">
     <div class="container-fluid">
@@ -706,6 +370,91 @@ require_once 'header.php';
                                accept="image/*" multiple capture="environment">
                         <div class="form-text">Puede subir múltiples imágenes del equipo y la falla</div>
                     </div>
+                    
+                    <!-- Sección de pago inicial -->
+                    <div class="card mt-4 border-success">
+                        <div class="card-header bg-success text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0"><i class="fas fa-money-bill-wave me-2"></i>Información de Pago Inicial</h6>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="registrarPagoInicial" onchange="togglePagoInicial()">
+                                    <label class="form-check-label text-white" for="registrarPagoInicial">Registrar pago ahora</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body seccion-oculta" id="seccionPagoInicial">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="costo_total_inicial" class="form-label fw-bold">
+                                        <i class="fas fa-dollar-sign me-2"></i>Costo Total
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="costo_total_inicial" name="costo_total" 
+                                               min="0" step="0.01" placeholder="0.00">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="dinero_recibido_inicial" class="form-label fw-bold">
+                                        <i class="fas fa-hand-holding-usd me-2"></i>Abono Recibido
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="dinero_recibido_inicial" name="dinero_recibido" 
+                                               min="0" step="0.01" placeholder="0.00" onchange="calcularSaldoInicial()">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="metodo_pago_inicial" class="form-label fw-bold">
+                                        <i class="fas fa-credit-card me-2"></i>Método de Pago
+                                    </label>
+                                    <select class="form-select" id="metodo_pago_inicial" name="metodo_pago">
+                                        <option value="">Seleccione método de pago</option>
+                                        <option value="efectivo">Efectivo</option>
+                                        <option value="tarjeta">Tarjeta de Crédito/Débito</option>
+                                        <option value="transferencia">Transferencia Bancaria</option>
+                                        <option value="nequi">Nequi</option>
+                                        <option value="daviplata">Daviplata</option>
+                                        <option value="otro">Otro</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="valor_repuestos_inicial" class="form-label fw-bold">
+                                        <i class="fas fa-tools me-2"></i>Valor de Repuestos
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="valor_repuestos_inicial" name="valor_repuestos" 
+                                               min="0" step="0.01" value="0">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="descripcion_repuestos_inicial" class="form-label fw-bold">
+                                        <i class="fas fa-clipboard-list me-2"></i>Descripción de Repuestos/Servicios
+                                    </label>
+                                    <textarea class="form-control" id="descripcion_repuestos_inicial" name="descripcion_repuestos" 
+                                              rows="2" placeholder="Detalles de repuestos usados o servicios realizados"></textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-info-circle me-2 fs-4"></i>
+                                    <div>
+                                        <strong>Saldo pendiente:</strong> $<span id="saldo_pendiente_inicial">0.00</span>
+                                        <input type="hidden" id="saldo_inicial" name="saldo" value="0">
+                                        <div class="small">Este valor se calculará automáticamente al ingresar el costo total y el abono recibido.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -913,6 +662,9 @@ require_once 'header.php';
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="fas fa-times me-2"></i>Cancelar
                     </button>
+                    <button type="button" class="btn btn-success" id="btnGestionarPagos" onclick="abrirModalPagos()">
+                        <i class="fas fa-money-bill-wave me-2"></i>Gestionar Pagos
+                    </button>
                     <button type="submit" class="btn btn-gradient" id="btnActualizarOrden">
                         <i class="fas fa-save me-2"></i>Actualizar Orden
                     </button>
@@ -974,810 +726,176 @@ require_once 'header.php';
     </div>
 </div>
 
-<script>
-// Variables globales
-let ordenes = [];
-
-// Inicialización
-document.addEventListener('DOMContentLoaded', function() {
-    // Event listeners para formularios
-    document.getElementById('formAgregarOrden').addEventListener('submit', guardarOrden);
-    document.getElementById('formAgregarClienteRapido').addEventListener('submit', guardarClienteRapido);
-    document.getElementById('formEditarOrden').addEventListener('submit', actualizarOrden);
-    
-    // Cargar técnicos al inicializar
-    cargarTecnicos();
-    
-    // Establecer fecha actual por defecto
-    const fechaActual = new Date();
-    fechaActual.setMinutes(fechaActual.getMinutes() - fechaActual.getTimezoneOffset());
-    document.getElementById('fecha_ingreso').value = fechaActual.toISOString().slice(0, 16);
-    
-    // Actualizar fecha en header
-    document.getElementById('fechaActual').textContent = new Date().toLocaleDateString('es-CO', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
-});
-
-// Función para mostrar modal agregar orden
-function mostrarModalAgregarOrden() {
-    document.getElementById('formAgregarOrden').reset();
-    
-    // Restablecer fecha actual
-    const fechaActual = new Date();
-    fechaActual.setMinutes(fechaActual.getMinutes() - fechaActual.getTimezoneOffset());
-    document.getElementById('fecha_ingreso').value = fechaActual.toISOString().slice(0, 16);
-    
-    // Limpiar resultados de búsqueda
-    document.getElementById('resultadosClientes').innerHTML = '';
-    document.getElementById('cliente_id').value = '';
-    
-    cargarTecnicos();
-    const modal = new bootstrap.Modal(document.getElementById('modalAgregarOrden'));
-    modal.show();
-}
-
-// Función para cargar técnicos
-function cargarTecnicos() {
-    fetch('index.php?action=obtenerTecnicos')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.text();
-        })
-        .then(text => {
-            try {
-                const data = JSON.parse(text);
-                const select = document.getElementById('usuario_tecnico_id');
-                select.innerHTML = '<option value="">Seleccione un técnico</option>';
+<!-- Modal para gestionar pagos de la orden -->
+<div class="modal fade" id="modalGestionarPagos" tabindex="-1" aria-labelledby="modalGestionarPagosLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalGestionarPagosLabel">
+                    <i class="fas fa-money-bill-wave me-2"></i>Gestionar Pagos de la Orden
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="pagoOrdenId" name="pagoOrdenId">
                 
-                if (data.success && data.tecnicos) {
-                    data.tecnicos.forEach(tecnico => {
-                        select.innerHTML += `<option value="${tecnico.id}">${tecnico.nombre}</option>`;
-                    });
-                } else {
-                    console.warn('No se pudieron cargar los técnicos:', data);
-                }
-            } catch (e) {
-                console.error('Error parsing JSON:', e);
-                console.error('Response text:', text);
-            }
-        })
-        .catch(error => {
-            console.error('Error al cargar técnicos:', error);
-        });
-}
+                <!-- Información resumen de la orden -->
+                <div class="alert alert-info mb-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="mb-2"><i class="fas fa-info-circle me-2"></i>Información de la Orden</h6>
+                            <p class="mb-1"><strong>Orden:</strong> #<span id="pagosNumeroOrden"></span></p>
+                            <p class="mb-1"><strong>Cliente:</strong> <span id="pagosNombreCliente"></span></p>
+                            <p class="mb-0"><strong>Equipo:</strong> <span id="pagosMarcaModelo"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-2"><i class="fas fa-hand-holding-usd me-2"></i>Estado Financiero</h6>
+                            <p class="mb-1"><strong>Costo Total:</strong> $<span id="pagosCostoTotal">0.00</span></p>
+                            <p class="mb-1"><strong>Pagado:</strong> $<span id="pagosMontoPagado">0.00</span></p>
+                            <p class="mb-0"><strong>Saldo Pendiente:</strong> $<span id="pagosSaldoPendiente">0.00</span></p>
+                        </div>
+                    </div>
+                </div>
 
-// Función para buscar clientes
-function buscarClientes(query) {
-    if (query.length < 2) {
-        document.getElementById('resultadosClientes').innerHTML = '';
-        return;
-    }
-    
-    fetch(`index.php?action=buscarCliente&query=${encodeURIComponent(query)}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.text();
-        })
-        .then(text => {
-            try {
-                const data = JSON.parse(text);
-                const resultados = document.getElementById('resultadosClientes');
-                
-                if (data.success && data.clientes && data.clientes.length > 0) {
-                    let html = '<div class="list-group">';
-                    data.clientes.forEach(cliente => {
-                        html += `
-                            <button type="button" class="list-group-item list-group-item-action" 
-                                    onclick="seleccionarCliente(${cliente.id}, '${cliente.nombre.replace(/'/g, "\\'")}')">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>${cliente.nombre}</strong><br>
-                                        <small class="text-muted">${cliente.identificacion || 'Sin identificación'} - ${cliente.telefono || 'Sin teléfono'}</small>
-                                    </div>
-                                    <i class="fas fa-check-circle text-success"></i>
+                <!-- Formulario para agregar nuevo pago -->
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Registrar Nuevo Pago o Abono</h6>
+                    </div>
+                    <div class="card-body">
+                        <form id="formAgregarPago">
+                            <input type="hidden" id="pago_orden_id" name="orden_id">
+                            <input type="hidden" id="pago_usuario_id" name="usuario_id">
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="fecha_pago" class="form-label fw-bold">
+                                        <i class="fas fa-calendar me-2"></i>Fecha de Pago
+                                    </label>
+                                    <input type="datetime-local" class="form-control" id="fecha_pago" name="fecha_pago" required>
                                 </div>
-                            </button>
-                        `;
-                    });
-                    html += '</div>';
-                    resultados.innerHTML = html;
-                } else {
-                    resultados.innerHTML = '<div class="alert alert-info">No se encontraron clientes que coincidan con la búsqueda</div>';
-                }
-            } catch (e) {
-                console.error('Error parsing JSON:', e);
-                console.error('Response text:', text);
-                document.getElementById('resultadosClientes').innerHTML = '<div class="alert alert-danger">Error al procesar la respuesta del servidor</div>';
-            }
-        })
-        .catch(error => {
-            console.error('Error al buscar clientes:', error);
-            document.getElementById('resultadosClientes').innerHTML = '<div class="alert alert-danger">Error de conexión al buscar clientes</div>';
-        });
-}
-
-// Función para seleccionar cliente
-function seleccionarCliente(id, nombre) {
-    document.getElementById('cliente_id').value = id;
-    document.getElementById('buscarCliente').value = nombre;
-    document.getElementById('resultadosClientes').innerHTML = '';
-}
-
-// Función para mostrar modal agregar cliente
-function mostrarModalAgregarCliente() {
-    document.getElementById('formAgregarClienteRapido').reset();
-    const modal = new bootstrap.Modal(document.getElementById('modalAgregarClienteRapido'));
-    modal.show();
-}
-
-// Función para guardar cliente rápido
-function guardarClienteRapido(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(e.target);
-    const btn = document.getElementById('btnGuardarClienteRapido');
-    
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
-    
-    fetch('index.php?action=agregarCliente', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.text();
-    })
-    .then(text => {
-        try {
-            const data = JSON.parse(text);
-            if (data.success) {
-                // Seleccionar el cliente recién creado
-                seleccionarCliente(data.cliente_id, formData.get('nombre'));
-                
-                // Cerrar modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('modalAgregarClienteRapido'));
-                modal.hide();
-                
-                Swal.fire({
-                    title: '¡Éxito!',
-                    text: 'Cliente agregado y seleccionado',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-            } else {
-                Swal.fire('Error', data.message || 'Error al guardar cliente', 'error');
-            }
-        } catch (e) {
-            console.error('Error parsing JSON:', e);
-            console.error('Response text:', text);
-            Swal.fire('Error', 'Error al procesar la respuesta del servidor', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.fire('Error', 'Error de conexión', 'error');
-    })
-    .finally(() => {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-save me-2"></i>Guardar y Seleccionar';
-    });
-}
-
-// Función para guardar orden
-function guardarOrden(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(e.target);
-    const btn = document.getElementById('btnGuardarOrden');
-    
-    // Validar cliente seleccionado
-    if (!document.getElementById('cliente_id').value) {
-        Swal.fire('Error', 'Debe seleccionar un cliente', 'error');
-        return;
-    }
-    
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
-    
-    fetch('index.php?action=agregarOrden', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.text();
-    })
-    .then(text => {
-        try {
-            const data = JSON.parse(text);
-            if (data.success) {
-                Swal.fire({
-                    title: '¡Éxito!',
-                    text: 'Orden de trabajo creada exitosamente',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-                
-                // Cerrar modal y recargar
-                const modal = bootstrap.Modal.getInstance(document.getElementById('modalAgregarOrden'));
-                modal.hide();
-                setTimeout(() => location.reload(), 1500);
-            } else {
-                Swal.fire('Error', data.message || 'Error al guardar la orden', 'error');
-            }
-        } catch (e) {
-            console.error('Error parsing JSON:', e);
-            console.error('Response text:', text);
-            Swal.fire('Error', 'Error al procesar la respuesta del servidor', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.fire('Error', 'Error de conexión al guardar orden', 'error');
-    })
-    .finally(() => {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-save me-2"></i>Guardar Orden';
-    });
-}
-
-// Función para filtrar órdenes
-function filtrarOrdenes() {
-    const buscar = document.getElementById('buscadorOrdenes').value.toLowerCase();
-    const estado = document.getElementById('filtroEstado').value.toLowerCase();
-    const prioridad = document.getElementById('filtroPrioridad').value.toLowerCase();
-    const filas = document.querySelectorAll('#bodyTablaOrdenes tr');
-    
-    filas.forEach(function(fila) {
-        const textoFila = fila.textContent.toLowerCase();
-        const estadoFila = fila.querySelector('.estado-pendiente, .estado-en-proceso, .estado-terminado, .estado-entregado');
-        const prioridadFila = fila.querySelector('.prioridad-baja, .prioridad-media, .prioridad-alta');
-        
-        let mostrar = true;
-        
-        // Filtro de búsqueda
-        if (buscar && !textoFila.includes(buscar)) {
-            mostrar = false;
-        }
-        
-        // Filtro de estado
-        if (estado && estadoFila && !estadoFila.className.includes(`estado-${estado}`)) {
-            mostrar = false;
-        }
-        
-        // Filtro de prioridad
-        if (prioridad && prioridadFila && !prioridadFila.className.includes(`prioridad-${prioridad}`)) {
-            mostrar = false;
-        }
-        
-        fila.style.display = mostrar ? '' : 'none';
-    });
-}
-
-// Función para limpiar filtros
-function limpiarFiltros() {
-    document.getElementById('buscadorOrdenes').value = '';
-    document.getElementById('filtroEstado').value = '';
-    document.getElementById('filtroPrioridad').value = '';
-    filtrarOrdenes();
-}
-
-// Función para filtrar por estado específico
-function filtrarPorEstado(estado) {
-    document.getElementById('filtroEstado').value = estado;
-    filtrarOrdenes();
-}
-
-// Función para filtrar por prioridad específica
-function filtrarPorPrioridad(prioridad) {
-    document.getElementById('filtroPrioridad').value = prioridad;
-    filtrarOrdenes();
-}
-
-// Función para exportar órdenes
-function exportarOrdenes() {
-    Swal.fire({
-        title: 'Exportar Órdenes',
-        text: 'Funcionalidad de exportación en desarrollo',
-        icon: 'info',
-        confirmButtonText: 'Entendido'
-    });
-}
-
-// Función para mostrar imagen completa
-function mostrarImagenCompleta(imagen) {
-    const imagenCompleta = document.getElementById('imagenCompleta');
-    const descargarImagen = document.getElementById('descargarImagen');
-    
-    // Construir la ruta completa
-    const rutaImagen = imagen.includes('assets/img/') ? imagen : `assets/img/${imagen}`;
-    
-    imagenCompleta.src = rutaImagen;
-    descargarImagen.href = rutaImagen;
-    descargarImagen.download = imagen.replace('assets/img/', '');
-    
-    const modal = new bootstrap.Modal(document.getElementById('modalImagenCompleta'));
-    modal.show();
-}
-
-// Función para abrir modal editar orden
-function abrirModalEditarOrden(id) {
-    fetch(`index.php?action=obtenerOrden&id=${id}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.text();
-        })
-        .then(text => {
-            try {
-                const data = JSON.parse(text);
-                if (data.success && data.orden) {
-                    const orden = data.orden;
-                    
-                    // Llenar formulario con datos existentes
-                    document.getElementById('editarOrdenId').value = orden.id;
-                    document.getElementById('editarBuscarCliente').value = orden.cliente_nombre;
-                    document.getElementById('editarClienteId').value = orden.cliente_id;
-                    document.getElementById('editarUsuarioTecnicoId').value = orden.usuario_tecnico_id;
-                    document.getElementById('editarMarca').value = orden.marca || '';
-                    document.getElementById('editarModelo').value = orden.modelo || '';
-                    document.getElementById('editarImeiSerial').value = orden.imei_serial || '';
-                    document.getElementById('editarEstado').value = orden.estado || 'pendiente';
-                    document.getElementById('editarPrioridad').value = orden.prioridad || 'media';
-                    document.getElementById('editarFallaReportada').value = orden.falla_reportada || '';
-                    document.getElementById('editarDiagnostico').value = orden.diagnostico || '';
-                    document.getElementById('editarContrasenaEquipo').value = orden.contraseña_equipo || '';
-                    
-                    // Convertir fechas para input datetime-local
-                    if (orden.fecha_ingreso) {
-                        const fechaIngreso = new Date(orden.fecha_ingreso);
-                        fechaIngreso.setMinutes(fechaIngreso.getMinutes() - fechaIngreso.getTimezoneOffset());
-                        document.getElementById('editarFechaIngreso').value = fechaIngreso.toISOString().slice(0, 16);
-                    }
-                    
-                    if (orden.fecha_entrega_estimada && orden.fecha_entrega_estimada !== '0000-00-00 00:00:00') {
-                        const fechaEntrega = new Date(orden.fecha_entrega_estimada);
-                        fechaEntrega.setMinutes(fechaEntrega.getMinutes() - fechaEntrega.getTimezoneOffset());
-                        document.getElementById('editarFechaEntregaEstimada').value = fechaEntrega.toISOString().slice(0, 16);
-                    }
-                    
-                    // Cargar técnicos y seleccionar el actual
-                    cargarTecnicosEditar(orden.usuario_tecnico_id);
-                    
-                    // Mostrar imágenes actuales
-                    mostrarImagenesActuales(orden.imagen_url);
-                    
-                    // Limpiar resultados de búsqueda
-                    document.getElementById('editarResultadosClientes').innerHTML = '';
-                    
-                    const modal = new bootstrap.Modal(document.getElementById('modalEditarOrden'));
-                    modal.show();
-                } else {
-                    Swal.fire('Error', 'No se pudo cargar la información de la orden', 'error');
-                }
-            } catch (e) {
-                console.error('Error parsing JSON:', e);
-                console.error('Response text:', text);
-                Swal.fire('Error', 'Error al procesar la respuesta del servidor', 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            Swal.fire('Error', 'Error de conexión al cargar la orden', 'error');
-        });
-}
-
-// Función para ver detalles de orden
-function verDetallesOrden(id) {
-    fetch(`index.php?action=obtenerOrden&id=${id}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.text();
-        })
-        .then(text => {
-            try {
-                const data = JSON.parse(text);
-                if (data.success && data.orden) {
-                    const orden = data.orden;
-                    
-                    // Generar HTML de detalles
-                    const contenido = `
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card mb-3">
-                                    <div class="card-header">
-                                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información General</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <p><strong>ID de Orden:</strong> #${orden.id}</p>
-                                        <p><strong>Estado:</strong> <span class="estado-${orden.estado?.replace(/[_\s]/g, '-')}">${orden.estado?.charAt(0).toUpperCase() + orden.estado?.slice(1) || 'N/A'}</span></p>
-                                        <p><strong>Prioridad:</strong> <span class="prioridad-${orden.prioridad}">${orden.prioridad?.charAt(0).toUpperCase() + orden.prioridad?.slice(1) || 'N/A'}</span></p>
-                                        <p><strong>Fecha de Ingreso:</strong> ${orden.fecha_ingreso ? new Date(orden.fecha_ingreso).toLocaleString('es-CO') : 'N/A'}</p>
-                                        <p><strong>Fecha Entrega Estimada:</strong> ${orden.fecha_entrega_estimada && orden.fecha_entrega_estimada !== '0000-00-00 00:00:00' ? new Date(orden.fecha_entrega_estimada).toLocaleString('es-CO') : 'No definida'}</p>
+                                <div class="col-md-6 mb-3">
+                                    <label for="metodo_pago" class="form-label fw-bold">
+                                        <i class="fas fa-credit-card me-2"></i>Método de Pago
+                                    </label>
+                                    <select class="form-select" id="metodo_pago" name="metodo_pago" required>
+                                        <option value="">Seleccione método de pago</option>
+                                        <option value="efectivo">Efectivo</option>
+                                        <option value="tarjeta">Tarjeta de Crédito/Débito</option>
+                                        <option value="transferencia">Transferencia Bancaria</option>
+                                        <option value="nequi">Nequi</option>
+                                        <option value="daviplata">Daviplata</option>
+                                        <option value="otro">Otro</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="costo_total" class="form-label fw-bold">
+                                        <i class="fas fa-dollar-sign me-2"></i>Costo Total
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="costo_total" name="costo_total" 
+                                               min="0" step="0.01" required>
                                     </div>
                                 </div>
-                                
-                                <div class="card mb-3">
-                                    <div class="card-header">
-                                        <h6 class="mb-0"><i class="fas fa-user me-2"></i>Cliente</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <p><strong>Nombre:</strong> ${orden.cliente_nombre || 'N/A'}</p>
-                                        <p><strong>Identificación:</strong> ${orden.cliente_identificacion || 'N/A'}</p>
-                                        <p><strong>Teléfono:</strong> ${orden.cliente_telefono ? `<a href="tel:${orden.cliente_telefono}">${orden.cliente_telefono}</a>` : 'N/A'}</p>
-                                        <p><strong>Email:</strong> ${orden.cliente_email ? `<a href="mailto:${orden.cliente_email}">${orden.cliente_email}</a>` : 'N/A'}</p>
+                                <div class="col-md-6 mb-3">
+                                    <label for="dinero_recibido" class="form-label fw-bold">
+                                        <i class="fas fa-hand-holding-usd me-2"></i>Abono Recibido
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="dinero_recibido" name="dinero_recibido" 
+                                               min="0" step="0.01" required>
                                     </div>
                                 </div>
                             </div>
                             
-                            <div class="col-md-6">
-                                <div class="card mb-3">
-                                    <div class="card-header">
-                                        <h6 class="mb-0"><i class="fas fa-laptop me-2"></i>Equipo</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <p><strong>Marca:</strong> ${orden.marca || 'N/A'}</p>
-                                        <p><strong>Modelo:</strong> ${orden.modelo || 'N/A'}</p>
-                                        <p><strong>IMEI/Serial:</strong> ${orden.imei_serial || 'N/A'}</p>
-                                        <p><strong>Contraseña:</strong> ${orden.contraseña_equipo || 'No especificada'}</p>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="valor_repuestos" class="form-label fw-bold">
+                                        <i class="fas fa-tools me-2"></i>Valor de Repuestos
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="valor_repuestos" name="valor_repuestos" 
+                                               min="0" step="0.01" value="0">
                                     </div>
                                 </div>
-                                
-                                <div class="card mb-3">
-                                    <div class="card-header">
-                                        <h6 class="mb-0"><i class="fas fa-user-cog me-2"></i>Técnico</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <p><strong>Técnico Asignado:</strong> ${orden.tecnico_nombre || 'Sin asignar'}</p>
+                                <div class="col-md-6 mb-3">
+                                    <label for="saldo" class="form-label fw-bold">
+                                        <i class="fas fa-balance-scale me-2"></i>Saldo Pendiente
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="saldo" name="saldo" 
+                                               min="0" step="0.01" readonly>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="card mb-3">
-                                    <div class="card-header">
-                                        <h6 class="mb-0"><i class="fas fa-exclamation-circle me-2"></i>Falla Reportada</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <p>${orden.falla_reportada || 'No especificada'}</p>
-                                    </div>
+                            
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="descripcion_repuestos" class="form-label fw-bold">
+                                        <i class="fas fa-clipboard-list me-2"></i>Descripción de Repuestos/Servicios
+                                    </label>
+                                    <textarea class="form-control" id="descripcion_repuestos" name="descripcion_repuestos" 
+                                              rows="3" placeholder="Detalles de repuestos usados o servicios realizados"></textarea>
                                 </div>
-                                
-                                ${orden.diagnostico ? `
-                                <div class="card mb-3">
-                                    <div class="card-header">
-                                        <h6 class="mb-0"><i class="fas fa-stethoscope me-2"></i>Diagnóstico</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <p>${orden.diagnostico}</p>
-                                    </div>
-                                </div>
-                                ` : ''}
-                                
-                                ${orden.imagen_url ? `
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h6 class="mb-0"><i class="fas fa-images me-2"></i>Imágenes</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="d-flex flex-wrap gap-2">
-                                            ${orden.imagen_url.split(',').map(img => {
-                                                const imagen = img.trim();
-                                                if (imagen) {
-                                                    const rutaImagen = imagen.includes('assets/img/') ? imagen : `assets/img/${imagen}`;
-                                                    return `<img src="${rutaImagen}" class="miniatura-orden" alt="Imagen orden" onclick="mostrarImagenCompleta('${imagen}')" style="cursor: pointer;">`;
-                                                }
-                                                return '';
-                                            }).join('')}
-                                        </div>
-                                    </div>
-                                </div>
-                                ` : ''}
                             </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-gradient" id="btnGuardarPago">
+                                    <i class="fas fa-save me-2"></i>Registrar Pago
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Historial de pagos de la orden -->
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0"><i class="fas fa-history me-2"></i>Historial de Pagos</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-calendar me-2"></i>Fecha</th>
+                                        <th><i class="fas fa-dollar-sign me-2"></i>Monto</th>
+                                        <th><i class="fas fa-credit-card me-2"></i>Método</th>
+                                        <th><i class="fas fa-tools me-2"></i>Repuestos</th>
+                                        <th><i class="fas fa-file-invoice-dollar me-2"></i>Saldo</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historialPagos">
+                                    <tr>
+                                        <td colspan="5" class="text-center py-3">
+                                            <i class="fas fa-info-circle text-muted me-2"></i>
+                                            No hay pagos registrados para esta orden
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                    `;
-                    
-                    document.getElementById('contenidoDetallesOrden').innerHTML = contenido;
-                    
-                    // Guardar ID para impresión
-                    window.currentOrdenId = id;
-                    
-                    const modal = new bootstrap.Modal(document.getElementById('modalDetallesOrden'));
-                    modal.show();
-                } else {
-                    Swal.fire('Error', 'No se pudo cargar la información de la orden', 'error');
-                }
-            } catch (e) {
-                console.error('Error parsing JSON:', e);
-                console.error('Response text:', text);
-                Swal.fire('Error', 'Error al procesar la respuesta del servidor', 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            Swal.fire('Error', 'Error de conexión al cargar los detalles', 'error');
-        });
-}
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
-// Función para imprimir orden
-function imprimirOrden(id) {
-    const ordenId = id || window.currentOrdenId;
-    if (!ordenId) {
-        Swal.fire('Error', 'No se especificó la orden a imprimir', 'error');
-        return;
-    }
-    
-    // Abrir ventana de impresión/PDF
-    const ventanaImpresion = window.open(`index.php?action=generarRemision&id=${ordenId}`, '_blank');
-    if (!ventanaImpresion) {
-        Swal.fire('Error', 'No se pudo abrir la ventana de impresión. Verifique que los pop-ups estén habilitados.', 'error');
-    }
-}
-
-// Función para confirmar eliminación
-function confirmarEliminacionOrden(event, id) {
-    event.preventDefault();
-    
-    Swal.fire({
-        title: '¿Estás seguro?',
-        text: 'Se eliminará la orden de trabajo permanentemente',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch(`index.php?action=eliminarOrden&id=${id}`, {
-                method: 'GET'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        title: '¡Eliminado!',
-                        text: 'Orden eliminada exitosamente',
-                        icon: 'success',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    Swal.fire('Error', data.message, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire('Error', 'Error de conexión al eliminar orden', 'error');
-            });
-        }
-    });
-}
-
-// =============== FUNCIONES AUXILIARES PARA EDICIÓN ===============
-
-// Función para cargar técnicos en modal de edición
-function cargarTecnicosEditar(tecnicoSeleccionado) {
-    fetch('index.php?action=obtenerTecnicos')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.text();
-        })
-        .then(text => {
-            try {
-                const data = JSON.parse(text);
-                const select = document.getElementById('editarUsuarioTecnicoId');
-                select.innerHTML = '<option value="">Seleccione un técnico</option>';
-                
-                if (data.success && data.tecnicos) {
-                    data.tecnicos.forEach(tecnico => {
-                        const selected = tecnico.id == tecnicoSeleccionado ? 'selected' : '';
-                        select.innerHTML += `<option value="${tecnico.id}" ${selected}>${tecnico.nombre}</option>`;
-                    });
-                }
-            } catch (e) {
-                console.error('Error parsing JSON:', e);
-            }
-        })
-        .catch(error => {
-            console.error('Error al cargar técnicos para edición:', error);
-        });
-}
-
-// Función para mostrar imágenes actuales
-function mostrarImagenesActuales(imagenesUrl) {
-    const contenedor = document.getElementById('imagenesActuales');
-    contenedor.innerHTML = '';
-    
-    if (imagenesUrl) {
-        const imagenes = imagenesUrl.split(',');
-        imagenes.forEach(imagen => {
-            const img = imagen.trim();
-            if (img) {
-                const rutaImagen = img.includes('assets/img/') ? img : `assets/img/${img}`;
-                const divImagen = document.createElement('div');
-                divImagen.className = 'position-relative';
-                divImagen.innerHTML = `
-                    <img src="${rutaImagen}" class="miniatura-orden" alt="Imagen actual" 
-                         onclick="mostrarImagenCompleta('${img}')" style="cursor: pointer;">
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
-                          style="cursor: pointer; font-size: 0.7rem;"
-                          onclick="eliminarImagen('${img}')" 
-                          title="Eliminar imagen">
-                        <i class="fas fa-times"></i>
-                    </span>
-                `;
-                contenedor.appendChild(divImagen);
-            }
-        });
-    } else {
-        contenedor.innerHTML = '<p class="text-muted">No hay imágenes cargadas</p>';
-    }
-}
-
-// Función para habilitar cambio de cliente
-function habilitarCambioCliente() {
-    const input = document.getElementById('editarBuscarCliente');
-    input.removeAttribute('readonly');
-    input.value = '';
-    input.placeholder = 'Buscar nuevo cliente...';
-    input.focus();
-    document.getElementById('editarClienteId').value = '';
-    document.getElementById('editarResultadosClientes').innerHTML = '';
-}
-
-// Función para buscar clientes en modal de edición
-function buscarClientesEditar(query) {
-    if (query.length < 2) {
-        document.getElementById('editarResultadosClientes').innerHTML = '';
-        return;
-    }
-    
-    fetch(`index.php?action=buscarCliente&query=${encodeURIComponent(query)}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.text();
-        })
-        .then(text => {
-            try {
-                const data = JSON.parse(text);
-                const resultados = document.getElementById('editarResultadosClientes');
-                
-                if (data.success && data.clientes && data.clientes.length > 0) {
-                    let html = '<div class="list-group">';
-                    data.clientes.forEach(cliente => {
-                        html += `
-                            <button type="button" class="list-group-item list-group-item-action" 
-                                    onclick="seleccionarClienteEditar(${cliente.id}, '${cliente.nombre.replace(/'/g, "\\'")}')">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>${cliente.nombre}</strong><br>
-                                        <small class="text-muted">${cliente.identificacion || 'Sin identificación'} - ${cliente.telefono || 'Sin teléfono'}</small>
-                                    </div>
-                                    <i class="fas fa-check-circle text-success"></i>
-                                </div>
-                            </button>
-                        `;
-                    });
-                    html += '</div>';
-                    resultados.innerHTML = html;
-                } else {
-                    resultados.innerHTML = '<div class="alert alert-info">No se encontraron clientes</div>';
-                }
-            } catch (e) {
-                console.error('Error parsing JSON:', e);
-                resultados.innerHTML = '<div class="alert alert-danger">Error al procesar respuesta</div>';
-            }
-        })
-        .catch(error => {
-            console.error('Error al buscar clientes:', error);
-        });
-}
-
-// Función para seleccionar cliente en edición
-function seleccionarClienteEditar(clienteId, clienteNombre) {
-    document.getElementById('editarClienteId').value = clienteId;
-    document.getElementById('editarBuscarCliente').value = clienteNombre;
-    document.getElementById('editarBuscarCliente').setAttribute('readonly', true);
-    document.getElementById('editarResultadosClientes').innerHTML = '';
-}
-
-// Función para actualizar orden
-function actualizarOrden(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(e.target);
-    const btn = document.getElementById('btnActualizarOrden');
-    
-    // Validar cliente seleccionado
-    if (!document.getElementById('editarClienteId').value) {
-        Swal.fire('Error', 'Debe seleccionar un cliente', 'error');
-        return;
-    }
-    
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Actualizando...';
-    
-    fetch('index.php?action=actualizarOrden', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.text();
-    })
-    .then(text => {
-        try {
-            const data = JSON.parse(text);
-            if (data.success) {
-                Swal.fire({
-                    title: '¡Éxito!',
-                    text: 'Orden actualizada exitosamente',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-                
-                // Cerrar modal y recargar
-                const modal = bootstrap.Modal.getInstance(document.getElementById('modalEditarOrden'));
-                modal.hide();
-                setTimeout(() => location.reload(), 1500);
-            } else {
-                Swal.fire('Error', data.message || 'Error al actualizar la orden', 'error');
-            }
-        } catch (e) {
-            console.error('Error parsing JSON:', e);
-            console.error('Response text:', text);
-            Swal.fire('Error', 'Error al procesar la respuesta del servidor', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.fire('Error', 'Error de conexión al actualizar orden', 'error');
-    })
-    .finally(() => {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-save me-2"></i>Actualizar Orden';
-    });
-}
-
-// Función para eliminar imagen (placeholder para futura implementación)
-function eliminarImagen(imagen) {
-    Swal.fire({
-        title: 'Eliminar imagen',
-        text: 'Funcionalidad en desarrollo - Por ahora, suba nuevas imágenes para reemplazar',
-        icon: 'info',
-        confirmButtonText: 'Entendido'
-    });
-}
-</script>
+<!-- Script específico para el módulo de órdenes -->
+<script src="assets/js/modules/ordenes.js"></script>
 
 <?php
 require_once 'footer.php';

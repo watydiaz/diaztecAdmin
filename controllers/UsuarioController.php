@@ -297,5 +297,26 @@ class UsuarioController {
             echo json_encode(['success' => false, 'message' => 'Usuario no encontrado']);
         }
     }
+
+    // Obtener ID del usuario logueado (para uso desde AJAX)
+    public function getUserId() {
+        header('Content-Type: application/json');
+        
+        if (session_status() == PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        if (isset($_SESSION['usuario_id'])) {
+            echo json_encode([
+                'success' => true,
+                'usuario_id' => $_SESSION['usuario_id']
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'No hay usuario en sesión'
+            ]);
+        }
+    }
 }
 ?>

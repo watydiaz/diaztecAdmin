@@ -56,7 +56,56 @@ class OrdenController {
         if ($resultado) {
             // Obtener el último ID insertado
             $lastId = $this->ordenModel->getLastInsertId();
-            echo json_encode(['success' => true, 'message' => 'Orden registrada exitosamente.', 'orden_id' => $lastId]);
+            
+            // Si se solicita registrar pago inicial
+            if (isset($data['registrar_pago_inicial']) && $data['registrar_pago_inicial'] == '1') {
+                try {
+                    // Cargar el modelo de pagos
+                    require_once 'models/OrdenPagoModel.php';
+                    require_once 'models/Conexion.php';
+                    $db = (new Conexion())->getConexion();
+                    $pagoModel = new OrdenPagoModel($db);
+                    
+                    // Preparar datos del pago
+                    $dataPago = [
+                        'orden_id' => $lastId,
+                        'usuario_id' => $data['usuario_tecnico_id'],
+                        'fecha_pago' => date('Y-m-d H:i:s'),
+                        'costo_total' => $data['costo_total'],
+                        'dinero_recibido' => $data['dinero_recibido'],
+                        'valor_repuestos' => $data['valor_repuestos'] ?? 0,
+                        'descripcion_repuestos' => $data['descripcion_repuestos'] ?? '',
+                        'metodo_pago' => $data['metodo_pago'],
+                        'saldo' => $data['saldo'] ?? max(0, floatval($data['costo_total']) - floatval($data['dinero_recibido']))
+                    ];
+                    
+                    // Registrar el pago
+                    $resultadoPago = $pagoModel->insertarPago($dataPago);
+                    
+                    if ($resultadoPago) {
+                        echo json_encode([
+                            'success' => true, 
+                            'message' => 'Orden y pago inicial registrados exitosamente.', 
+                            'orden_id' => $lastId
+                        ]);
+                    } else {
+                        echo json_encode([
+                            'success' => true, 
+                            'message' => 'Orden registrada, pero hubo un problema al registrar el pago inicial.', 
+                            'orden_id' => $lastId
+                        ]);
+                    }
+                } catch (Exception $e) {
+                    error_log('Error al registrar pago inicial: ' . $e->getMessage());
+                    echo json_encode([
+                        'success' => true, 
+                        'message' => 'Orden registrada, pero hubo un error al registrar el pago: ' . $e->getMessage(), 
+                        'orden_id' => $lastId
+                    ]);
+                }
+            } else {
+                echo json_encode(['success' => true, 'message' => 'Orden registrada exitosamente.', 'orden_id' => $lastId]);
+            }
         } else {
             echo json_encode(['success' => false, 'message' => 'Error al registrar la orden.']);
         }
