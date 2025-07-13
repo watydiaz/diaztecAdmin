@@ -107,7 +107,7 @@ class OrdenPagoController {
     public function obtenerPagosPorOrden($orden_id) {
         try {
             $pagos = $this->model->obtenerPagosPorOrden($orden_id);
-            echo json_encode($pagos);
+            echo json_encode(['success' => true, 'pagos' => $pagos]);
         } catch (Exception $e) {
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Error del servidor', 'error' => $e->getMessage()]);

@@ -590,17 +590,20 @@ function verDetallesOrden(id) {
                     const orden = ordenData.orden;
                     
                     // Ahora obtenemos los pagos de manera separada
-                    fetch(`controllers/OrdenPagoController.php?action=obtenerPagosPorOrden&orden_id=${id}`)
+                    fetch(`controllers/OrdenPagoController.php?accion=obtener&orden_id=${id}`)
                         .then(pagosResponse => pagosResponse.text())
                         .then(pagosText => {
                             let pagos = [];
                             
                             // Intentar parsear los pagos, pero continuar aunque falle
                             try {
+                                console.log('Respuesta de pagos:', pagosText);
                                 if (pagosText.trim()) {
                                     const pagosData = JSON.parse(pagosText);
+                                    console.log('Datos parseados:', pagosData);
                                     if (pagosData.success && pagosData.pagos) {
                                         pagos = pagosData.pagos;
+                                        console.log('Pagos obtenidos:', pagos);
                                     }
                                 }
                             } catch (pagosError) {
@@ -610,9 +613,15 @@ function verDetallesOrden(id) {
                             }
                             
                             // Calcular totales
-                            const totalPagado = pagos.reduce((sum, pago) => sum + parseFloat(pago.monto_pago || 0), 0);
+                            const totalPagado = pagos.reduce((sum, pago) => sum + parseFloat(pago.dinero_recibido || 0), 0);
                             const costoTotal = parseFloat(orden.costo_total || 0);
                             const saldoPendiente = costoTotal - totalPagado;
+                            
+                            console.log('Cálculos financieros:');
+                            console.log('- Costo total:', costoTotal);
+                            console.log('- Total pagado:', totalPagado);
+                            console.log('- Saldo pendiente:', saldoPendiente);
+                            console.log('- Número de pagos:', pagos.length);
                             
                             // Construir el HTML con los detalles de la orden
                             let detallesHTML = `
@@ -703,7 +712,7 @@ function verDetallesOrden(id) {
                                                             ${pagos.map(pago => `
                                                             <tr>
                                                                 <td>${new Date(pago.fecha_pago).toLocaleDateString('es-CO')}</td>
-                                                                <td class="text-end fw-bold text-success">$${parseFloat(pago.monto_pago).toLocaleString('es-CO')}</td>
+                                                                <td class="text-end fw-bold text-success">$${parseFloat(pago.dinero_recibido).toLocaleString('es-CO')}</td>
                                                                 <td><span class="badge bg-info">${pago.metodo_pago || 'No especificado'}</span></td>
                                                                 <td>${pago.observaciones || 'Sin observaciones'}</td>
                                                             </tr>
