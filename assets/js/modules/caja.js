@@ -476,6 +476,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 document.getElementById('numeroFacturaVenta').textContent = data.numero_factura ? `Factura: ${data.numero_factura}` : '';
                 alert('Venta registrada exitosamente.');
+                // Automatizar envío de comprobante por WhatsApp
+                if (clienteSeleccionado && clienteSeleccionado.telefono) {
+                    let tel = clienteSeleccionado.telefono.replace(/[^\d]/g, '');
+                    if (tel.length === 10) tel = '57' + tel;
+                    const comprobanteUrl = `${BASE_URL}/comprobante.php?venta_id=${data.venta_id || data.id || ''}`;
+                    const mensaje = encodeURIComponent(`Hola ${clienteSeleccionado.nombre || ''}, aquí está tu comprobante de pago:\n\n${comprobanteUrl}\n\nSi el enlace no se abre, por favor cópialo y pégalo en tu navegador.\n\nRecuerda que en DIAZTECNOLOGÍA te ofrecemos reparación de celulares, venta de accesorios, tecnología y servicio técnico especializado. ¡Guarda nuestro contacto para futuras necesidades!`);
+                    window.open(`https://wa.me/${tel}?text=${mensaje}`, '_blank');
+                }
                 // Limpiar modal y recargar tabla
                 productosVenta = [];
                 renderDetalleVenta();
