@@ -13,113 +13,204 @@ require_once 'header.php';
 <!-- Bootstrap Select (si lo usas en otra parte) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/js/bootstrap-select.min.js"></script>
 <link rel="stylesheet" href="assets/css/modules/caja.css">
-<div class="container-fluid">
-    <h3 class="mt-4 mb-3">Caja - Pagos Registrados</h3>
-    <!-- Filtro de fechas -->
-    <div class="row mb-3">
-        <div class="col-md-12 d-flex flex-wrap align-items-end gap-2">
-            <label class="form-label mb-0 me-2">Filtrar por fecha:</label>
-            <input type="date" id="fechaInicio" class="form-control" style="max-width:180px;">
-            <span class="mx-1">a</span>
-            <input type="date" id="fechaFin" class="form-control" style="max-width:180px;">
-            <button class="btn btn-secondary ms-2" id="btnHoy">Hoy</button>
-            <button class="btn btn-secondary ms-1" id="btnAyer">Ayer</button>
-            <button class="btn btn-primary ms-2" id="btnFiltrarFechas">Filtrar</button>
+<style>
+    html, body {
+        background: #ffffff !important;
+        min-height: 100vh;
+    }
+    .dashboard-container {
+        min-height: 100vh;
+        padding: 20px 0;
+        overflow-x: hidden;
+        width: 100%;
+    }
+    .welcome-header-caja {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        text-align: center;
+        color: #212529;
+        border: 2px solid #ced4da;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    .caja-card {
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border: none;
+        overflow: hidden;
+        min-height: 130px;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .caja-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    }
+    /* Colores suaves y elegantes similares al dashboard */
+    .gradient-success { background: linear-gradient(45deg, #56ab2f, #a8e063); }
+    .gradient-info { background: linear-gradient(45deg, #4facfe, #00f2fe); }
+    .gradient-primary { background: linear-gradient(45deg, #667eea, #764ba2); }
+    .gradient-dark { background: linear-gradient(45deg, #232526, #414345); }
+    .gradient-total { background: linear-gradient(90deg, #667eea, #764ba2); }
+    .caja-card .card-title { font-size: 1.2rem; font-weight: 600; }
+    .caja-card .card-text { font-size: 2rem; font-weight: bold; }
+    .caja-section-title { color: #333; margin-bottom: 20px; font-weight: 600; border-bottom: 3px solid #4a6fa5; padding-bottom: 10px; }
+    .table thead th { background: #000 !important; color: #fff !important; border: none; }
+    .table-bordered td, .table-bordered th { border: 1.5px solid #6366f1; }
+    .rounded { border-radius: 15px !important; }
+    .shadow-lg { box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important; }
+    .btn-success, .bg-success { background: linear-gradient(45deg, #56ab2f, #a8e063) !important; border: none; }
+    .btn-primary, .bg-primary { background: linear-gradient(45deg, #667eea, #764ba2) !important; border: none; }
+    .btn-info, .bg-info { background: linear-gradient(45deg, #4facfe, #00f2fe) !important; border: none; }
+    .btn-dark, .bg-dark { background: linear-gradient(45deg, #232526, #414345) !important; border: none; }
+    .btn-agregar-venta {
+        background: linear-gradient(45deg, #667eea, #764ba2) !important;
+        color: #fff !important;
+        border: none;
+    }
+    .modal-content { border-radius: 15px; }
+    @media (max-width: 768px) {
+        .welcome-header-caja { padding: 15px; margin-bottom: 15px; }
+        .caja-section-title { font-size: 1.1rem; padding-bottom: 6px; }
+    }
+</style>
+<div class="dashboard-container">
+    <div class="container-fluid">
+        <!-- Card Header -->
+        <div class="card shadow-lg mb-4" style="border-radius:18px;">
+            <div class="welcome-header-caja card-body" style="background:linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);border:none;box-shadow:none;">
+                <h1><i class="fas fa-cash-register me-3"></i>Caja - Pagos Registrados</h1>
+                <p class="mb-0">Control y registro de pagos de productos y servicios</p>
+            </div>
         </div>
-    </div>
-    <div class="row mb-3" id="rowCardsTotales">
-    <div class="col-md-3">
-        <div class="card text-white bg-success mb-3">
+        <!-- Cards de Métodos de Pago -->
+        <div class="row mb-4" id="rowCardsTotales">
+            <div class="col-md-3">
+                <div class="card caja-card text-white gradient-success mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-money-bill-wave me-2"></i>Total Efectivo</h5>
+                        <p class="card-text fs-4" id="totalEfectivo">$0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card caja-card text-white gradient-info mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fab fa-neos me-2"></i>Total Nequi</h5>
+                        <p class="card-text fs-4" id="totalNequi">$0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card caja-card text-white gradient-primary mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-university me-2"></i>Total Daviplata</h5>
+                        <p class="card-text fs-4" id="totalDaviplata">$0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card caja-card text-white gradient-dark mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-credit-card me-2"></i>Total Tarjeta Crédito</h5>
+                        <p class="card-text fs-4" id="totalTarjeta">$0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Cards de Totales por Tipo -->
+        <div class="row mb-4 justify-content-center">
+            <div class="col-md-4">
+                <div class="card caja-card text-white mb-3" style="background: linear-gradient(45deg, #ff6b6b, #ee5a24);">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-tools me-2"></i>Total en Caja (Órdenes)</h5>
+                        <p class="card-text fs-4" id="totalCajaOrdenes">$0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card caja-card text-white mb-3" style="background: linear-gradient(45deg, #26de81, #20bf6b);">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-box-open me-2"></i>Total en Caja (Productos)</h5>
+                        <p class="card-text fs-4" id="totalCajaProductos">$0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Card Venta Total -->
+        <div class="text-center p-3 text-white rounded shadow-lg mb-4 gradient-total" style="font-size:2rem; font-weight:bold;">
+            Venta Total: <span id="ventaTotal">$0</span>
+        </div>
+        <!-- Card Filtro y Tablas -->
+        <div class="card shadow-lg mb-4" style="border-radius:18px;">
             <div class="card-body">
-                <h5 class="card-title">Total Efectivo</h5>
-                <p class="card-text fs-4" id="totalEfectivo">$0</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-info mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Total Nequi</h5>
-                <p class="card-text fs-4" id="totalNequi">$0</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-primary mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Total Daviplata</h5>
-                <p class="card-text fs-4" id="totalDaviplata">$0</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-dark mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Total Tarjeta Crédito</h5>
-                <p class="card-text fs-4" id="totalTarjeta">$0</p>
-            </div>
-        </div>
-    </div>
-</div>
-    <div class="row">
-        <div class="col-md-6">
-            <h5>Pagos de Órdenes de Servicio</h5>
-            <div class="table-responsive">
-                <table class="table table-striped table-hover" id="tablaCajaOrdenes">
-                    <thead>
-                        <tr>
-                            <th>Orden</th>
-                            <th>Cliente</th>
-                            <th>Fecha</th>
-                            <th>Total</th>
-                            <th>Método</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbodyCajaPagosOrdenes">
-                        <!-- Pagos de órdenes -->
-                    </tbody>
-                </table>
-            </div>
-            <div class="mt-2">
-                <span id="totalCajaOrdenes" class="fw-bold"></span>
-            </div>
-        </div>
-        <div class="col-md-6 position-relative">
-            <h5>Pagos por Venta de Productos</h5>
-            <div class="table-responsive">
-                <table class="table table-striped table-hover" id="tablaCajaProductos">
-                    <thead>
-                        <tr>
-                            <th>Factura</th>
-                            <th>Cliente</th>
-                            <th>Fecha</th>
-                            <th>Total</th>
-                            <th>Método</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbodyCajaPagosProductos">
-                        <!-- Pagos de productos -->
-                    </tbody>
-                </table>
-            </div>
-            <div class="mt-2">
-                <span id="totalCajaProductos" class="fw-bold"></span>
-            </div>
-        </div>
-    </div>
-    <!-- Barra inferior total ventas -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="text-center p-3 bg-success text-white rounded shadow-lg" style="font-size:2rem; font-weight:bold;">
-                Venta Total: <span id="ventaTotal">$0</span>
+                <div id="infoPeriodo" class="alert alert-info text-center mb-3" style="border-radius:12px;"></div>
+                <!-- Filtro de fechas -->
+                <div class="row mb-3">
+                    <div class="col-md-12 d-flex flex-wrap align-items-end gap-2">
+                        <label class="form-label mb-0 me-2">Filtrar por fecha:</label>
+                        <input type="date" id="fechaInicio" class="form-control" style="max-width:180px;">
+                        <span class="mx-1">a</span>
+                        <input type="date" id="fechaFin" class="form-control" style="max-width:180px;">
+                        <button class="btn btn-secondary ms-2" id="btnHoy">Hoy</button>
+                        <button class="btn btn-secondary ms-1" id="btnAyer">Ayer</button>
+                        <button class="btn btn-primary ms-2" id="btnFiltrarFechas">Filtrar</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 class="caja-section-title"><i class="fas fa-tools me-2"></i>Pagos de Órdenes de Servicio</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="tablaCajaOrdenes">
+                                <thead>
+                                    <tr>
+                                        <th>Orden</th>
+                                        <th>Cliente</th>
+                                        <th>Fecha</th>
+                                        <th>Total</th>
+                                        <th>Método</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyCajaPagosOrdenes">
+                                    <!-- Pagos de órdenes -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-2">
+                            <span id="totalCajaOrdenesTabla" class="fw-bold"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 position-relative">
+                        <h5 class="caja-section-title"><i class="fas fa-box-open me-2"></i>Pagos por Venta de Productos</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="tablaCajaProductos">
+                                <thead>
+                                    <tr>
+                                        <th>Factura</th>
+                                        <th>Cliente</th>
+                                        <th>Fecha</th>
+                                        <th>Total</th>
+                                        <th>Método</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyCajaPagosProductos">
+                                    <!-- Pagos de productos -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-2">
+                            <span id="totalCajaProductosTabla" class="fw-bold"></span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 <!-- Botón flotante para nueva venta -->
-<button id="btnNuevaVenta" class="btn btn-success rounded-circle shadow-lg" style="position: fixed; bottom: 32px; right: 32px; z-index: 1050; width: 64px; height: 64px; font-size: 2rem; display: flex; align-items: center; justify-content: center;">
+<button id="btnNuevaVenta" class="btn btn-agregar-venta rounded-circle shadow-lg" style="position: fixed; bottom: 32px; right: 32px; z-index: 1050; width: 64px; height: 64px; font-size: 2rem; display: flex; align-items: center; justify-content: center;">
     <i class="bi bi-plus"></i>
 </button>
 

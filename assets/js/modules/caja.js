@@ -588,9 +588,12 @@ function cargarPagosCaja(fechaInicio = null, fechaFin = null) {
                 } else {
                     tbodyProductos.innerHTML = '<tr><td colspan="6" class="text-center">No hay pagos de productos registrados en el período seleccionado.</td></tr>';
                 }
-                // Actualizar los totales en las cards
-                document.getElementById('totalCajaOrdenes').textContent = 'Total en caja (órdenes): $' + totalOrdenes.toLocaleString('es-CO');
-                document.getElementById('totalCajaProductos').textContent = 'Total en caja (productos): $' + totalProductos.toLocaleString('es-CO');
+                // Actualizar los totales en las cards (solo el monto) - VERSION CORREGIDA
+                document.getElementById('totalCajaOrdenes').textContent = '$' + totalOrdenes.toLocaleString('es-CO');
+                document.getElementById('totalCajaProductos').textContent = '$' + totalProductos.toLocaleString('es-CO');
+                // Actualizar también los totales en las tablas (con texto descriptivo)
+                document.getElementById('totalCajaOrdenesTabla').textContent = 'Total en caja (órdenes): $' + totalOrdenes.toLocaleString('es-CO');
+                document.getElementById('totalCajaProductosTabla').textContent = 'Total en caja (productos): $' + totalProductos.toLocaleString('es-CO');
                 document.getElementById('totalEfectivo').textContent = `$${totalEfectivo.toLocaleString('es-CO')}`;
                 document.getElementById('totalNequi').textContent = `$${totalNequi.toLocaleString('es-CO')}`;
                 document.getElementById('totalDaviplata').textContent = `$${totalDaviplata.toLocaleString('es-CO')}`;
@@ -605,7 +608,13 @@ function cargarPagosCaja(fechaInicio = null, fechaFin = null) {
                     infoElement = document.createElement('div');
                     infoElement.id = 'infoPeriodo';
                     infoElement.className = 'alert alert-info text-center mb-3';
-                    document.querySelector('.container-fluid h3').insertAdjacentElement('afterend', infoElement);
+                    // Buscar el header moderno, si no existe, usar el primer container-fluid
+                    const headerCaja = document.querySelector('.welcome-header-caja');
+                    if (headerCaja && headerCaja.parentNode) {
+                        headerCaja.parentNode.insertBefore(infoElement, headerCaja.nextSibling);
+                    } else {
+                        document.querySelector('.container-fluid').insertAdjacentElement('afterbegin', infoElement);
+                    }
                 }
                 infoElement.innerHTML = `<i class="bi bi-calendar3"></i> ${infoPeriodo}`;
                 if (data.debug) {
