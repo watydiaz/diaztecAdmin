@@ -642,6 +642,13 @@ function formatearFechaSinHora(fechaStr) {
         day: 'numeric'
     });
 }
+// Función para mostrar el teléfono como enlace a WhatsApp
+function formatearTelefonoWhatsapp(numero) {
+    if (!numero) return '-';
+    let tel = numero.replace(/[^\d]/g, '');
+    if (tel.length === 10) tel = '57' + tel;
+    return `<a href='https://wa.me/${tel}' target='_blank' style='text-decoration:none;color:#22c55e;font-weight:bold;'>${numero} <i class='bi bi-whatsapp'></i></a>`;
+}
 // --- MODAL DETALLE DE PAGO (reutilizable) ---
 if (!document.getElementById('modalDetallePago')) {
     const modalHtml = `
@@ -681,7 +688,49 @@ function mostrarModalDetallePago(html) {
     };
 }
 
-// --- Mejorar verDetalleFactura para mostrar modal detallado ---
+// 1. Incluir html2canvas si no está cargado
+if (typeof html2canvas === 'undefined') {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+    document.head.appendChild(script);
+}
+
+// 2. Agregar botón WhatsApp al modal
+if (!document.getElementById('btnWhatsappDetallePago')) {
+    const btnWhatsapp = document.createElement('button');
+    btnWhatsapp.className = 'btn btn-success';
+    btnWhatsapp.id = 'btnWhatsappDetallePago';
+    btnWhatsapp.innerHTML = '<i class="bi bi-whatsapp"></i> Enviar por WhatsApp';
+    document.querySelector('#modalDetallePago .modal-footer').insertBefore(btnWhatsapp, document.getElementById('btnImprimirDetallePago'));
+}
+
+// Cambiar la función enviarDetallePorWhatsapp para solo enviar la URL del comprobante
+async function enviarDetallePorWhatsapp(clienteTel, clienteNombre, comprobanteUrl) {
+    if (clienteTel) {
+        let tel = clienteTel.replace(/[^\d]/g, '');
+        if (tel.length === 10) tel = '57' + tel; // Colombia
+        // Mensaje mejorado: salto de línea antes de la URL, nota para el cliente, recordatorio de servicios y sugerencia de guardar contacto
+        const mensaje = encodeURIComponent(`Hola ${clienteNombre || ''}, aquí está tu comprobante de pago:\n\n${comprobanteUrl}\n\nSi el enlace no se abre, por favor cópialo y pégalo en tu navegador.\n\nRecuerda que en DIAZTECNOLOGÍA te ofrecemos reparación de celulares, venta de accesorios, tecnología y servicio técnico especializado. ¡Guarda nuestro contacto para futuras necesidades!`);
+        window.open(`https://wa.me/${tel}?text=${mensaje}`, '_blank');
+    } else {
+        alert('No hay número de teléfono registrado para el cliente.');
+    }
+}
+
+// Modificar asignarEventoWhatsapp para pasar la URL del comprobante
+function asignarEventoWhatsapp(clienteTel, clienteNombre, comprobanteUrl) {
+    const btn = document.getElementById('btnWhatsappDetallePago');
+    if (btn) {
+        btn.onclick = function() {
+            enviarDetallePorWhatsapp(clienteTel, clienteNombre, comprobanteUrl);
+        };
+    }
+}
+
+// Utilizar la URL base correcta para comprobante
+const BASE_URL = 'http://localhost/diaztecAdmin';
+
+// --- Mejorar verDetalleFactura para compartir comprobante por WhatsApp ---
 function verDetalleFactura(ventaId) {
     fetch(`index.php?action=obtenerDetalleFactura&venta_id=${ventaId}`)
         .then(r => r.json())
@@ -698,7 +747,7 @@ function verDetalleFactura(ventaId) {
                     <h4 class="mb-0">Diaztecnologia</h4>
                     <div>NIT: 1073679337-8</div>
                     <div>Transversal 12a 41b 31, Soacha - Ocales</div>
-                    <div>Cel: 3202975604 - 3203200992</div>
+                    <div>Cel: ${formatearTelefonoWhatsapp(v.cliente_telefono)} - ${formatearTelefonoWhatsapp(v.cliente_telefono)}</div>
                     <div>Email: karol.jesusdiaz@gmail.com</div>
                     <div>Web: diaztecnologia.com</div>
                   </div>
@@ -709,7 +758,7 @@ function verDetalleFactura(ventaId) {
                     <strong>Cliente:</strong><br>
                     ${v.cliente_nombre}<br>
                     <small>ID: ${v.cliente_identificacion}</small><br>
-                    <small>Tel: ${v.cliente_telefono || '-'}</small><br>
+                    <small>Tel: ${formatearTelefonoWhatsapp(v.cliente_telefono)}</small><br>
                     <small>Email: ${v.cliente_email || '-'}</small>
                   </div>
                   <div class="col-md-6 text-end">
@@ -730,6 +779,9 @@ function verDetalleFactura(ventaId) {
                 <div class="text-end fs-5"><strong>Total:</strong> $${Number(v.total).toLocaleString('es-CO')}</div>
                 `;
                 mostrarModalDetallePago(html);
+                // Generar la URL del comprobante con la base correcta
+                const comprobanteUrl = `${BASE_URL}/comprobante.php?venta_id=${ventaId}`;
+                asignarEventoWhatsapp(v.cliente_telefono, v.cliente_nombre, comprobanteUrl);
             } else {
                 alert('Error al cargar el detalle de la factura: ' + data.message);
             }
@@ -740,7 +792,7 @@ function verDetalleFactura(ventaId) {
         });
 }
 
-// --- Mejorar mostrarModalDetalleOrden para mostrar modal detallado ---
+// --- Mejorar mostrarModalDetalleOrden para compartir comprobante por WhatsApp ---
 function mostrarModalDetalleOrden(orden, pagos) {
     let html = `
     <div class="row mb-2">
@@ -751,7 +803,7 @@ function mostrarModalDetalleOrden(orden, pagos) {
         <h4 class="mb-0">Diaztecnologia</h4>
         <div>NIT: 1073679337-8</div>
         <div>Transversal 12a 41b 31, Soacha - Ocales</div>
-        <div>Cel: 3202975604 - 3203200992</div>
+        <div>Cel: ${formatearTelefonoWhatsapp(orden.cliente_telefono)} - ${formatearTelefonoWhatsapp(orden.cliente_telefono)}</div>
         <div>Email: karol.jesusdiaz@gmail.com</div>
         <div>Web: diaztecnologia.com</div>
       </div>
@@ -762,7 +814,7 @@ function mostrarModalDetalleOrden(orden, pagos) {
         <strong>Cliente:</strong><br>
         ${orden.cliente_nombre}<br>
         <small>ID: ${orden.cliente_identificacion}</small><br>
-        <small>Tel: ${orden.cliente_telefono || '-'}</small><br>
+        <small>Tel: ${formatearTelefonoWhatsapp(orden.cliente_telefono)}</small><br>
         <small>Email: ${orden.cliente_email || '-'}</small><br>
         <small>Dirección: ${orden.cliente_direccion || '-'}</small>
       </div>
@@ -790,6 +842,9 @@ function mostrarModalDetalleOrden(orden, pagos) {
     <div class="text-end fs-5"><strong>Saldo pendiente:</strong> $${(Number(orden.costo_total) - pagos.reduce((acc, p) => acc + Number(p.dinero_recibido), 0)).toLocaleString('es-CO')}</div>
     `;
     mostrarModalDetallePago(html);
+    // Generar la URL del comprobante con la base correcta
+    const comprobanteUrl = `${BASE_URL}/comprobante.php?orden_id=${orden.id}`;
+    asignarEventoWhatsapp(orden.cliente_telefono, orden.cliente_nombre, comprobanteUrl);
 }
 window.verDetalleOrden = function(ordenId) {
     fetch(`/diaztecAdmin/index.php?action=obtenerDetalleOrden&orden_id=${ordenId}`)
