@@ -1,0 +1,32 @@
+/* Estilos para el dropdown personalizado de clientes */
+#clientesDropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ced4da;
+    border-top: none;
+    border-radius: 0 0 0.375rem 0.375rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    z-index: 1000;
+}
+
+#clientesDropdown .dropdown-item {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+#clientesDropdown .dropdown-item:hover {
+    background-color: #e9ecef;
+}
+
+#clientesDropdown .dropdown-item:last-child {
+    border-bottom: none;
+}
+
+/* Mejorar la visibilidad del input cuando está activo */
+#clienteBusqueda:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+} 
