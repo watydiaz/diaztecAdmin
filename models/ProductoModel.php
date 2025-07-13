@@ -134,6 +134,8 @@ class ProductoModel {
         $imagen = isset($datos['imagen']) ? $datos['imagen'] : '';
         $categoria = isset($datos['categoria']) ? $datos['categoria'] : '';
         $codigo_barras = isset($datos['codigo_barras']) ? $datos['codigo_barras'] : '';
+        $activo = isset($datos['activo']) ? $datos['activo'] : 1;
+        
         $stmt->bind_param(
             'ssddiiisssi',
             $datos['nombre'],
@@ -142,7 +144,7 @@ class ProductoModel {
             $datos['precio_venta'],
             $datos['stock'],
             $datos['stock_minimo'],
-            $datos['activo'] ?? 1,
+            $activo,
             $imagen,
             $categoria,
             $codigo_barras,
