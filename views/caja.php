@@ -27,6 +27,40 @@ require_once 'header.php';
             <button class="btn btn-primary ms-2" id="btnFiltrarFechas">Filtrar</button>
         </div>
     </div>
+    <div class="row mb-3" id="rowCardsTotales">
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total Efectivo</h5>
+                <p class="card-text fs-4" id="totalEfectivo">$0</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total Nequi</h5>
+                <p class="card-text fs-4" id="totalNequi">$0</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total Daviplata</h5>
+                <p class="card-text fs-4" id="totalDaviplata">$0</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-dark mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total Tarjeta Crédito</h5>
+                <p class="card-text fs-4" id="totalTarjeta">$0</p>
+            </div>
+        </div>
+    </div>
+</div>
     <div class="row">
         <div class="col-md-6">
             <h5>Pagos de Órdenes de Servicio</h5>
@@ -38,6 +72,7 @@ require_once 'header.php';
                             <th>Cliente</th>
                             <th>Fecha</th>
                             <th>Total</th>
+                            <th>Método</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>

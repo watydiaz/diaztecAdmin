@@ -521,15 +521,24 @@ function cargarPagosCaja(fechaInicio = null, fechaFin = null) {
                 const tbodyOrdenes = document.getElementById('tbodyCajaPagosOrdenes');
                 tbodyOrdenes.innerHTML = '';
                 let totalOrdenes = 0;
+                let totalEfectivo = 0, totalNequi = 0, totalDaviplata = 0, totalTarjeta = 0;
                 if (data.pagos_ordenes && Array.isArray(data.pagos_ordenes) && data.pagos_ordenes.length > 0) {
                     data.pagos_ordenes.forEach((pago) => {
                         totalOrdenes += Number(pago.dinero_recibido || 0);
+                        // Sumar por método de pago
+                        switch ((pago.metodo_pago || '').toLowerCase()) {
+                            case 'efectivo': totalEfectivo += Number(pago.dinero_recibido || 0); break;
+                            case 'nequi': totalNequi += Number(pago.dinero_recibido || 0); break;
+                            case 'daviplata': totalDaviplata += Number(pago.dinero_recibido || 0); break;
+                            case 'tarjeta_credito': totalTarjeta += Number(pago.dinero_recibido || 0); break;
+                        }
                         tbodyOrdenes.innerHTML += `
                             <tr>
                                 <td><strong>${pago.numero_orden || `Orden #${pago.orden_id}`}</strong></td>
                                 <td>${pago.cliente_nombre || ''}<br><small class="text-muted">${pago.cliente_identificacion || ''}</small></td>
                                 <td>${formatearFecha(pago.fecha_pago || '')}</td>
                                 <td><strong>$${Number(pago.dinero_recibido || 0).toLocaleString('es-CO')}</strong></td>
+                                <td><span class="badge bg-primary">${(pago.metodo_pago || '').charAt(0).toUpperCase() + (pago.metodo_pago || '').slice(1)}</span></td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-info" onclick="verDetalleOrden(${pago.orden_id})" title="Ver detalle de orden">
                                         <i class="bi bi-eye"></i> Ver
@@ -538,15 +547,22 @@ function cargarPagosCaja(fechaInicio = null, fechaFin = null) {
                             </tr>`;
                     });
                 } else {
-                    tbodyOrdenes.innerHTML = '<tr><td colspan="5" class="text-center">No hay pagos de órdenes registrados en el período seleccionado.</td></tr>';
+                    tbodyOrdenes.innerHTML = '<tr><td colspan="6" class="text-center">No hay pagos de órdenes registrados en el período seleccionado.</td></tr>';
                 }
-                document.getElementById('totalCajaOrdenes').textContent = 'Total en caja (órdenes): $' + totalOrdenes.toLocaleString('es-CO');
+                // Pagos de productos
                 const tbodyProductos = document.getElementById('tbodyCajaPagosProductos');
                 tbodyProductos.innerHTML = '';
                 let totalProductos = 0;
                 if (data.pagos_productos && Array.isArray(data.pagos_productos) && data.pagos_productos.length > 0) {
                     data.pagos_productos.forEach((pago) => {
                         totalProductos += Number(pago.total || 0);
+                        // Sumar por método de pago
+                        switch ((pago.metodo_pago || '').toLowerCase()) {
+                            case 'efectivo': totalEfectivo += Number(pago.total || 0); break;
+                            case 'nequi': totalNequi += Number(pago.total || 0); break;
+                            case 'daviplata': totalDaviplata += Number(pago.total || 0); break;
+                            case 'tarjeta_credito': totalTarjeta += Number(pago.total || 0); break;
+                        }
                         tbodyProductos.innerHTML += `
                             <tr>
                                 <td><strong>${pago.numero_factura || ''}</strong></td>
@@ -564,7 +580,13 @@ function cargarPagosCaja(fechaInicio = null, fechaFin = null) {
                 } else {
                     tbodyProductos.innerHTML = '<tr><td colspan="6" class="text-center">No hay pagos de productos registrados en el período seleccionado.</td></tr>';
                 }
+                // Actualizar los totales en las cards
+                document.getElementById('totalCajaOrdenes').textContent = 'Total en caja (órdenes): $' + totalOrdenes.toLocaleString('es-CO');
                 document.getElementById('totalCajaProductos').textContent = 'Total en caja (productos): $' + totalProductos.toLocaleString('es-CO');
+                document.getElementById('totalEfectivo').textContent = `$${totalEfectivo.toLocaleString('es-CO')}`;
+                document.getElementById('totalNequi').textContent = `$${totalNequi.toLocaleString('es-CO')}`;
+                document.getElementById('totalDaviplata').textContent = `$${totalDaviplata.toLocaleString('es-CO')}`;
+                document.getElementById('totalTarjeta').textContent = `$${totalTarjeta.toLocaleString('es-CO')}`;
                 const totalGeneral = totalOrdenes + totalProductos;
                 document.getElementById('ventaTotal').textContent = '$' + totalGeneral.toLocaleString('es-CO');
                 const infoPeriodo = fechaInicio === fechaFin ? 
@@ -620,17 +642,94 @@ function formatearFechaSinHora(fechaStr) {
         day: 'numeric'
     });
 }
+// --- MODAL DETALLE DE PAGO (reutilizable) ---
+if (!document.getElementById('modalDetallePago')) {
+    const modalHtml = `
+    <div class="modal fade" id="modalDetallePago" tabindex="-1" aria-labelledby="modalDetallePagoLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalDetallePagoLabel">Detalle del Pago</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body" id="modalDetallePagoBody">
+            <!-- Aquí va el contenido dinámico -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            <button type="button" class="btn btn-primary" id="btnImprimirDetallePago"><i class="bi bi-printer"></i> Imprimir</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+// --- Función para mostrar el modal con datos de la empresa, cliente y detalle ---
+function mostrarModalDetallePago(html) {
+    document.getElementById('modalDetallePagoBody').innerHTML = html;
+    const modal = new bootstrap.Modal(document.getElementById('modalDetallePago'));
+    modal.show();
+    document.getElementById('btnImprimirDetallePago').onclick = function() {
+        const printContents = document.getElementById('modalDetallePagoBody').innerHTML;
+        const win = window.open('', '', 'width=900,height=700');
+        win.document.write('<html><head><title>Comprobante</title>');
+        win.document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">');
+        win.document.write('</head><body>' + printContents + '</body></html>');
+        win.document.close();
+        win.print();
+    };
+}
+
+// --- Mejorar verDetalleFactura para mostrar modal detallado ---
 function verDetalleFactura(ventaId) {
     fetch(`index.php?action=obtenerDetalleFactura&venta_id=${ventaId}`)
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                // Aquí puedes mostrar el detalle en un modal o alert
-                let detalle = `Factura: ${data.venta.numero_factura}\nCliente: ${data.venta.cliente_nombre}\nTotal: $${Number(data.venta.total).toLocaleString('es-CO')}\n\nProductos:\n`;
-                data.detalles.forEach(d => {
-                    detalle += `- ${d.producto_nombre} x${d.cantidad} ($${Number(d.precio_unitario).toLocaleString('es-CO')})\n`;
-                });
-                alert(detalle);
+                const v = data.venta;
+                const detalles = data.detalles;
+                let html = `
+                <div class="row mb-2">
+                  <div class="col-md-3 text-center">
+                    <img src="https://diaztecnologia.com/img/logo.png" alt="Logo" style="max-width:100px;">
+                  </div>
+                  <div class="col-md-9">
+                    <h4 class="mb-0">Diaztecnologia</h4>
+                    <div>NIT: 1073679337-8</div>
+                    <div>Transversal 12a 41b 31, Soacha - Ocales</div>
+                    <div>Cel: 3202975604 - 3203200992</div>
+                    <div>Email: karol.jesusdiaz@gmail.com</div>
+                    <div>Web: diaztecnologia.com</div>
+                  </div>
+                </div>
+                <hr>
+                <div class="row mb-2">
+                  <div class="col-md-6">
+                    <strong>Cliente:</strong><br>
+                    ${v.cliente_nombre}<br>
+                    <small>ID: ${v.cliente_identificacion}</small><br>
+                    <small>Tel: ${v.cliente_telefono || '-'}</small><br>
+                    <small>Email: ${v.cliente_email || '-'}</small>
+                  </div>
+                  <div class="col-md-6 text-end">
+                    <strong>Factura:</strong> ${v.numero_factura}<br>
+                    <strong>Fecha:</strong> ${formatearFecha(v.fecha_venta)}<br>
+                    <strong>Método de pago:</strong> ${v.metodo_pago}<br>
+                    <strong>Registrado por:</strong> ${v.usuario_nombre || '-'}
+                  </div>
+                </div>
+                <div class="table-responsive">
+                  <table class="table table-bordered">
+                    <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th></tr></thead>
+                    <tbody>
+                      ${detalles.map(d => `<tr><td>${d.producto_nombre}</td><td>${d.cantidad}</td><td>$${Number(d.precio_unitario).toLocaleString('es-CO')}</td><td>$${Number(d.subtotal).toLocaleString('es-CO')}</td></tr>`).join('')}
+                    </tbody>
+                  </table>
+                </div>
+                <div class="text-end fs-5"><strong>Total:</strong> $${Number(v.total).toLocaleString('es-CO')}</div>
+                `;
+                mostrarModalDetallePago(html);
             } else {
                 alert('Error al cargar el detalle de la factura: ' + data.message);
             }
@@ -640,7 +739,59 @@ function verDetalleFactura(ventaId) {
             alert('Error al cargar el detalle de la factura');
         });
 }
-function verDetalleOrden(ordenId) {
+
+// --- Mejorar mostrarModalDetalleOrden para mostrar modal detallado ---
+function mostrarModalDetalleOrden(orden, pagos) {
+    let html = `
+    <div class="row mb-2">
+      <div class="col-md-3 text-center">
+        <img src="https://diaztecnologia.com/img/logo.png" alt="Logo" style="max-width:100px;">
+      </div>
+      <div class="col-md-9">
+        <h4 class="mb-0">Diaztecnologia</h4>
+        <div>NIT: 1073679337-8</div>
+        <div>Transversal 12a 41b 31, Soacha - Ocales</div>
+        <div>Cel: 3202975604 - 3203200992</div>
+        <div>Email: karol.jesusdiaz@gmail.com</div>
+        <div>Web: diaztecnologia.com</div>
+      </div>
+    </div>
+    <hr>
+    <div class="row mb-2">
+      <div class="col-md-6">
+        <strong>Cliente:</strong><br>
+        ${orden.cliente_nombre}<br>
+        <small>ID: ${orden.cliente_identificacion}</small><br>
+        <small>Tel: ${orden.cliente_telefono || '-'}</small><br>
+        <small>Email: ${orden.cliente_email || '-'}</small><br>
+        <small>Dirección: ${orden.cliente_direccion || '-'}</small>
+      </div>
+      <div class="col-md-6 text-end">
+        <strong>Orden:</strong> ${orden.numero_orden}<br>
+        <strong>Equipo:</strong> ${orden.equipo_nombre}<br>
+        <strong>Estado:</strong> ${orden.estado}<br>
+        <strong>Ingreso:</strong> ${formatearFecha(orden.fecha_ingreso)}<br>
+        <strong>Entrega estimada:</strong> ${formatearFecha(orden.fecha_entrega)}
+      </div>
+    </div>
+    <div class="mb-2"><strong>Problema reportado:</strong> ${orden.descripcion_problema}</div>
+    <div class="mb-2"><strong>Diagnóstico / Solución:</strong> ${orden.solucion}</div>
+    <div class="mb-2"><strong>Costo total:</strong> $${Number(orden.costo_total).toLocaleString('es-CO')}</div>
+    <div class="mb-2"><strong>Pagos realizados:</strong></div>
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead><tr><th>Fecha</th><th>Monto</th><th>Método</th></tr></thead>
+        <tbody>
+          ${pagos.map(p => `<tr><td>${formatearFecha(p.fecha_pago)}</td><td>$${Number(p.dinero_recibido).toLocaleString('es-CO')}</td><td>${p.metodo_pago}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="text-end fs-5"><strong>Total pagado:</strong> $${pagos.reduce((acc, p) => acc + Number(p.dinero_recibido), 0).toLocaleString('es-CO')}</div>
+    <div class="text-end fs-5"><strong>Saldo pendiente:</strong> $${(Number(orden.costo_total) - pagos.reduce((acc, p) => acc + Number(p.dinero_recibido), 0)).toLocaleString('es-CO')}</div>
+    `;
+    mostrarModalDetallePago(html);
+}
+window.verDetalleOrden = function(ordenId) {
     fetch(`/diaztecAdmin/index.php?action=obtenerDetalleOrden&orden_id=${ordenId}`)
         .then(r => r.json())
         .then(data => {
@@ -654,5 +805,5 @@ function verDetalleOrden(ordenId) {
             console.error('Error al cargar detalle de orden:', error);
             alert('Error al cargar el detalle de la orden');
         });
-}
+};
 // ... (continúa el resto del JS de caja.php) 
