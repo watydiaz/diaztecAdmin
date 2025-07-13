@@ -514,33 +514,63 @@ switch ($action) {
             // Inicializar arrays
             $pagos = [];
             $pagos_productos = [];
-            
+
+            // Pagos de órdenes de servicio con filtro de fecha
+            try {
+                $query_ordenes = "SELECT 
+                                    op.id,
+                                    op.orden_id,
+                                    COALESCE(op.dinero_recibido, 0) as dinero_recibido,
+                                    COALESCE(op.costo_total, 0) as costo_total,
+                                    op.fecha_pago,
+                                    COALESCE(op.metodo_pago, 'efectivo') as metodo_pago,
+                                    COALESCE(c.nombre, 'Cliente') as cliente_nombre,
+                                    COALESCE(c.identificacion, 'N/A') as cliente_identificacion
+                                FROM orden_pagos op
+                                INNER JOIN ordenes_reparacion o ON op.orden_id = o.id
+                                INNER JOIN clientes c ON o.cliente_id = c.id
+                                WHERE DATE(op.fecha_pago) BETWEEN ? AND ?
+                                ORDER BY op.fecha_pago DESC";
+                $stmt_ordenes = $db->prepare($query_ordenes);
+                if ($stmt_ordenes) {
+                    $stmt_ordenes->bind_param('ss', $fecha_inicio, $fecha_fin);
+                    $stmt_ordenes->execute();
+                    $result_ordenes = $stmt_ordenes->get_result();
+                    if ($result_ordenes) {
+                        while ($row = $result_ordenes->fetch_assoc()) {
+                            $pagos[] = $row;
+                        }
+                    }
+                    $stmt_ordenes->close();
+                }
+            } catch (Exception $e) {
+                $pagos = [];
+            }
+
             // Pagos de productos (ventas) con filtro de fecha
             try {
                 $query = "SELECT 
-                            pp.id,
-                            pp.venta_id,
-                            pp.dinero_recibido as total,
-                            COALESCE(pp.metodo_pago, 'efectivo') as metodo_pago,
-                            pp.fecha_pago,
-                            COALESCE(v.numero_factura, CONCAT('FAC-', pp.venta_id)) as numero_factura,
-                            v.total as total_venta,
-                            COALESCE(c.nombre, 'Cliente') as cliente_nombre,
-                            COALESCE(c.identificacion, 'N/A') as cliente_identificacion,
-                            COALESCE(u.nombre, 'Sistema') as usuario_nombre
-                          FROM pagos_productos pp
-                          INNER JOIN ventas v ON pp.venta_id = v.id
-                          INNER JOIN clientes c ON v.cliente_id = c.id
-                          LEFT JOIN usuarios u ON pp.usuario_id = u.id
-                          WHERE DATE(pp.fecha_pago) BETWEEN ? AND ?
-                          ORDER BY pp.fecha_pago DESC";
-                
+                                pp.id,
+                                pp.venta_id,
+                                pp.dinero_recibido as total,
+                                COALESCE(pp.metodo_pago, 'efectivo') as metodo_pago,
+                                pp.fecha_pago,
+                                COALESCE(v.numero_factura, CONCAT('FAC-', pp.venta_id)) as numero_factura,
+                                v.total as total_venta,
+                                COALESCE(c.nombre, 'Cliente') as cliente_nombre,
+                                COALESCE(c.identificacion, 'N/A') as cliente_identificacion,
+                                COALESCE(u.nombre, 'Sistema') as usuario_nombre
+                            FROM pagos_productos pp
+                            INNER JOIN ventas v ON pp.venta_id = v.id
+                            INNER JOIN clientes c ON v.cliente_id = c.id
+                            LEFT JOIN usuarios u ON pp.usuario_id = u.id
+                            WHERE DATE(pp.fecha_pago) BETWEEN ? AND ?
+                            ORDER BY pp.fecha_pago DESC";
                 $stmt_productos = $db->prepare($query);
                 if ($stmt_productos) {
                     $stmt_productos->bind_param('ss', $fecha_inicio, $fecha_fin);
                     $stmt_productos->execute();
                     $result_productos = $stmt_productos->get_result();
-                    
                     if ($result_productos) {
                         while ($row = $result_productos->fetch_assoc()) {
                             $pagos_productos[] = $row;
@@ -549,7 +579,6 @@ switch ($action) {
                     $stmt_productos->close();
                 }
             } catch (Exception $e) {
-                // Agregar error a los datos para debug
                 $pagos_productos = [];
             }
             
@@ -567,9 +596,7 @@ switch ($action) {
                     'fecha_servidor' => date('Y-m-d H:i:s')
                 ]
             ];
-            
             echo json_encode($response);
-            
         } catch (Exception $e) {
             header('Content-Type: application/json; charset=utf-8');
             echo json_encode([
@@ -1054,7 +1081,6 @@ switch ($action) {
                 $numero_factura = 'FAC-' . str_pad($siguiente_numero, 3, '0', STR_PAD_LEFT);
                 $check_stmt = $db->prepare("SELECT COUNT(*) as count FROM ventas WHERE numero_factura = ?");
                 $check_stmt->bind_param('s', $numero_factura);
-                $check_stmt->execute();
                 $check_result = $check_stmt->get_result()->fetch_assoc();
                 $check_stmt->close();
             }
@@ -1300,51 +1326,106 @@ switch ($action) {
                 $fecha_fin = date('Y-m-d');
             }
             
-            // Consultar pagos en el rango de fechas
-            $query = "SELECT 
-                            pp.id,
-                            pp.orden_id,
-                            COALESCE(pp.dinero_recibido, 0) as dinero_recibido,
-                            COALESCE(pp.costo_total, 0) as costo_total,
-                            pp.fecha_pago,
-                            COALESCE(pp.metodo_pago, 'efectivo') as metodo_pago,
-                            COALESCE(v.numero_factura, CONCAT('FAC-', pp.venta_id)) as numero_factura,
-                            v.total as total_venta,
-                            COALESCE(c.nombre, 'Cliente') as cliente_nombre,
-                            COALESCE(c.identificacion, 'N/A') as cliente_identificacion,
-                            COALESCE(u.nombre, 'Sistema') as usuario_nombre
-                          FROM pagos_productos pp
-                          INNER JOIN ventas v ON pp.venta_id = v.id
-                          INNER JOIN clientes c ON v.cliente_id = c.id
-                          LEFT JOIN usuarios u ON pp.usuario_id = u.id
-                          WHERE DATE(pp.fecha_pago) BETWEEN ? AND ?
-                          ORDER BY pp.fecha_pago DESC";
-                
-            $stmt = $db->prepare($query);
-            if ($stmt) {
-                $stmt->bind_param('ss', $fecha_inicio, $fecha_fin);
-                $stmt->execute();
-                $result = $stmt->get_result();
-                
-                $pagos = [];
-                if ($result) {
-                    while ($row = $result->fetch_assoc()) {
-                        $pagos[] = $row;
+            // Inicializar arrays
+            $pagos = [];
+            $pagos_productos = [];
+
+            // Pagos de órdenes de servicio con filtro de fecha
+            try {
+                $query_ordenes = "SELECT 
+                                    op.id,
+                                    op.orden_id,
+                                    COALESCE(op.dinero_recibido, 0) as dinero_recibido,
+                                    COALESCE(op.costo_total, 0) as costo_total,
+                                    op.fecha_pago,
+                                    COALESCE(op.metodo_pago, 'efectivo') as metodo_pago,
+                                    COALESCE(c.nombre, 'Cliente') as cliente_nombre,
+                                    COALESCE(c.identificacion, 'N/A') as cliente_identificacion
+                                FROM orden_pagos op
+                                INNER JOIN ordenes_reparacion o ON op.orden_id = o.id
+                                INNER JOIN clientes c ON o.cliente_id = c.id
+                                WHERE DATE(op.fecha_pago) BETWEEN ? AND ?
+                                ORDER BY op.fecha_pago DESC";
+                $stmt_ordenes = $db->prepare($query_ordenes);
+                if ($stmt_ordenes) {
+                    $stmt_ordenes->bind_param('ss', $fecha_inicio, $fecha_fin);
+                    $stmt_ordenes->execute();
+                    $result_ordenes = $stmt_ordenes->get_result();
+                    if ($result_ordenes) {
+                        while ($row = $result_ordenes->fetch_assoc()) {
+                            $pagos[] = $row;
+                        }
                     }
+                    $stmt_ordenes->close();
                 }
-                
-                header('Content-Type: application/json');
-                echo json_encode([
-                    'success' => true,
-                    'pagos' => $pagos,
-                    'fecha_inicio' => $fecha_inicio,
-                    'fecha_fin' => $fecha_fin
-                ]);
+            } catch (Exception $e) {
+                $pagos = [];
             }
+
+            // Pagos de productos (ventas) con filtro de fecha
+            try {
+                $query = "SELECT 
+                                pp.id,
+                                pp.venta_id,
+                                pp.dinero_recibido as total,
+                                COALESCE(pp.metodo_pago, 'efectivo') as metodo_pago,
+                                pp.fecha_pago,
+                                COALESCE(v.numero_factura, CONCAT('FAC-', pp.venta_id)) as numero_factura,
+                                v.total as total_venta,
+                                COALESCE(c.nombre, 'Cliente') as cliente_nombre,
+                                COALESCE(c.identificacion, 'N/A') as cliente_identificacion,
+                                COALESCE(u.nombre, 'Sistema') as usuario_nombre
+                            FROM pagos_productos pp
+                            INNER JOIN ventas v ON pp.venta_id = v.id
+                            INNER JOIN clientes c ON v.cliente_id = c.id
+                            LEFT JOIN usuarios u ON pp.usuario_id = u.id
+                            WHERE DATE(pp.fecha_pago) BETWEEN ? AND ?
+                            ORDER BY pp.fecha_pago DESC";
+                $stmt_productos = $db->prepare($query);
+                if ($stmt_productos) {
+                    $stmt_productos->bind_param('ss', $fecha_inicio, $fecha_fin);
+                    $stmt_productos->execute();
+                    $result_productos = $stmt_productos->get_result();
+                    if ($result_productos) {
+                        while ($row = $result_productos->fetch_assoc()) {
+                            $pagos_productos[] = $row;
+                        }
+                    }
+                    $stmt_productos->close();
+                }
+            } catch (Exception $e) {
+                $pagos_productos = [];
+            }
+            
+            // Respuesta JSON limpia
+            header('Content-Type: application/json; charset=utf-8');
+            $response = [
+                'success' => true,
+                'pagos_ordenes' => $pagos,
+                'pagos_productos' => $pagos_productos,
+                'fecha_inicio' => $fecha_inicio,
+                'fecha_fin' => $fecha_fin,
+                'debug' => [
+                    'total_ordenes' => count($pagos),
+                    'total_productos' => count($pagos_productos),
+                    'fecha_servidor' => date('Y-m-d H:i:s')
+                ]
+            ];
+            echo json_encode($response);
         } catch (Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'pagos_ordenes' => [],
+                'pagos_productos' => [],
+                'debug' => [
+                    'error_file' => $e->getFile(),
+                    'error_line' => $e->getLine()
+                ]
+            ]);
         }
-        exit;
+        exit();
         break;
 
     default:
