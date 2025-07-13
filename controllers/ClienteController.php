@@ -19,16 +19,7 @@ class ClienteController {
     }
 
     public function agregarCliente($nombre, $identificacion, $telefono, $email, $direccion) {
-        $resultado = $this->clienteModel->agregarCliente($nombre, $identificacion, $telefono, $email, $direccion);
-        
-        if ($resultado) {
-            header('Location: index.php?action=listarClientes');
-            exit();
-        } else {
-            // En caso de error, redirigir con un mensaje de error
-            header('Location: index.php?action=listarClientes&error=1');
-            exit();
-        }
+        return $this->clienteModel->agregarCliente($nombre, $identificacion, $telefono, $email, $direccion);
     }
 
     public function editarCliente($id, $nombre, $identificacion, $telefono, $email, $direccion) {

@@ -203,9 +203,14 @@ switch ($action) {
 
             $resultado = $clienteController->agregarCliente($nombre, $identificacion, $telefono, $email, $direccion);
 
-            header('Content-Type: application/json');
-            echo json_encode(['success' => $resultado]);
-            exit;
+            if ($resultado && is_numeric($resultado)) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => true, 'cliente_id' => $resultado]);
+            } else {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'No se pudo crear el cliente']);
+            }
+            exit();
         }
         break;
 
@@ -659,9 +664,15 @@ switch ($action) {
         $db = Conexion::getConexion();
         
         $nombre = isset($_POST['nombre']) ? trim($_POST['nombre']) : '';
+        $descripcion = isset($_POST['descripcion']) ? trim($_POST['descripcion']) : '';
         $precio_compra = isset($_POST['precio_compra']) ? floatval($_POST['precio_compra']) : 0;
         $precio_venta = isset($_POST['precio_venta']) ? floatval($_POST['precio_venta']) : 0;
         $stock = isset($_POST['stock']) ? intval($_POST['stock']) : 0;
+        $stock_minimo = isset($_POST['stock_minimo']) ? intval($_POST['stock_minimo']) : 0;
+        $activo = isset($_POST['activo']) ? intval($_POST['activo']) : 1;
+        $imagen = isset($_POST['imagen']) ? trim($_POST['imagen']) : '';
+        $categoria = isset($_POST['categoria']) ? trim($_POST['categoria']) : '';
+        $codigo_barras = isset($_POST['codigo_barras']) ? trim($_POST['codigo_barras']) : '';
         
         if (empty($nombre)) {
             header('Content-Type: application/json');
@@ -683,9 +694,9 @@ switch ($action) {
         }
         $stmt->close();
         
-        // Insertar nuevo producto
-        $stmt = $db->prepare("INSERT INTO productos (nombre, precio_compra, precio_venta, stock) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param('sddi', $nombre, $precio_compra, $precio_venta, $stock);
+        // Insertar nuevo producto con todos los campos
+        $stmt = $db->prepare("INSERT INTO productos (nombre, descripcion, precio_compra, precio_venta, stock, stock_minimo, activo, imagen, categoria, codigo_barras) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param('ssddiiisss', $nombre, $descripcion, $precio_compra, $precio_venta, $stock, $stock_minimo, $activo, $imagen, $categoria, $codigo_barras);
         
         if ($stmt->execute()) {
             $producto_id = $db->insert_id;
@@ -698,8 +709,15 @@ switch ($action) {
                 'producto' => [
                     'id' => $producto_id,
                     'nombre' => $nombre,
+                    'descripcion' => $descripcion,
+                    'precio_compra' => $precio_compra,
                     'precio_venta' => $precio_venta,
-                    'stock' => $stock
+                    'stock' => $stock,
+                    'stock_minimo' => $stock_minimo,
+                    'activo' => $activo,
+                    'imagen' => $imagen,
+                    'categoria' => $categoria,
+                    'codigo_barras' => $codigo_barras
                 ]
             ]);
         } else {
@@ -1048,7 +1066,13 @@ switch ($action) {
         $usuario_id = isset($_SESSION['usuario_id']) ? $_SESSION['usuario_id'] : 1; // Default admin
         
         // Validaciones
-        if (!$cliente_id || empty($productos) || $total <= 0 || empty($metodo_pago) || $dinero_recibido <= 0) {
+        if (
+            !$cliente_id ||
+            empty($productos) ||
+            $total <= 0 ||
+            empty($metodo_pago) ||
+            ($metodo_pago === 'efectivo' && $dinero_recibido <= 0)
+        ) {
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'message' => 'Datos de venta incompletos']);
             exit();
