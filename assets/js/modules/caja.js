@@ -3,7 +3,10 @@
 // --- Lógica de filtro de fechas y totales ---
 function getFechaHoy() {
     const hoy = new Date();
-    return hoy.toISOString().slice(0,10);
+    const year = hoy.getFullYear();
+    const month = String(hoy.getMonth() + 1).padStart(2, '0');
+    const day = String(hoy.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 function getFechaAyer() {
     const ayer = new Date();
