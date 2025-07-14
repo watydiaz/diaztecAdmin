@@ -121,44 +121,47 @@
                 <th colspan="4">Datos de Pago</th>
             </tr>
             <?php 
-            // Obtener el último pago si existe
+            // Obtener todos los pagos de la orden
             if (function_exists('obtenerPagosPorOrden')) {
                 $pagos = obtenerPagosPorOrden($orden['id']);
-                $pago = !empty($pagos) ? $pagos[0] : null;
-            } else if (isset($pago)) {
-                // Si ya viene de un controlador
             } else {
-                // --- Obtener el último pago desde el modelo si no viene del controlador ---
-                if (!isset($pago)) {
-                    require_once __DIR__ . '/../models/Conexion.php';
-                    require_once __DIR__ . '/../models/OrdenPagoModel.php';
-                    $db = Conexion::getConexion();
-                    $pagoModel = new OrdenPagoModel($db);
-                    $pagos = $pagoModel->obtenerPagosPorOrden($orden['id']);
-                    $pago = !empty($pagos) ? $pagos[0] : null;
+                require_once __DIR__ . '/../models/Conexion.php';
+                require_once __DIR__ . '/../models/OrdenPagoModel.php';
+                $db = Conexion::getConexion();
+                $pagoModel = new OrdenPagoModel($db);
+                $pagos = $pagoModel->obtenerPagosPorOrden($orden['id']);
+            }
+            $costo_total = 0;
+            $total_abonado = 0;
+            if (!empty($pagos)) {
+                $costo_total = floatval($pagos[0]['costo_total']);
+                foreach ($pagos as $p) {
+                    $total_abonado += floatval($p['dinero_recibido']);
                 }
             }
+            $saldo = $costo_total - $total_abonado;
+            if ($saldo < 0) $saldo = 0;
             ?>
-            <?php if (!empty($pago)): ?>
+            <?php if (!empty($pagos)): ?>
             <tr>
                 <td><strong>Método de Pago:</strong></td>
-                <td><?php echo ucfirst($pago['metodo_pago']); ?></td>
+                <td><?php echo ucfirst($pagos[0]['metodo_pago']); ?></td>
                 <td><strong>Fecha de Pago:</strong></td>
-                <td><?php echo $pago['fecha_pago']; ?></td>
+                <td><?php echo $pagos[0]['fecha_pago']; ?></td>
             </tr>
             <tr>
                 <td><strong style="font-size:1.1em;color:#222;">Costo Total:</strong></td>
-                <td colspan="3"><span style="font-weight:bold;font-size:1.3em;color:#007bff;">$<?php echo number_format($pago['costo_total'], 0, ',', '.'); ?></span></td>
+                <td colspan="3"><span style="font-weight:bold;font-size:1.3em;color:#007bff;">$<?php echo number_format($costo_total, 0, ',', '.'); ?></span></td>
             </tr>
             <tr>
                 <td><strong>Descripción Repuestos:</strong></td>
-                <td colspan="3"><?php echo $pago['descripcion_repuestos']; ?></td>
+                <td colspan="3"><?php echo $pagos[0]['descripcion_repuestos']; ?></td>
             </tr>
             <tr>
                 <td><strong style="font-size:1.1em;color:#222;">Abono:</strong></td>
-                <td><span style="font-weight:bold;font-size:1.2em;color:#28a745;">$<?php echo number_format($pago['costo_total'] - $pago['saldo'], 0, ',', '.'); ?></span></td>
+                <td><span style="font-weight:bold;font-size:1.2em;color:#28a745;">$<?php echo number_format($total_abonado, 0, ',', '.'); ?></span></td>
                 <td><strong style="font-size:1.1em;color:#222;">Saldo:</strong></td>
-                <td><span style="font-weight:bold;font-size:1.2em;color:#dc3545;">$<?php echo number_format($pago['saldo'], 0, ',', '.'); ?></span></td>
+                <td><span style="font-weight:bold;font-size:1.2em;color:#dc3545;">$<?php echo number_format($saldo, 0, ',', '.'); ?></span></td>
             </tr>
             <?php else: ?>
             <tr><td colspan="4"><em>No hay datos de pago registrados para esta orden.</em></td></tr>
@@ -205,15 +208,15 @@
             $mensajeRemision .= "Estado: {$orden['estado']}\n";
             $mensajeRemision .= "Fecha Ingreso: {$orden['fecha_ingreso']}\n";
             $mensajeRemision .= "Fecha Estimada Entrega: {$orden['fecha_entrega_estimada']}\n";
-            if (!empty($pago)) {
+            if (!empty($pagos)) {
                 $mensajeRemision .= "-----------------------------\n";
                 $mensajeRemision .= "*Datos de Pago*\n";
-                $mensajeRemision .= "Método de Pago: " . ucfirst($pago['metodo_pago']) . "\n";
-                $mensajeRemision .= "Fecha de Pago: {$pago['fecha_pago']}\n";
-                $mensajeRemision .= "Costo Total: $" . number_format($pago['costo_total'], 0, ',', '.') . "\n";
-                $mensajeRemision .= "Descripción Repuestos: {$pago['descripcion_repuestos']}\n";
-                $mensajeRemision .= "Abono: $" . number_format($pago['costo_total'] - $pago['saldo'], 0, ',', '.') . "\n";
-                $mensajeRemision .= "Saldo: $" . number_format($pago['saldo'], 0, ',', '.') . "\n";
+                $mensajeRemision .= "Método de Pago: " . ucfirst($pagos[0]['metodo_pago']) . "\n";
+                $mensajeRemision .= "Fecha de Pago: {$pagos[0]['fecha_pago']}\n";
+                $mensajeRemision .= "Costo Total: $" . number_format($costo_total, 0, ',', '.') . "\n";
+                $mensajeRemision .= "Descripción Repuestos: {$pagos[0]['descripcion_repuestos']}\n";
+                $mensajeRemision .= "Abono: $" . number_format($total_abonado, 0, ',', '.') . "\n";
+                $mensajeRemision .= "Saldo: $" . number_format($saldo, 0, ',', '.') . "\n";
             }
             $mensajeRemision .= "-----------------------------\n";
             $mensajeRemision .= "*Términos y Condiciones*\n";
