@@ -10,6 +10,7 @@ error_reporting(E_ALL);
 
 require_once __DIR__ . '/../models/OrdenPagoModel.php';
 require_once __DIR__ . '/../models/Conexion.php';
+require_once __DIR__ . '/../models/OrdenModel.php'; // Added for obtenerOrdenPorId
 
 // --- Manejo global de errores para devolver siempre JSON ---
 set_exception_handler(function($e) {
@@ -53,10 +54,10 @@ class OrdenPagoController {
                 'valor_repuestos' => $_POST['valor_repuestos'],
                 'descripcion_repuestos' => $_POST['descripcion_repuestos'],
                 'metodo_pago' => $_POST['metodo_pago'],
-                'saldo' => $_POST['saldo']
+                // 'saldo' => $_POST['saldo'] // El saldo se calculará en el backend
             ];
             // Validación previa de campos numéricos
-            if (!is_numeric($data['orden_id']) || !is_numeric($data['usuario_id']) || !is_numeric($data['costo_total']) || !is_numeric($data['valor_repuestos']) || !is_numeric($data['saldo'])) {
+            if (!is_numeric($data['orden_id']) || !is_numeric($data['usuario_id']) || !is_numeric($data['costo_total']) || !is_numeric($data['valor_repuestos'])) {
                 echo json_encode(['success' => false, 'message' => 'Datos numéricos inválidos o vacíos']);
                 return;
             }
@@ -64,33 +65,26 @@ class OrdenPagoController {
                 echo json_encode(['success' => false, 'message' => 'Debe seleccionar un método de pago']);
                 return;
             }
-            
-            /* VALIDACIONES DESHABILITADAS TEMPORALMENTE
-            // Validación adicional: verificar que la orden existe
-            $db = (new Conexion())->getConexion();
-            $check_orden = $db->prepare("SELECT id FROM ordenes_reparacion WHERE id = ?");
-            $check_orden->bind_param("i", $data['orden_id']);
-            $check_orden->execute();
-            $result = $check_orden->get_result();
-            
-            if ($result->num_rows === 0) {
-                echo json_encode(['success' => false, 'message' => 'La orden especificada no existe (ID: ' . $data['orden_id'] . ')']);
+            // Obtener el costo_total real de la orden desde la base de datos
+            require_once __DIR__ . '/../models/OrdenModel.php';
+            $ordenModel = new OrdenModel();
+            $orden = $ordenModel->obtenerOrdenPorId($data['orden_id']);
+            if (!$orden || !isset($orden['costo_total'])) {
+                echo json_encode(['success' => false, 'message' => 'No se pudo obtener el costo total de la orden.']);
                 return;
             }
-            $check_orden->close();
-            
-            // Validación adicional: verificar que el usuario existe
-            $check_usuario = $db->prepare("SELECT id FROM usuarios WHERE id = ?");
-            $check_usuario->bind_param("i", $data['usuario_id']);
-            $check_usuario->execute();
-            $result_usuario = $check_usuario->get_result();
-            
-            if ($result_usuario->num_rows === 0) {
-                echo json_encode(['success' => false, 'message' => 'El usuario especificado no existe (ID: ' . $data['usuario_id'] . ')']);
-                return;
+            $costo_total_real = floatval($orden['costo_total']);
+            // Calcular saldo real antes de guardar
+            require_once __DIR__ . '/../models/OrdenPagoModel.php';
+            $pagos_anteriores = $this->model->obtenerPagosPorOrden($data['orden_id']);
+            $total_abonado = 0;
+            foreach ($pagos_anteriores as $pago) {
+                $total_abonado += floatval($pago['dinero_recibido']);
             }
-            $check_usuario->close();
-            */
+            $saldo = $costo_total_real - $total_abonado - floatval($data['dinero_recibido']);
+            if ($saldo < 0) $saldo = 0;
+            $data['costo_total'] = $costo_total_real;
+            $data['saldo'] = $saldo;
             $resultado = $this->model->insertarPago($data);
             if ($resultado) {
                 echo json_encode(['success' => true, 'message' => 'Pago registrado correctamente']);

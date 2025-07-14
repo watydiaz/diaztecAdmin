@@ -1346,13 +1346,15 @@ function cargarHistorialPagos(ordenId) {
     })
     .then(text => {
         try {
-            const pagos = JSON.parse(text);
+            const respuesta = JSON.parse(text);
             const historialElement = document.getElementById('historialPagos');
-            
+            let pagos = [];
+            if (respuesta && respuesta.success && Array.isArray(respuesta.pagos)) {
+                pagos = respuesta.pagos;
+            }
             // Calcular totales
             let totalPagado = 0;
             let ultimoSaldo = 0;
-            
             if (pagos.length > 0) {
                 let html = '';
                 pagos.forEach(pago => {
@@ -1360,14 +1362,11 @@ function cargarHistorialPagos(ordenId) {
                     const fechaPago = new Date(pago.fecha_pago);
                     const fechaFormateada = fechaPago.toLocaleDateString('es-CO') + ' ' + 
                                           fechaPago.toLocaleTimeString('es-CO', {hour: '2-digit', minute:'2-digit'});
-                    
                     // Acumular monto pagado
                     totalPagado += parseFloat(pago.dinero_recibido);
                     ultimoSaldo = parseFloat(pago.saldo);
-                    
                     // Método de pago formateado
                     let metodoPago = pago.metodo_pago.charAt(0).toUpperCase() + pago.metodo_pago.slice(1);
-                    
                     html += `
                         <tr>
                             <td>${fechaFormateada}</td>
@@ -1379,15 +1378,12 @@ function cargarHistorialPagos(ordenId) {
                     `;
                 });
                 historialElement.innerHTML = html;
-                
                 // Actualizar resumen financiero
                 document.getElementById('pagosCostoTotal').textContent = parseFloat(pagos[0].costo_total).toLocaleString('es-CO');
                 document.getElementById('pagosMontoPagado').textContent = totalPagado.toLocaleString('es-CO');
                 document.getElementById('pagosSaldoPendiente').textContent = ultimoSaldo.toLocaleString('es-CO');
-                
                 // Pre-llenar valores en el formulario de nuevo pago
                 document.getElementById('costo_total').value = pagos[0].costo_total;
-                // El saldo debe ser el saldo pendiente (último saldo registrado)
                 document.getElementById('saldo').value = ultimoSaldo;
             } else {
                 historialElement.innerHTML = `
@@ -1398,8 +1394,6 @@ function cargarHistorialPagos(ordenId) {
                         </td>
                     </tr>
                 `;
-                
-                // Si no hay pagos, inicializar valores en cero
                 document.getElementById('pagosCostoTotal').textContent = '0.00';
                 document.getElementById('pagosMontoPagado').textContent = '0.00';
                 document.getElementById('pagosSaldoPendiente').textContent = '0.00';
@@ -1496,6 +1490,11 @@ function guardarPago(e) {
                 // Recargar historial de pagos
                 cargarHistorialPagos(document.getElementById('pagoOrdenId').value);
                 
+                // ACTUALIZAR SALDOS EN LA TABLA PRINCIPAL
+                if (typeof cargarSaldosTabla === 'function') {
+                    cargarSaldosTabla();
+                }
+                
                 // Limpiar formulario pero mantener la orden y usuario
                 const ordenId = document.getElementById('pago_orden_id').value;
                 const usuarioId = document.getElementById('pago_usuario_id').value;
@@ -1539,16 +1538,28 @@ function cargarSaldosTabla() {
             .then(respuesta => {
                 let saldoTexto;
                 let claseColor;
-                // Adaptar a la estructura {success, pagos}
-                if (respuesta && respuesta.success && Array.isArray(respuesta.pagos) && respuesta.pagos.length > 0) {
-                    const ultimoSaldo = parseFloat(respuesta.pagos[0].saldo);
-                    if (ultimoSaldo === 0) {
+                if (respuesta && respuesta.success && Array.isArray(respuesta.pagos)) {
+                    let totalAbonado = 0;
+                    let costoTotal = 0;
+                    if (respuesta.pagos.length > 0) {
+                        costoTotal = parseFloat(respuesta.pagos[0].costo_total) || 0;
+                        respuesta.pagos.forEach(pago => {
+                            totalAbonado += parseFloat(pago.dinero_recibido) || 0;
+                        });
+                    }
+                    let saldo = costoTotal - totalAbonado;
+                    if (saldo < 0) saldo = 0;
+                    if (saldo === 0 && costoTotal > 0) {
                         saldoTexto = '<i class="fas fa-check-circle me-1"></i>Pagado';
                         claseColor = 'text-success';
+                    } else if (costoTotal > 0) {
+                        saldoTexto = '$' + saldo.toLocaleString('es-CO');
+                        claseColor = saldo > 0 ? 'text-danger' : 'text-success';
                     } else {
-                        saldoTexto = '$' + ultimoSaldo.toLocaleString('es-CO');
-                        claseColor = ultimoSaldo > 0 ? 'text-danger' : 'text-success';
+                        saldoTexto = '<span class="text-muted">Sin costo</span>';
+                        claseColor = '';
                     }
+                    elemento.innerHTML = `<span class="${claseColor}">${saldoTexto}</span>`;
                 } else {
                     // Si no hay pagos, obtener el costo total de la orden
                     fetch(`index.php?action=obtenerOrden&id=${ordenId}`)
@@ -1568,9 +1579,7 @@ function cargarSaldosTabla() {
                         .catch(() => {
                             elemento.innerHTML = '<span class="text-muted">Error</span>';
                         });
-                    return;
                 }
-                elemento.innerHTML = `<span class="${claseColor}">${saldoTexto}</span>`;
             })
             .catch(error => {
                 console.error('Error al cargar saldo para orden', ordenId, ':', error);
