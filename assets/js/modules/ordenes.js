@@ -1536,13 +1536,12 @@ function cargarSaldosTabla() {
         // Obtener el último saldo de la orden
         fetch(`controllers/OrdenPagoController.php?accion=obtener&orden_id=${ordenId}`)
             .then(response => response.json())
-            .then(pagos => {
+            .then(respuesta => {
                 let saldoTexto;
                 let claseColor;
-                
-                if (pagos && pagos.length > 0) {
-                    const ultimoSaldo = parseFloat(pagos[0].saldo);
-                    
+                // Adaptar a la estructura {success, pagos}
+                if (respuesta && respuesta.success && Array.isArray(respuesta.pagos) && respuesta.pagos.length > 0) {
+                    const ultimoSaldo = parseFloat(respuesta.pagos[0].saldo);
                     if (ultimoSaldo === 0) {
                         saldoTexto = '<i class="fas fa-check-circle me-1"></i>Pagado';
                         claseColor = 'text-success';
@@ -1571,7 +1570,6 @@ function cargarSaldosTabla() {
                         });
                     return;
                 }
-                
                 elemento.innerHTML = `<span class="${claseColor}">${saldoTexto}</span>`;
             })
             .catch(error => {
