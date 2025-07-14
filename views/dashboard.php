@@ -244,7 +244,7 @@
                 </div>
 
                 <!-- Órdenes Entregadas -->
-                <div class="card dashboard-card text-white gradient-secondary">
+                <div class="card dashboard-card text-white" style="background: linear-gradient(45deg, #232526, #4a6fa5);">
                     <div class="card-body">
                         <i class="fas fa-handshake card-icon"></i>
                         <div class="metric-label">Entregadas</div>
